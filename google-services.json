@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "116669879574",
+    "project_id": "routebuddy-651ca",
+    "storage_bucket": "routebuddy-651ca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:116669879574:android:0a5d4db2b184599e19ec37",
+        "android_client_info": {
+          "package_name": "routebuddy.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "116669879574-a20ecj0t9hcgestss3kmjfod9taicp93.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6qHWCGkoBn-YfQwW_Gl_FrjA9qkRlh-Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "116669879574-a20ecj0t9hcgestss3kmjfod9taicp93.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "116669879574-nkhgvr0euirev634uoh19d5098r56psa.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "routebuddyapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
