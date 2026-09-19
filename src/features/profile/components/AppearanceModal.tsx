@@ -29,7 +29,7 @@ export function AppearanceModal({ visible, onClose }: AppearanceModalProps) {
   };
 
   // Determine current active selection for highlighting
-  const isAdaptive = UnistylesRuntime.adaptiveThemes;
+  const isAdaptive = UnistylesRuntime.hasAdaptiveThemes;
   const currentTheme = UnistylesRuntime.themeName;
 
   return (

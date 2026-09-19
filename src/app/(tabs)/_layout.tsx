@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AddActionModal } from "../../src/shared/components/AddActionModal";
+import { AddActionModal } from "../../shared/components/AddActionModal";
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();

@@ -1,8 +1,8 @@
 import { View, ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { getAuthSession } from '../src/features/auth/services/authStorage';
-import { getRefreshToken } from '../src/features/auth/services/authStorage';
+import { getAuthSession } from '../features/auth/services/authStorage';
+import { getRefreshToken } from '../features/auth/services/authStorage';
 
 export default function Index() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
