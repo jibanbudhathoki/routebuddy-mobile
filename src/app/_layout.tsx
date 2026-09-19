@@ -1,12 +1,12 @@
-import '../src/theme/unistyles';
+import '../theme/unistyles';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 
-import { TripCreationProvider } from '../src/features/trip/context/TripCreationContext';
-import { getAuthSession } from '../src/features/auth/services/authStorage';
+import { TripCreationProvider } from '../features/trip/context/TripCreationContext';
+import { getAuthSession } from '../features/auth/services/authStorage';
 
 export default function RootLayout() {
   return (
