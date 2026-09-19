@@ -1,52 +1,48 @@
 import React, { useState } from "react";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { useNavigation } from "@react-navigation/native";
+import { Tabs, useRouter } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { View } from "react-native";
-import { StyleSheet } from "react-native-unistyles";
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AddActionModal } from "../../src/shared/components/AddActionModal";
 
-import { HomeStackNavigator } from "./HomeStackNavigator";
-import { TripScreen } from "../features/trip/screens/TripScreen";
-import { MessageScreen } from "../features/message/screens/MessageScreen";
-import { ProfileStackNavigator } from "./ProfileStackNavigator";
-import { AddActionModal } from "../shared/components/AddActionModal";
-
-const Tab = createBottomTabNavigator();
-
-export function MainTabNavigator() {
+export default function TabLayout() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<any>();
+  const router = useRouter();
   const [isAddModalVisible, setAddModalVisible] = useState(false);
+  const { theme } = useUnistyles();
 
   return (
     <>
-      <Tab.Navigator
+      <Tabs
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: true,
-          tabBarStyle: [
-            styles.tabBar,
-            { height: 60 + insets.bottom, paddingBottom: insets.bottom + 5 },
-          ],
-          tabBarActiveTintColor: "#0B2447",
-          tabBarInactiveTintColor: "#A5B4CB",
+          tabBarStyle: {
+            backgroundColor: theme.colors.surface,
+            borderTopColor: theme.colors.border,
+            paddingTop: 10,
+            height: 60 + insets.bottom,
+            paddingBottom: insets.bottom + 5,
+          },
+          tabBarActiveTintColor: theme.colors.text,
+          tabBarInactiveTintColor: theme.colors.muted,
           tabBarLabelStyle: styles.tabBarLabel,
         }}
       >
-        <Tab.Screen
-          name="Home"
-          component={HomeStackNavigator}
+        <Tabs.Screen
+          name="index"
           options={{
+            title: "Home",
             tabBarIcon: ({ color, size }) => (
               <MaterialCommunityIcons name="home" size={size} color={color} />
             ),
           }}
         />
-        <Tab.Screen
-          name="My Trips"
-          component={TripScreen}
+        <Tabs.Screen
+          name="trips"
           options={{
+            title: "My Trips",
             tabBarIcon: ({ color, size }) => (
               <MaterialCommunityIcons
                 name="briefcase-outline"
@@ -56,28 +52,37 @@ export function MainTabNavigator() {
             ),
           }}
         />
-        <Tab.Screen
-          name="Add"
-          component={() => null}
+        <Tabs.Screen
+          name="add"
           options={{
+            title: "Add",
             tabBarLabel: () => null,
             tabBarIcon: () => (
-              <View style={styles.addButton}>
-                <MaterialCommunityIcons name="plus" size={32} color="#FFFFFF" />
+              <View
+                style={[
+                  styles.addButton,
+                  { backgroundColor: theme.colors.primary },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="plus"
+                  size={32}
+                  color={theme.colors.onPrimary}
+                />
               </View>
             ),
           }}
-          listeners={({ navigation }) => ({
+          listeners={{
             tabPress: (e) => {
               e.preventDefault();
               setAddModalVisible(true);
             },
-          })}
+          }}
         />
-        <Tab.Screen
-          name="Messages"
-          component={MessageScreen}
+        <Tabs.Screen
+          name="messages"
           options={{
+            title: "Messages",
             tabBarIcon: ({ color, size }) => (
               <MaterialCommunityIcons
                 name="message-outline"
@@ -87,10 +92,10 @@ export function MainTabNavigator() {
             ),
           }}
         />
-        <Tab.Screen
-          name="Profile"
-          component={ProfileStackNavigator}
+        <Tabs.Screen
+          name="profile"
           options={{
+            title: "Profile",
             tabBarIcon: ({ color, size }) => (
               <MaterialCommunityIcons
                 name="account-outline"
@@ -100,17 +105,22 @@ export function MainTabNavigator() {
             ),
           }}
         />
-      </Tab.Navigator>
+        <Tabs.Screen
+          name="post-trip"
+          options={{
+            href: null,
+          }}
+        />
+      </Tabs>
       <AddActionModal
         visible={isAddModalVisible}
         onClose={() => setAddModalVisible(false)}
         onPostTrip={() => {
           setAddModalVisible(false);
-          navigation.navigate("Home", { screen: "PostTrip" });
+          router.push("/(tabs)/post-trip");
         }}
         onPostRequest={() => {
           setAddModalVisible(false);
-          // Navigation or logic for posting a request
         }}
       />
     </>

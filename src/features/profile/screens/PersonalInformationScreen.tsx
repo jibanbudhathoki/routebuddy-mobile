@@ -10,7 +10,7 @@ import { Image } from "expo-image";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { FormInput } from "../../../shared/components/FormInput";
@@ -25,7 +25,7 @@ const personalInfoSchema = z.object({
 });
 
 export function PersonalInformationScreen() {
-  const navigation = useNavigation();
+  const router = useRouter();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -73,7 +73,7 @@ export function PersonalInformationScreen() {
 
     setIsSaving(false);
     if (success) {
-      navigation.goBack();
+      router.back();
     } else {
       // In a real app, show a toast or alert here
     }
@@ -89,7 +89,7 @@ export function PersonalInformationScreen() {
           <TouchableOpacity
             style={styles.backButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            onPress={() => navigation.goBack()}
+            onPress={() => router.back()}
           >
             <MaterialCommunityIcons
               name="arrow-left"

@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 
 const TIMES = [
@@ -19,7 +19,7 @@ import { useTripCreation } from "../context/TripCreationContext";
 
 export function OrderCutOffScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const router = useRouter();
   const { theme } = useUnistyles();
   const { updateTripData } = useTripCreation();
   
@@ -32,17 +32,17 @@ export function OrderCutOffScreen() {
     mockDate.setHours(mockDate.getHours() + hoursToAdd);
     
     updateTripData({ orderCutoffAt: mockDate.toISOString() });
-    navigation.goBack();
+    router.back();
   };
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Ordering Cut-Off</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name="close" size={28} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>

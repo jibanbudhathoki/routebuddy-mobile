@@ -5,28 +5,34 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
+  ActionSheetIOS,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useRouter } from "expo-router";
 import { ProfileHeader } from "../components/ProfileHeader";
 import { ProfileSection } from "../components/ProfileSection";
 import { ProfileMenuItem } from "../components/ProfileMenuItem";
 import { clearAuthSession } from "../../auth/services/authStorage";
-import type { ProfileStackParamList } from "../../../navigation/ProfileStackNavigator";
 import { useProfile } from "../hooks/useProfile";
+import { UnistylesRuntime } from "react-native-unistyles";
+
+import { AppearanceModal } from "../components/AppearanceModal";
 
 export function ProfileScreen() {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
+  const router = useRouter();
   const { profile, isLoading } = useProfile();
   const { theme } = useUnistyles();
+  const [isAppearanceModalVisible, setAppearanceModalVisible] = useState(false);
 
   const handleLogout = async () => {
     await clearAuthSession();
     alert("Logged out! Please restart the app.");
+  };
+
+  const handleAppearancePress = () => {
+    setAppearanceModalVisible(true);
   };
 
   if (isLoading) {
@@ -76,7 +82,7 @@ export function ProfileScreen() {
             iconName="account-outline"
             title="Personal Information"
             subtitle="Name, email, phone"
-            onPress={() => navigation.navigate("PersonalInformation")}
+            onPress={() => router.push("/(modals)/personal-information")}
           />
           <ProfileMenuItem
             iconName="account-group-outline"
@@ -110,6 +116,7 @@ export function ProfileScreen() {
             iconName="brightness-6"
             title="Appearance"
             subtitle="Light/dark mode"
+            onPress={handleAppearancePress}
           />
           <ProfileMenuItem
             iconName="bell-outline"
@@ -148,6 +155,11 @@ export function ProfileScreen() {
           />
         </ProfileSection>
       </ScrollView>
+
+      <AppearanceModal 
+        visible={isAppearanceModalVisible}
+        onClose={() => setAppearanceModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }

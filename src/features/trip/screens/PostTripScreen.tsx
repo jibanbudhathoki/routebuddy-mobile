@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 
 interface ListItemProps {
@@ -89,7 +89,7 @@ import { useTripCreation } from "../context/TripCreationContext";
 
 export function PostTripScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<any>();
+  const router = useRouter();
   const { theme } = useUnistyles();
   const { tripData, updateTripData } = useTripCreation();
 
@@ -110,16 +110,11 @@ export function PostTripScreen() {
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
-      ]}
-    >
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => router.back()}
         >
           <MaterialCommunityIcons
             name="chevron-left"
@@ -130,7 +125,7 @@ export function PostTripScreen() {
         <Text style={styles.headerTitle}>Post a Trip</Text>
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => router.back()}
         >
           <MaterialCommunityIcons
             name="close"
@@ -169,7 +164,7 @@ export function PostTripScreen() {
               ? `${tripData.stores.length} Selected`
               : undefined
           }
-          onPress={() => navigation.navigate("SelectStore")}
+          onPress={() => router.push("/(modals)/select-store")}
         />
 
         <ListItem
@@ -177,7 +172,7 @@ export function PostTripScreen() {
           title="Ordering Cut-off"
           subtitle="The last time requests can be placed"
           rightText={formatDate(tripData.orderCutoffAt)}
-          onPress={() => navigation.navigate("OrderCutOff")}
+          onPress={() => router.push("/(modals)/order-cutoff")}
         />
 
         <ListItem
@@ -186,7 +181,7 @@ export function PostTripScreen() {
           subtitle="When you'll be leaving"
           rightText={formatDate(tripData.departureAt) || "Select date"}
           rightIcon="calendar-blank-outline"
-          onPress={() => navigation.navigate("DayOfDeparture")}
+          onPress={() => router.push("/(modals)/day-of-departure")}
         />
 
         <ListItem
@@ -195,16 +190,19 @@ export function PostTripScreen() {
           subtitle="The latest you can deliver"
           rightText={formatDate(tripData.deliveryLatestBy) || "Select date"}
           rightIcon="calendar-blank-outline"
-          onPress={() => navigation.navigate("LatestDeliveryTime")}
+          onPress={() => router.push("/(modals)/latest-delivery-time")}
         />
 
         <ListItem
           icon="map-marker-outline"
           title="From"
           subtitle="Starting city"
-          rightText={tripData.originCityUid ? "Selected" : undefined}
+          rightText={tripData.originCityName || undefined}
           onPress={() =>
-            navigation.navigate("LocationSearch", { type: "From" })
+            router.push({
+              pathname: "/(modals)/location-search",
+              params: { type: "From" },
+            })
           }
         />
 
@@ -212,9 +210,12 @@ export function PostTripScreen() {
           icon="map-marker-outline"
           title="To"
           subtitle="Destination city"
-          rightText={tripData.destinationCityUid ? "Selected" : undefined}
+          rightText={tripData.destinationCityName || undefined}
           onPress={() =>
-            navigation.navigate("LocationSearch", { type: "To" })
+            router.push({
+              pathname: "/(modals)/location-search",
+              params: { type: "To" },
+            })
           }
         />
 
@@ -245,7 +246,7 @@ export function PostTripScreen() {
       <View style={styles.footer}>
         <PrimaryButton
           title="Continue"
-          onPress={() => navigation.navigate("ReviewTrip")}
+          onPress={() => router.push("/(modals)/review-trip")}
         />
       </View>
     </View>
@@ -392,6 +393,7 @@ const styles = StyleSheet.create((theme) => ({
   footer: {
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.md,
     backgroundColor: theme.colors.surface,
   },
 }));

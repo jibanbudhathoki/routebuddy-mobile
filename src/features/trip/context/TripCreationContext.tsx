@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { CreateTripRequest } from '../types/trip';
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import type { CreateTripRequest } from "../types/trip";
 
 interface TripCreationContextType {
   tripData: Partial<CreateTripRequest>;
@@ -7,14 +7,15 @@ interface TripCreationContextType {
   resetTripData: () => void;
 }
 
-const TripCreationContext = createContext<TripCreationContextType | undefined>(undefined);
+const TripCreationContext = createContext<TripCreationContextType | undefined>(
+  undefined,
+);
 
 export function TripCreationProvider({ children }: { children: ReactNode }) {
-  // Default values to prevent undefined errors in UI
   const [tripData, setTripData] = useState<Partial<CreateTripRequest>>({
-    capacity: 5, // Default number of orders allowed
+    capacity: 1,
     stores: [],
-    notes: '',
+    notes: "",
   });
 
   const updateTripData = (newData: Partial<CreateTripRequest>) => {
@@ -23,14 +24,16 @@ export function TripCreationProvider({ children }: { children: ReactNode }) {
 
   const resetTripData = () => {
     setTripData({
-      capacity: 5,
+      capacity: 1,
       stores: [],
-      notes: '',
+      notes: "",
     });
   };
 
   return (
-    <TripCreationContext.Provider value={{ tripData, updateTripData, resetTripData }}>
+    <TripCreationContext.Provider
+      value={{ tripData, updateTripData, resetTripData }}
+    >
       {children}
     </TripCreationContext.Provider>
   );
@@ -39,7 +42,9 @@ export function TripCreationProvider({ children }: { children: ReactNode }) {
 export function useTripCreation() {
   const context = useContext(TripCreationContext);
   if (context === undefined) {
-    throw new Error('useTripCreation must be used within a TripCreationProvider');
+    throw new Error(
+      "useTripCreation must be used within a TripCreationProvider",
+    );
   }
   return context;
 }
