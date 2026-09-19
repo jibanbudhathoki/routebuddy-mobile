@@ -31,9 +31,12 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
-#google
+# Firebase config files
+google-services.json
+GoogleService-Info.plist
 .GoogleService-Info.plist
 .google-services.json
 
