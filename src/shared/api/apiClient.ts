@@ -20,7 +20,7 @@ type ApiRequestOptions = Omit<AxiosRequestConfig, 'baseURL' | 'data' | 'headers'
   timeoutMs?: number;
 };
 
-import { getAccessToken } from '../../features/auth/services/authStorage';
+import { getAccessToken, getAuthSession, saveAuthSession } from '../../features/auth/services/authStorage';
 
 const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '');
 const defaultTimeoutMs = 15_000;
@@ -40,6 +40,94 @@ apiClient.interceptors.request.use(async (config) => {
   }
   return config;
 });
+
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (value?: unknown) => void; reject: (reason?: any) => void }> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise(function (resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return apiClient(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const session = await getAuthSession();
+        if (!session?.refreshToken) {
+          throw new Error("No refresh token available");
+        }
+
+        // Import the JSON file directly to read the API key
+        const googleServices = require('../../../google-services.json');
+        const apiKey = googleServices.client[0].api_key[0].current_key;
+
+        if (!apiKey) {
+          throw new Error("Could not find API key in google-services.json");
+        }
+
+        // Call Firebase REST API directly using the key from google-services.json
+        const refreshResponse = await axios.post(
+          `https://securetoken.googleapis.com/v1/token?key=${apiKey}`,
+          {
+            grant_type: 'refresh_token',
+            refresh_token: session.refreshToken,
+          }
+        );
+
+        const newAccessToken = refreshResponse.data.id_token;
+        const newRefreshToken = refreshResponse.data.refresh_token;
+
+        // Save new session
+        await saveAuthSession({
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
+          user: session.user,
+        });
+
+        processQueue(null, newAccessToken);
+        
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        // Note: The user requested to stay logged in until manual logout,
+        // so we don't automatically clear the session here even if refresh fails.
+        // It will just throw the error to the UI.
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export async function apiRequest<T>(
   path: string,
