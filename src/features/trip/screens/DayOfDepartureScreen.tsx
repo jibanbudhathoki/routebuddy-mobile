@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 import { useTripCreation } from "../context/TripCreationContext";
 
@@ -41,7 +41,7 @@ function generateCalendar(year: number, month: number) {
 
 export function DayOfDepartureScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const router = useRouter();
   const { theme } = useUnistyles();
   const { updateTripData } = useTripCreation();
 
@@ -53,7 +53,7 @@ export function DayOfDepartureScreen() {
     if (selectedDate) {
       updateTripData({ departureAt: selectedDate.toISOString() });
     }
-    navigation.goBack();
+    router.back();
   };
 
   const handlePrevMonth = () => {
@@ -85,7 +85,7 @@ export function DayOfDepartureScreen() {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => router.back()}
         >
           <MaterialCommunityIcons
             name="chevron-left"
@@ -96,7 +96,7 @@ export function DayOfDepartureScreen() {
         <Text style={styles.headerTitle}>Day of Departure</Text>
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => router.back()}
         >
           <MaterialCommunityIcons
             name="close"

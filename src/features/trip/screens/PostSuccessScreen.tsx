@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 
 interface SummaryRowProps {
@@ -28,7 +28,7 @@ function SummaryRow({ icon, label, value }: SummaryRowProps) {
 
 export function PostSuccessScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const router = useRouter();
   const { theme } = useUnistyles();
 
   return (
@@ -112,14 +112,14 @@ export function PostSuccessScreen() {
           title="View My Trips" 
           onPress={() => {
             // Navigate to My Trips tab
-            navigation.navigate("My Trips" as never);
+            router.push("My Trips" as never);
           }} 
         />
         <TouchableOpacity 
           style={styles.outlineButton} 
           onPress={() => {
             // Reset to HomeMain
-            navigation.navigate("HomeMain" as never);
+            router.push("HomeMain" as never);
           }}
         >
           <Text style={styles.outlineButtonText}>Back to Home</Text>

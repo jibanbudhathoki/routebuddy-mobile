@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 
 interface SummaryRowProps {
@@ -36,7 +36,7 @@ import { CreateTripRequest } from "../types/trip";
 
 export function ReviewTripScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const router = useRouter();
   const { theme } = useUnistyles();
   const { tripData } = useTripCreation();
   const { createTrip, isLoading, error } = useCreateTrip();
@@ -55,13 +55,13 @@ export function ReviewTripScreen() {
       departureAt: tripData.departureAt || new Date().toISOString(),
       orderCutoffAt: tripData.orderCutoffAt || new Date().toISOString(),
       deliveryLatestBy: tripData.deliveryLatestBy || new Date().toISOString(),
-      capacity: tripData.capacity || 5,
+      capacity: tripData.capacity || 1,
       notes: tripData.notes || "",
     };
 
     const result = await createTrip(payload);
     if (result.success) {
-      navigation.navigate("PostSuccess" as never);
+      router.push("/(modals)/post-success" as never);
     } else {
       alert(result.error);
     }
@@ -75,11 +75,11 @@ export function ReviewTripScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Review Trip</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate("HomeMain" as never)}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => router.push("HomeMain" as never)}>
           <MaterialCommunityIcons name="close" size={28} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>
@@ -96,9 +96,9 @@ export function ReviewTripScreen() {
 
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardHeaderLocation}>{tripData.originCityUid || "Not set"}</Text>
+            <Text style={styles.cardHeaderLocation}>{tripData.originCityName || "Not set"}</Text>
             <MaterialCommunityIcons name="arrow-right" size={20} color={theme.colors.muted} style={styles.cardHeaderIcon} />
-            <Text style={styles.cardHeaderLocation}>{tripData.destinationCityUid || "Not set"}</Text>
+            <Text style={styles.cardHeaderLocation}>{tripData.destinationCityName || "Not set"}</Text>
           </View>
 
           <SummaryRow 
@@ -127,12 +127,12 @@ export function ReviewTripScreen() {
           <SummaryRow 
             icon="map-marker-outline" 
             label="From" 
-            value={tripData.originCityUid || "Not set"} 
+            value={tripData.originCityName || "Not set"} 
           />
           <SummaryRow 
             icon="map-marker-outline" 
             label="To" 
-            value={tripData.destinationCityUid || "Not set"} 
+            value={tripData.destinationCityName || "Not set"} 
           />
           <SummaryRow 
             icon="account-group-outline" 
@@ -169,7 +169,7 @@ export function ReviewTripScreen() {
           onPress={handlePostTrip} 
           disabled={isLoading}
         />
-        <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.goBack()} disabled={isLoading}>
+        <TouchableOpacity style={styles.secondaryButton} onPress={() => router.back()} disabled={isLoading}>
           <Text style={styles.secondaryButtonText}>Go Back and Edit</Text>
         </TouchableOpacity>
       </View>

@@ -1,6 +1,8 @@
 export interface CreateTripRequest {
   originCityUid: string;
+  originCityName?: string;
   destinationCityUid: string;
+  destinationCityName?: string;
   stores: string[];
   departureAt: string;
   orderCutoffAt: string;

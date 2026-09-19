@@ -116,9 +116,6 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        // Note: The user requested to stay logged in until manual logout,
-        // so we don't automatically clear the session here even if refresh fails.
-        // It will just throw the error to the UI.
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

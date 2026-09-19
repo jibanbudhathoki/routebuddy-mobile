@@ -3,25 +3,20 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator 
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 
 import { useTripCreation } from "../context/TripCreationContext";
 import { useCities } from "../../../shared/city/hooks/useCities";
-type ParamList = {
-  LocationSearch: {
-    type: "From" | "To";
-  };
-};
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 export function LocationSearchScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
-  const route = useRoute<RouteProp<ParamList, "LocationSearch">>();
+  const router = useRouter();
+  const params = useLocalSearchParams<{ type: "From" | "To" }>();
   const { theme } = useUnistyles();
   const { tripData, updateTripData } = useTripCreation();
   
-  const type = route.params?.type || "From";
+  const type = params.type || "From";
   const isFrom = type === "From";
   
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,11 +40,11 @@ export function LocationSearchScreen() {
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{type}</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name="close" size={28} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>
@@ -119,13 +114,17 @@ export function LocationSearchScreen() {
           title="Continue" 
           onPress={() => {
             if (selectedCity) {
+              const city = cities.find(c => c.uid === selectedCity);
+              const cityName = city?.province?.name 
+                ? `${city.name}, ${city.province.name}` 
+                : city?.name || '';
               if (isFrom) {
-                updateTripData({ originCityUid: selectedCity });
+                updateTripData({ originCityUid: selectedCity, originCityName: cityName });
               } else {
-                updateTripData({ destinationCityUid: selectedCity });
+                updateTripData({ destinationCityUid: selectedCity, destinationCityName: cityName });
               }
             }
-            navigation.goBack();
+            router.back();
           }} 
         />
       </View>

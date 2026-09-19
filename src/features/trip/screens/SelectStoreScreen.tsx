@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 
 import { ActivityIndicator } from "react-native";
@@ -13,7 +13,7 @@ import { useTripCreation } from "../context/TripCreationContext";
 
 export function SelectStoreScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const router = useRouter();
   const { theme } = useUnistyles();
   
   const { tripData, updateTripData } = useTripCreation();
@@ -29,11 +29,11 @@ export function SelectStoreScreen() {
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Store(s)</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name="close" size={28} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>
@@ -95,7 +95,7 @@ export function SelectStoreScreen() {
           title={selectedStores.length > 0 ? `Done (${selectedStores.length} Selected)` : "Done"} 
           onPress={() => {
             updateTripData({ stores: selectedStores });
-            navigation.goBack();
+            router.back();
           }} 
         />
       </View>
