@@ -45,3 +45,6 @@ GoogleService-Info.plist
 # generated native folders
 /ios
 /android
+
+# Notes
+api-endpoints-app.md
