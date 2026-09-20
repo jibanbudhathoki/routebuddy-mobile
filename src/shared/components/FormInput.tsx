@@ -3,24 +3,31 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { useState } from 'react';
 
+import { StyleProp, ViewStyle, TextStyle } from 'react-native';
+
 interface FormInputProps extends TextInputProps {
   label?: string;
   icon?: keyof typeof MaterialCommunityIcons.glyphMap;
   error?: string;
+  containerStyle?: StyleProp<ViewStyle>;
+  inputContainerStyle?: StyleProp<ViewStyle>;
+  inputStyle?: StyleProp<TextStyle>;
 }
 
-export function FormInput({ label, icon, error, ...props }: FormInputProps) {
+export function FormInput({ label, icon, error, containerStyle, inputContainerStyle, inputStyle, ...props }: FormInputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const { theme } = useUnistyles();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
       <View style={[
         styles.inputContainer,
+        props.multiline && styles.inputContainerMultiline,
         isFocused && styles.inputContainerFocused,
         error ? styles.inputContainerError : null,
-        props.editable === false && styles.inputContainerDisabled
+        props.editable === false && styles.inputContainerDisabled,
+        inputContainerStyle
       ]}>
         {icon && (
           <MaterialCommunityIcons 
@@ -31,7 +38,7 @@ export function FormInput({ label, icon, error, ...props }: FormInputProps) {
           />
         )}
         <TextInput
-          style={styles.input}
+          style={[styles.input, props.multiline && styles.inputMultiline, inputStyle]}
           placeholderTextColor={theme.colors.muted}
           onFocus={(e) => {
             setIsFocused(true);
@@ -66,8 +73,12 @@ const styles = StyleSheet.create((theme) => ({
     borderWidth: 1,
     borderColor: theme.colors.border,
     borderRadius: 12,
-    height: 56,
+    minHeight: 56,
     paddingHorizontal: 16,
+  },
+  inputContainerMultiline: {
+    alignItems: 'flex-start',
+    paddingVertical: 16,
   },
   inputContainerFocused: {
     borderColor: theme.colors.primary,
@@ -86,6 +97,11 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     fontSize: 16,
     color: theme.colors.text,
+  },
+  inputMultiline: {
+    textAlignVertical: 'top',
+    minHeight: 80,
+    marginTop: -4,
   },
   errorText: {
     color: theme.colors.error,

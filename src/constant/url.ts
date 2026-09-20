@@ -7,4 +7,4 @@ export const apiEndpoints = {
 	trips: '/v1/trips',
 	stores: '/v1/stores',
 	cities: '/v1/cities',
-} as const; 
+} as const;

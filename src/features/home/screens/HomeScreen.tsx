@@ -31,7 +31,7 @@ export function HomeScreen() {
 
 const styles = StyleSheet.create((theme) => ({
   eyebrow: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 1.4,

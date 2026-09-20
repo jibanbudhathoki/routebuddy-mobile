@@ -44,7 +44,7 @@ export function ListItem({
         <MaterialCommunityIcons
           name={icon}
           size={28}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
         <View style={styles.listItemTextContainer}>
           <Text style={styles.listItemTitle}>{title}</Text>
@@ -54,18 +54,18 @@ export function ListItem({
       {isCounter ? (
         <View style={styles.counterContainer}>
           <TouchableOpacity style={styles.counterButton} onPress={onDecrement}>
-            <MaterialCommunityIcons
-              name="minus"
-              size={20}
-              color={theme.colors.primary}
-            />
+              <MaterialCommunityIcons
+                name="minus"
+                size={20}
+                color={theme.colors.text}
+              />
           </TouchableOpacity>
           <Text style={styles.counterText}>{counterValue}</Text>
           <TouchableOpacity style={styles.counterButton} onPress={onIncrement}>
             <MaterialCommunityIcons
               name="plus"
               size={20}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
           </TouchableOpacity>
         </View>
@@ -80,7 +80,7 @@ export function ListItem({
             <MaterialCommunityIcons
               name={rightIcon}
               size={24}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
           )}
         </View>
@@ -122,7 +122,7 @@ const styles = StyleSheet.create((theme) => ({
   listItemTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     marginBottom: 4,
   },
   listItemSubtitle: {
@@ -136,7 +136,7 @@ const styles = StyleSheet.create((theme) => ({
   listItemRightText: {
     fontSize: 14,
     fontWeight: "600",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     marginRight: theme.spacing.xs,
   },
   counterContainer: {
@@ -154,7 +154,7 @@ const styles = StyleSheet.create((theme) => ({
   counterText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: theme.colors.primary,
-    marginHorizontal: theme.spacing.md,
+    color: theme.colors.text,
+    marginHorizontal: theme.spacing.sm,
   },
 }));

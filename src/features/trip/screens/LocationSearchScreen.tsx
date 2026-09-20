@@ -41,11 +41,11 @@ export function LocationSearchScreen() {
     <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-          <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.primary} />
+          <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{type}</Text>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-          <MaterialCommunityIcons name="close" size={28} color={theme.colors.primary} />
+          <MaterialCommunityIcons name="close" size={28} color={theme.colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -73,7 +73,7 @@ export function LocationSearchScreen() {
         <Text style={styles.recentLabel}>Recent</Text>
 
         {isLoading ? (
-          <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: 20 }} />
+          <ActivityIndicator size="large" color={theme.colors.text} style={{ marginTop: 20 }} />
         ) : (
           <View style={styles.listContainer}>
             {cities.map((city) => {
@@ -95,7 +95,7 @@ export function LocationSearchScreen() {
                   <MaterialCommunityIcons 
                     name="chevron-right" 
                     size={24} 
-                    color={theme.colors.primary} 
+                    color={theme.colors.text} 
                   />
                 </TouchableOpacity>
               );
@@ -150,7 +150,7 @@ const styles = StyleSheet.create((theme) => ({
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   scrollContent: {
     paddingHorizontal: theme.spacing.lg,
@@ -163,7 +163,7 @@ const styles = StyleSheet.create((theme) => ({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     marginBottom: theme.spacing.xs,
   },
   subtitle: {
@@ -185,7 +185,7 @@ const styles = StyleSheet.create((theme) => ({
     height: "100%",
     marginLeft: theme.spacing.sm,
     fontSize: 16,
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   recentLabel: {
     fontSize: 14,
@@ -214,10 +214,10 @@ const styles = StyleSheet.create((theme) => ({
   cityText: {
     fontSize: 16,
     fontWeight: "600",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   cityTextSelected: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   footer: {
     paddingHorizontal: theme.spacing.lg,

@@ -50,7 +50,7 @@ export function AddActionModal({
                   <MaterialCommunityIcons
                     name="car"
                     size={32}
-                    color={theme.colors.primary}
+                    color={theme.colors.text}
                   />
                 </View>
                 <View style={styles.cardTextContainer}>
@@ -79,7 +79,7 @@ export function AddActionModal({
                   <MaterialCommunityIcons
                     name="shopping-outline"
                     size={32}
-                    color={theme.colors.primary}
+                    color={theme.colors.text}
                   />
                 </View>
                 <View style={styles.cardTextContainer}>
@@ -100,7 +100,7 @@ export function AddActionModal({
                   <MaterialCommunityIcons
                     name="close"
                     size={24}
-                    color={theme.colors.primary}
+                    color={theme.colors.text}
                   />
                 </TouchableOpacity>
                 <Text style={styles.cancelText}>Cancel</Text>
@@ -186,6 +186,6 @@ const styles = StyleSheet.create((theme) => ({
   cancelText: {
     fontSize: 14,
     fontWeight: "600",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
 }));

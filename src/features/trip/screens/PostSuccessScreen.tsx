@@ -21,7 +21,7 @@ function SummaryRow({ icon, label, value }: SummaryRowProps) {
         <MaterialCommunityIcons
           name={icon}
           size={20}
-          color={theme.colors.primary}
+          color={theme.colors.text}
           style={styles.summaryIcon}
         />
         <Text style={styles.summaryLabel}>{label}</Text>
@@ -169,7 +169,7 @@ export function PostSuccessScreen() {
           <MaterialCommunityIcons
             name="information-outline"
             size={24}
-            color={theme.colors.primary}
+            color={theme.colors.text}
             style={styles.infoIcon}
           />
           <View style={styles.infoTextContainer}>
@@ -239,7 +239,7 @@ const styles = StyleSheet.create((theme) => ({
   title: {
     fontSize: 26,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     textAlign: "center",
     marginBottom: theme.spacing.sm,
     lineHeight: 34,
@@ -266,7 +266,7 @@ const styles = StyleSheet.create((theme) => ({
   cardHeaderLocation: {
     fontSize: 18,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   cardHeaderIcon: {
     marginHorizontal: theme.spacing.sm,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   summaryValue: {
     fontSize: 14,
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontWeight: "600",
     textAlign: "right",
   },
@@ -317,12 +317,12 @@ const styles = StyleSheet.create((theme) => ({
   infoTitle: {
     fontSize: 14,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     marginBottom: 4,
   },
   infoText: {
     fontSize: 14,
-    color: theme.colors.primary,
+    color: theme.colors.text,
     lineHeight: 20,
   },
   footer: {
@@ -342,6 +342,6 @@ const styles = StyleSheet.create((theme) => ({
   outlineButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
 }));

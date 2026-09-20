@@ -68,7 +68,7 @@ const styles = StyleSheet.create((theme) => ({
     ...(variant === 'curved' ? { transform: [{ scaleX: 0.85 }] } : {}),
   }),
   brandName: (variant: 'curved' | 'flat') => ({
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 34,
     fontStyle: 'italic',
     fontWeight: '800',
@@ -90,7 +90,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 24,
   },
   tagline: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 1.1,

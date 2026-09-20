@@ -220,7 +220,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: theme.spacing.lg,
   },
   title: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 26,
     fontWeight: "700",
   },
@@ -243,7 +243,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   forgotPassword: {
     alignSelf: "flex-end",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "600",
     marginTop: -8,
@@ -289,7 +289,7 @@ const styles = StyleSheet.create((theme) => ({
     height: 24,
   },
   socialButtonText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "500",
   },
@@ -298,11 +298,11 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: "center",
   },
   footerText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
   },
   footerLink: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "600",
   },

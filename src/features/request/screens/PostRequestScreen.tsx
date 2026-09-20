@@ -7,30 +7,32 @@ import { useRouter } from "expo-router";
 
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 import { ListItem } from "../../../shared/components/ListItem";
+import { useRequestCreation } from "../context/RequestCreationContext";
 
 export function PostRequestScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useUnistyles();
+  const { requestData } = useRequestCreation();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-          <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.primary} />
+          <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Post a Request</Text>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-          <MaterialCommunityIcons name="close" size={28} color={theme.colors.primary} />
+          <MaterialCommunityIcons name="close" size={28} color={theme.colors.text} />
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.heroSection}>
           <View style={styles.heroIconContainer}>
-            <MaterialCommunityIcons name="cart-outline" size={40} color={theme.colors.primary} />
-            <MaterialCommunityIcons name="tag-outline" size={16} color={theme.colors.primary} style={styles.heroIconBadge1} />
-            <MaterialCommunityIcons name="shopping-outline" size={16} color={theme.colors.primary} style={styles.heroIconBadge2} />
+            <MaterialCommunityIcons name="cart-outline" size={40} color={theme.colors.text} />
+            <MaterialCommunityIcons name="tag-outline" size={16} color={theme.colors.text} style={styles.heroIconBadge1} />
+            <MaterialCommunityIcons name="shopping-outline" size={16} color={theme.colors.text} style={styles.heroIconBadge2} />
           </View>
           <Text style={styles.heroTitle}>Need something delivered?</Text>
           <Text style={styles.heroSubtitle}>Fill in the details below to post your request.</Text>
@@ -39,43 +41,66 @@ export function PostRequestScreen() {
         <ListItem
           icon="storefront-outline"
           title="Store(s)"
-          subtitle="Select the store(s) you want items from"
-          onPress={() => {}}
+          subtitle={
+            requestData.stores && requestData.stores.length > 0
+              ? `${requestData.stores.length} store(s) selected`
+              : "Select the store(s) you want items from"
+          }
+          onPress={() => router.push("/(modals)/request/select-store")}
         />
 
         <ListItem
           icon="clipboard-text-outline"
           title="Items / Instructions"
-          subtitle="Add your list or special instructions"
-          onPress={() => {}}
+          subtitle={
+            requestData.items && requestData.items.length > 0
+              ? `${requestData.items.length} item(s) added`
+              : "Add your list or special instructions"
+          }
+          onPress={() => {
+            if (requestData.items && requestData.items.length > 0) {
+              router.push("/(modals)/request/order-summary");
+            } else {
+              router.push("/(modals)/request/add-items");
+            }
+          }}
         />
 
         <ListItem
           icon="map-marker-outline"
           title="Delivery Location"
-          subtitle="Where items should be delivered"
-          onPress={() => {}}
+          subtitle={
+            requestData.deliveryAddress
+              ? "Address selected"
+              : "Where items should be delivered"
+          }
+          onPress={() => router.push("/(modals)/request/delivery-address")}
         />
 
         <ListItem
           icon="calendar-blank-outline"
           title="Day You Need It"
           subtitle="Select the day you need your items"
-          rightText="Select date"
+          rightText={
+            requestData.dayNeeded
+              ? new Date(requestData.dayNeeded).toLocaleDateString()
+              : "Select date"
+          }
           rightIcon="calendar-blank-outline"
-          onPress={() => {}}
+          onPress={() => router.push("/(modals)/request/select-day")}
         />
 
         <ListItem
           icon="calendar-clock-outline"
           title="Needed By (Latest Delivery)"
-          subtitle="Default is 9:00 PM"
-          rightContent={
-            <View style={styles.lockContainer}>
-              <Text style={styles.lockText}>9:00 PM</Text>
-              <MaterialCommunityIcons name="lock-outline" size={20} color={theme.colors.primary} />
-            </View>
+          subtitle={requestData.latestDeliveryTime ? "Date selected" : "Default is 9:00 PM"}
+          rightText={
+            requestData.latestDeliveryTime
+              ? new Date(requestData.latestDeliveryTime).toLocaleDateString()
+              : "Select date"
           }
+          rightIcon="chevron-right"
+          onPress={() => router.push("/(modals)/request/latest-delivery-time")}
         />
 
         <ListItem
@@ -90,7 +115,7 @@ export function PostRequestScreen() {
         />
 
         <View style={styles.infoBanner}>
-          <MaterialCommunityIcons name="information-outline" size={24} color={theme.colors.primary} style={styles.infoIcon} />
+          <MaterialCommunityIcons name="information-outline" size={24} color={theme.colors.text} style={styles.infoIcon} />
           <Text style={styles.infoText}>
             Drivers will review your request and send you an offer. You can choose the one that works best for you.
           </Text>
@@ -98,7 +123,10 @@ export function PostRequestScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <PrimaryButton title="Continue" onPress={() => {}} />
+        <PrimaryButton 
+          title="Continue" 
+          onPress={() => router.push("/(modals)/request/order-summary")} 
+        />
       </View>
     </View>
   );
@@ -122,7 +150,7 @@ const styles = StyleSheet.create((theme) => ({
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   scrollContent: {
     paddingHorizontal: theme.spacing.lg,
@@ -137,7 +165,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#E6F0FA",
+    backgroundColor: theme.colors.primarySoft,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: theme.spacing.lg,
@@ -155,7 +183,7 @@ const styles = StyleSheet.create((theme) => ({
   heroTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     marginBottom: theme.spacing.xs,
     textAlign: "center",
   },
@@ -171,7 +199,7 @@ const styles = StyleSheet.create((theme) => ({
   lockText: {
     fontSize: 14,
     fontWeight: "600",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     marginRight: theme.spacing.sm,
   },
   badgeContainer: {
@@ -200,7 +228,7 @@ const styles = StyleSheet.create((theme) => ({
   infoText: {
     flex: 1,
     fontSize: 14,
-    color: theme.colors.primary,
+    color: theme.colors.text,
     lineHeight: 20,
     fontWeight: "500",
   },
