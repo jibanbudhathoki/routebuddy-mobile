@@ -14,11 +14,16 @@ interface SummaryRowProps {
 
 function SummaryRow({ icon, label, value }: SummaryRowProps) {
   const { theme } = useUnistyles();
-  
+
   return (
     <View style={styles.summaryRow}>
       <View style={styles.summaryRowLeft}>
-        <MaterialCommunityIcons name={icon} size={20} color={theme.colors.primary} style={styles.summaryIcon} />
+        <MaterialCommunityIcons
+          name={icon}
+          size={20}
+          color={theme.colors.primary}
+          style={styles.summaryIcon}
+        />
         <Text style={styles.summaryLabel}>{label}</Text>
       </View>
       <Text style={styles.summaryValue}>{value}</Text>
@@ -26,97 +31,167 @@ function SummaryRow({ icon, label, value }: SummaryRowProps) {
   );
 }
 
+import { useTripCreation } from "../context/TripCreationContext";
+
 export function PostSuccessScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useUnistyles();
+  const { tripData } = useTripCreation();
+
+  // Helper to format Date string
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "Not set";
+    return new Date(dateStr).toLocaleString([], {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+      ]}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.successSection}>
           <View style={styles.iconContainer}>
-            {/* Simple confetti placeholder using small dots/stars */}
-            <MaterialCommunityIcons name="star-four-points" size={12} color="#0B2447" style={[styles.confetti, { top: -10, left: 20 }]} />
-            <MaterialCommunityIcons name="star-four-points" size={16} color="#2A9D8F" style={[styles.confetti, { top: 10, left: -20 }]} />
-            <MaterialCommunityIcons name="star-four-points" size={10} color="#2A9D8F" style={[styles.confetti, { top: 50, right: -15 }]} />
-            <MaterialCommunityIcons name="star-four-points" size={14} color="#0B2447" style={[styles.confetti, { top: -5, right: 10 }]} />
-            <MaterialCommunityIcons name="star-four-points" size={12} color="#0B2447" style={[styles.confetti, { bottom: -10, right: 25 }]} />
-            
+            <MaterialCommunityIcons
+              name="star-four-points"
+              size={12}
+              color="#0B2447"
+              style={[styles.confetti, { top: -10, left: 20 }]}
+            />
+            <MaterialCommunityIcons
+              name="star-four-points"
+              size={16}
+              color="#2A9D8F"
+              style={[styles.confetti, { top: 10, left: -20 }]}
+            />
+            <MaterialCommunityIcons
+              name="star-four-points"
+              size={10}
+              color="#2A9D8F"
+              style={[styles.confetti, { top: 50, right: -15 }]}
+            />
+            <MaterialCommunityIcons
+              name="star-four-points"
+              size={14}
+              color="#0B2447"
+              style={[styles.confetti, { top: -5, right: 10 }]}
+            />
+            <MaterialCommunityIcons
+              name="star-four-points"
+              size={12}
+              color="#0B2447"
+              style={[styles.confetti, { bottom: -10, right: 25 }]}
+            />
+
             <View style={styles.checkCircle}>
-              <MaterialCommunityIcons name="check-bold" size={40} color="#2A9D8F" />
+              <MaterialCommunityIcons
+                name="check-bold"
+                size={40}
+                color="#2A9D8F"
+              />
             </View>
           </View>
-          
-          <Text style={styles.title}>Your trip has been{"\n"}posted successfully!</Text>
+
+          <Text style={styles.title}>
+            Your trip has been{"\n"}posted successfully!
+          </Text>
           <Text style={styles.subtitle}>
-            Shoppers in your area will see your trip{"\n"}and can start placing requests.
+            Shoppers in your area will see your trip{"\n"}and can start placing
+            requests.
           </Text>
         </View>
 
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardHeaderLocation}>Reston, MB</Text>
-            <MaterialCommunityIcons name="arrow-right" size={20} color={theme.colors.muted} style={styles.cardHeaderIcon} />
-            <Text style={styles.cardHeaderLocation}>Brandon, MB</Text>
+            <Text style={styles.cardHeaderLocation}>
+              {tripData.originCityName || "Origin"}
+            </Text>
+            <MaterialCommunityIcons
+              name="arrow-right"
+              size={20}
+              color={theme.colors.muted}
+              style={styles.cardHeaderIcon}
+            />
+            <Text style={styles.cardHeaderLocation}>
+              {tripData.destinationCityName || "Destination"}
+            </Text>
           </View>
 
-          <SummaryRow 
-            icon="calendar-blank-outline" 
-            label="Date" 
-            value="May 26, 2025" 
+          <SummaryRow
+            icon="calendar-blank-outline"
+            label="Day of Departure"
+            value={formatDate(tripData.departureAt)}
           />
           <View style={styles.divider} />
-          
-          <SummaryRow 
-            icon="clock-outline" 
-            label="Ordering Cut-off" 
-            value="Today, 9:00 AM" 
+
+          <SummaryRow
+            icon="clock-outline"
+            label="Ordering Cut-off"
+            value={formatDate(tripData.orderCutoffAt)}
           />
           <View style={styles.divider} />
-          
-          <SummaryRow 
-            icon="calendar-check-outline" 
-            label="Delivery Latest By" 
-            value="9:00 PM" 
+
+          <SummaryRow
+            icon="calendar-check-outline"
+            label="Delivery Latest By"
+            value={formatDate(tripData.deliveryLatestBy)}
           />
           <View style={styles.divider} />
-          
-          <SummaryRow 
-            icon="shopping-outline" 
-            label="Store(s)" 
-            value="Costco, Superstore" 
+
+          <SummaryRow
+            icon="shopping-outline"
+            label="Store(s)"
+            value={
+              tripData.stores?.length
+                ? `${tripData.stores.length} store(s)`
+                : "None"
+            }
           />
           <View style={styles.divider} />
-          
-          <SummaryRow 
-            icon="account-group-outline" 
-            label="Maximum Number of Orders" 
-            value="3" 
+
+          <SummaryRow
+            icon="account-group-outline"
+            label="Maximum Number of Orders"
+            value={tripData.capacity?.toString() || "1"}
           />
         </View>
 
         <View style={styles.infoBanner}>
-          <MaterialCommunityIcons name="information-outline" size={24} color={theme.colors.primary} style={styles.infoIcon} />
+          <MaterialCommunityIcons
+            name="information-outline"
+            size={24}
+            color={theme.colors.primary}
+            style={styles.infoIcon}
+          />
           <View style={styles.infoTextContainer}>
             <Text style={styles.infoTitle}>What's next?</Text>
             <Text style={styles.infoText}>
-              Once shoppers place requests, you'll be notified and can review them in My Trips.
+              Once shoppers place requests, you'll be notified and can review
+              them in My Trips.
             </Text>
           </View>
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <PrimaryButton 
-          title="View My Trips" 
+        <PrimaryButton
+          title="View My Trips"
           onPress={() => {
             // Navigate to My Trips tab
             router.push("My Trips" as never);
-          }} 
+          }}
         />
-        <TouchableOpacity 
-          style={styles.outlineButton} 
+        <TouchableOpacity
+          style={styles.outlineButton}
           onPress={() => {
             // Reset to HomeMain
             router.push("HomeMain" as never);
@@ -146,7 +221,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   iconContainer: {
     marginBottom: theme.spacing.lg,
-    position: 'relative',
+    position: "relative",
   },
   checkCircle: {
     width: 80,
@@ -159,7 +234,7 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
   },
   confetti: {
-    position: 'absolute',
+    position: "absolute",
   },
   title: {
     fontSize: 26,
