@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Route Buddy Mobile - Agent Instructions
 
 These instructions apply to all work in this repository and will be automatically loaded into the agent's context for every prompt. Always follow these rules.

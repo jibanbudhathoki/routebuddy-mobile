@@ -6,86 +6,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 
-interface ListItemProps {
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
-  title: string;
-  subtitle: string;
-  rightText?: string;
-  rightIcon?: keyof typeof MaterialCommunityIcons.glyphMap;
-  onPress?: () => void;
-  isCounter?: boolean;
-  counterValue?: number;
-  onIncrement?: () => void;
-  onDecrement?: () => void;
-}
-
-function ListItem({
-  icon,
-  title,
-  subtitle,
-  rightText,
-  rightIcon = "chevron-right",
-  onPress,
-  isCounter,
-  counterValue,
-  onIncrement,
-  onDecrement,
-}: ListItemProps) {
-  const { theme } = useUnistyles();
-
-  return (
-    <TouchableOpacity
-      style={styles.listItem}
-      onPress={onPress}
-      activeOpacity={0.7}
-      disabled={!onPress}
-    >
-      <View style={styles.listItemLeft}>
-        <MaterialCommunityIcons
-          name={icon}
-          size={28}
-          color={theme.colors.primary}
-        />
-        <View style={styles.listItemTextContainer}>
-          <Text style={styles.listItemTitle}>{title}</Text>
-          <Text style={styles.listItemSubtitle}>{subtitle}</Text>
-        </View>
-      </View>
-      {isCounter ? (
-        <View style={styles.counterContainer}>
-          <TouchableOpacity style={styles.counterButton} onPress={onDecrement}>
-            <MaterialCommunityIcons
-              name="minus"
-              size={20}
-              color={theme.colors.primary}
-            />
-          </TouchableOpacity>
-          <Text style={styles.counterText}>{counterValue}</Text>
-          <TouchableOpacity style={styles.counterButton} onPress={onIncrement}>
-            <MaterialCommunityIcons
-              name="plus"
-              size={20}
-              color={theme.colors.primary}
-            />
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.listItemRight}>
-          {rightText && (
-            <Text style={styles.listItemRightText}>{rightText}</Text>
-          )}
-          <MaterialCommunityIcons
-            name={rightIcon}
-            size={24}
-            color={theme.colors.primary}
-          />
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-}
+import { ListItem } from "../../../shared/components/ListItem";
 
 import { useTripCreation } from "../context/TripCreationContext";
+
+import { validateTripData } from "../validations/trip";
 
 export function PostTripScreen() {
   const insets = useSafeAreaInsets();
@@ -107,6 +32,16 @@ export function PostTripScreen() {
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return undefined;
     return new Date(dateStr).toLocaleDateString();
+  };
+
+  const handleContinue = () => {
+    const { isValid, error } = validateTripData(tripData);
+
+    if (!isValid) {
+      return alert(error);
+    }
+
+    router.push("/(modals)/review-trip");
   };
 
   return (
@@ -171,7 +106,8 @@ export function PostTripScreen() {
           icon="clipboard-text-outline"
           title="Ordering Cut-off"
           subtitle="The last time requests can be placed"
-          rightText={formatDate(tripData.orderCutoffAt)}
+          rightText={formatDate(tripData.orderCutoffAt) || "Select date"}
+          rightIcon="calendar-blank-outline"
           onPress={() => router.push("/(modals)/order-cutoff")}
         />
 
@@ -244,10 +180,7 @@ export function PostTripScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <PrimaryButton
-          title="Continue"
-          onPress={() => router.push("/(modals)/review-trip")}
-        />
+        <PrimaryButton title="Continue" onPress={handleContinue} />
       </View>
     </View>
   );
@@ -304,73 +237,7 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.muted,
     textAlign: "center",
   },
-  listItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.primarySoft,
-    borderRadius: theme.radius.md,
-    marginBottom: theme.spacing.md,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2.22,
-    elevation: 2,
-  },
-  listItemLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  listItemTextContainer: {
-    marginLeft: theme.spacing.md,
-    flex: 1,
-  },
-  listItemTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: theme.colors.primary,
-    marginBottom: 4,
-  },
-  listItemSubtitle: {
-    fontSize: 14,
-    color: theme.colors.muted,
-  },
-  listItemRight: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  listItemRightText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: theme.colors.primary,
-    marginRight: theme.spacing.xs,
-  },
-  counterContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    padding: theme.spacing.xs,
-  },
-  counterButton: {
-    padding: theme.spacing.xs,
-  },
-  counterText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: theme.colors.primary,
-    marginHorizontal: theme.spacing.md,
-  },
+
   infoBanner: {
     flexDirection: "row",
     backgroundColor: theme.colors.primarySoft,

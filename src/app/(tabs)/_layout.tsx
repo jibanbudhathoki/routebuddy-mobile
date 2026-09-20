@@ -121,6 +121,7 @@ export default function TabLayout() {
         }}
         onPostRequest={() => {
           setAddModalVisible(false);
+          router.push("/(modals)/post-request");
         }}
       />
     </>
