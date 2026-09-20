@@ -111,6 +111,12 @@ export default function TabLayout() {
             href: null,
           }}
         />
+        <Tabs.Screen
+          name="post-request"
+          options={{
+            href: null,
+          }}
+        />
       </Tabs>
       <AddActionModal
         visible={isAddModalVisible}
@@ -121,7 +127,7 @@ export default function TabLayout() {
         }}
         onPostRequest={() => {
           setAddModalVisible(false);
-          router.push("/(modals)/post-request");
+          router.push("/(tabs)/post-request");
         }}
       />
     </>

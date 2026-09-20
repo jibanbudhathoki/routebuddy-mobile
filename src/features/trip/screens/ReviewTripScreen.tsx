@@ -19,7 +19,7 @@ function SummaryRow({ icon, label, value, sublabel }: SummaryRowProps) {
   return (
     <View style={styles.summaryRow}>
       <View style={styles.summaryRowLeft}>
-        <MaterialCommunityIcons name={icon} size={20} color={theme.colors.primary} style={styles.summaryIcon} />
+        <MaterialCommunityIcons name={icon} size={20} color={theme.colors.text} style={styles.summaryIcon} />
         <View>
           <Text style={styles.summaryLabel}>{label}</Text>
           {sublabel && <Text style={styles.summarySublabel}>{sublabel}</Text>}
@@ -61,7 +61,7 @@ export function ReviewTripScreen() {
 
     const result = await createTrip(payload);
     if (result.success) {
-      router.push("/(modals)/post-success" as never);
+      router.push("/(modals)/trip/post-success" as never);
     } else {
       alert(result.error);
     }
@@ -76,11 +76,11 @@ export function ReviewTripScreen() {
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-          <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.primary} />
+          <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Review Trip</Text>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.push("HomeMain" as never)}>
-          <MaterialCommunityIcons name="close" size={28} color={theme.colors.primary} />
+          <MaterialCommunityIcons name="close" size={28} color={theme.colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -143,7 +143,7 @@ export function ReviewTripScreen() {
           
           <View style={styles.summaryRow}>
             <View style={styles.summaryRowLeft}>
-              <MaterialCommunityIcons name="file-document-outline" size={20} color={theme.colors.primary} style={styles.summaryIcon} />
+              <MaterialCommunityIcons name="file-document-outline" size={20} color={theme.colors.text} style={styles.summaryIcon} />
               <Text style={styles.summaryLabel}>Notes to Shoppers (Optional)</Text>
             </View>
             <Text style={[styles.summaryValue, styles.summaryValueMultiline]}>
@@ -153,7 +153,7 @@ export function ReviewTripScreen() {
         </View>
 
         <View style={styles.infoBanner}>
-          <MaterialCommunityIcons name="information-outline" size={24} color={theme.colors.primary} style={styles.infoIcon} />
+          <MaterialCommunityIcons name="information-outline" size={24} color={theme.colors.text} style={styles.infoIcon} />
           <View style={styles.infoTextContainer}>
             <Text style={styles.infoTitle}>Looks good?</Text>
             <Text style={styles.infoText}>
@@ -195,7 +195,7 @@ const styles = StyleSheet.create((theme) => ({
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   scrollContent: {
     paddingHorizontal: theme.spacing.lg,
@@ -208,7 +208,7 @@ const styles = StyleSheet.create((theme) => ({
   title: {
     fontSize: 26,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     marginBottom: theme.spacing.md,
     lineHeight: 34,
   },
@@ -220,7 +220,7 @@ const styles = StyleSheet.create((theme) => ({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
   card: {
@@ -239,7 +239,7 @@ const styles = StyleSheet.create((theme) => ({
   cardHeaderLocation: {
     fontSize: 18,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   cardHeaderIcon: {
     marginHorizontal: theme.spacing.sm,
@@ -272,7 +272,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   summaryValue: {
     fontSize: 14,
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontWeight: "500",
     textAlign: "right",
     marginTop: 3,
@@ -303,12 +303,12 @@ const styles = StyleSheet.create((theme) => ({
   infoTitle: {
     fontSize: 14,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     marginBottom: 4,
   },
   infoText: {
     fontSize: 14,
-    color: theme.colors.primary,
+    color: theme.colors.text,
     lineHeight: 20,
   },
   footer: {
@@ -325,6 +325,6 @@ const styles = StyleSheet.create((theme) => ({
   secondaryButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
 }));

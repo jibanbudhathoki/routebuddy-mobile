@@ -1,17 +1,17 @@
 import React from "react";
 import { useRouter } from "expo-router";
 import { StoreSelectionScreen as SharedStoreSelectionScreen } from "../../../shared/components/StoreSelectionScreen";
-import { useTripCreation } from "../context/TripCreationContext";
+import { useRequestCreation } from "../context/RequestCreationContext";
 
 export function SelectStoreScreen() {
   const router = useRouter();
-  const { tripData, updateTripData } = useTripCreation();
+  const { requestData, updateRequestData } = useRequestCreation();
 
   return (
     <SharedStoreSelectionScreen
-      initialSelectedStores={tripData.stores || []}
+      initialSelectedStores={requestData.stores || []}
       onSave={(selectedStores) => {
-        updateTripData({ stores: selectedStores });
+        updateRequestData({ stores: selectedStores });
         router.back();
       }}
     />

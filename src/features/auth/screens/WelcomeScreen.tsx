@@ -126,12 +126,12 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.primarySoft,
   },
   loginIcon: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 24,
     marginRight: theme.spacing.sm,
   },
   loginLabel: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 17,
     fontWeight: '600',
   },

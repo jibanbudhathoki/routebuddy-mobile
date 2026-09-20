@@ -41,7 +41,7 @@ export function PostTripScreen() {
       return alert(error);
     }
 
-    router.push("/(modals)/review-trip");
+    router.push("/(modals)/trip/review-trip");
   };
 
   return (
@@ -54,7 +54,7 @@ export function PostTripScreen() {
           <MaterialCommunityIcons
             name="chevron-left"
             size={32}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Post a Trip</Text>
@@ -65,7 +65,7 @@ export function PostTripScreen() {
           <MaterialCommunityIcons
             name="close"
             size={28}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
       </View>
@@ -79,7 +79,7 @@ export function PostTripScreen() {
             <MaterialCommunityIcons
               name="car-estate"
               size={48}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
           </View>
           <Text style={styles.heroTitle}>
@@ -99,7 +99,7 @@ export function PostTripScreen() {
               ? `${tripData.stores.length} Selected`
               : undefined
           }
-          onPress={() => router.push("/(modals)/select-store")}
+          onPress={() => router.push("/(modals)/trip/select-store")}
         />
 
         <ListItem
@@ -108,7 +108,7 @@ export function PostTripScreen() {
           subtitle="The last time requests can be placed"
           rightText={formatDate(tripData.orderCutoffAt) || "Select date"}
           rightIcon="calendar-blank-outline"
-          onPress={() => router.push("/(modals)/order-cutoff")}
+          onPress={() => router.push("/(modals)/trip/order-cutoff")}
         />
 
         <ListItem
@@ -117,7 +117,7 @@ export function PostTripScreen() {
           subtitle="When you'll be leaving"
           rightText={formatDate(tripData.departureAt) || "Select date"}
           rightIcon="calendar-blank-outline"
-          onPress={() => router.push("/(modals)/day-of-departure")}
+          onPress={() => router.push("/(modals)/trip/day-of-departure")}
         />
 
         <ListItem
@@ -126,7 +126,7 @@ export function PostTripScreen() {
           subtitle="The latest you can deliver"
           rightText={formatDate(tripData.deliveryLatestBy) || "Select date"}
           rightIcon="calendar-blank-outline"
-          onPress={() => router.push("/(modals)/latest-delivery-time")}
+          onPress={() => router.push("/(modals)/trip/latest-delivery-time")}
         />
 
         <ListItem
@@ -136,7 +136,7 @@ export function PostTripScreen() {
           rightText={tripData.originCityName || undefined}
           onPress={() =>
             router.push({
-              pathname: "/(modals)/location-search",
+              pathname: "/(modals)/trip/location-search",
               params: { type: "From" },
             })
           }
@@ -149,7 +149,7 @@ export function PostTripScreen() {
           rightText={tripData.destinationCityName || undefined}
           onPress={() =>
             router.push({
-              pathname: "/(modals)/location-search",
+              pathname: "/(modals)/trip/location-search",
               params: { type: "To" },
             })
           }
@@ -169,7 +169,7 @@ export function PostTripScreen() {
           <MaterialCommunityIcons
             name="information-outline"
             size={24}
-            color={theme.colors.primary}
+            color={theme.colors.text}
             style={styles.infoIcon}
           />
           <Text style={styles.infoText}>
@@ -204,7 +204,7 @@ const styles = StyleSheet.create((theme) => ({
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   scrollContent: {
     paddingHorizontal: theme.spacing.lg,
@@ -227,7 +227,7 @@ const styles = StyleSheet.create((theme) => ({
   heroTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     textAlign: "center",
     marginBottom: theme.spacing.sm,
     lineHeight: 32,
@@ -253,7 +253,7 @@ const styles = StyleSheet.create((theme) => ({
   infoText: {
     flex: 1,
     fontSize: 14,
-    color: theme.colors.primary,
+    color: theme.colors.text,
     lineHeight: 20,
     fontWeight: "500",
   },

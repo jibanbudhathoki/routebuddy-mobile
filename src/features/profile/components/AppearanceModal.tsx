@@ -54,7 +54,7 @@ export function AppearanceModal({ visible, onClose }: AppearanceModalProps) {
                 <MaterialCommunityIcons
                   name="cellphone-cog"
                   size={24}
-                  color={theme.colors.primary}
+                  color={theme.colors.text}
                   style={styles.icon}
                 />
                 <Text style={styles.optionText}>System Default</Text>
@@ -62,7 +62,7 @@ export function AppearanceModal({ visible, onClose }: AppearanceModalProps) {
                   <MaterialCommunityIcons
                     name="check"
                     size={24}
-                    color={theme.colors.primary}
+                    color={theme.colors.text}
                   />
                 )}
               </TouchableOpacity>
@@ -74,7 +74,7 @@ export function AppearanceModal({ visible, onClose }: AppearanceModalProps) {
                 <MaterialCommunityIcons
                   name="white-balance-sunny"
                   size={24}
-                  color={theme.colors.primary}
+                  color={theme.colors.text}
                   style={styles.icon}
                 />
                 <Text style={styles.optionText}>Light Mode</Text>
@@ -82,7 +82,7 @@ export function AppearanceModal({ visible, onClose }: AppearanceModalProps) {
                   <MaterialCommunityIcons
                     name="check"
                     size={24}
-                    color={theme.colors.primary}
+                    color={theme.colors.text}
                   />
                 )}
               </TouchableOpacity>
@@ -94,7 +94,7 @@ export function AppearanceModal({ visible, onClose }: AppearanceModalProps) {
                 <MaterialCommunityIcons
                   name="weather-night"
                   size={24}
-                  color={theme.colors.primary}
+                  color={theme.colors.text}
                   style={styles.icon}
                 />
                 <Text style={styles.optionText}>Dark Mode</Text>
@@ -102,7 +102,7 @@ export function AppearanceModal({ visible, onClose }: AppearanceModalProps) {
                   <MaterialCommunityIcons
                     name="check"
                     size={24}
-                    color={theme.colors.primary}
+                    color={theme.colors.text}
                   />
                 )}
               </TouchableOpacity>
@@ -112,7 +112,7 @@ export function AppearanceModal({ visible, onClose }: AppearanceModalProps) {
                   <MaterialCommunityIcons
                     name="close"
                     size={24}
-                    color={theme.colors.primary}
+                    color={theme.colors.text}
                   />
                 </TouchableOpacity>
                 <Text style={styles.cancelText}>Cancel</Text>
@@ -187,6 +187,6 @@ const styles = StyleSheet.create((theme) => ({
   cancelText: {
     fontSize: 14,
     fontWeight: "600",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
 }));
