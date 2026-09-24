@@ -6,10 +6,11 @@ export interface RequestItem {
 }
 
 export interface CreateRequestPayload {
-  stores: string[]; // store IDs
-  deliveryAddress: string; 
+  stores: string[];
+  deliveryAddress: string;
+  deliveryCityUid: string;
   itemsInstructions: string;
-  dayNeeded: string; // ISO date string
-  latestDeliveryTime: string; // ISO time string
+  dayNeeded: string;
+  latestDeliveryTime: string;
   items: RequestItem[];
 }

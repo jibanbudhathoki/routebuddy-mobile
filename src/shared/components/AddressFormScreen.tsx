@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, FlatList, ActivityIndicator } from "react-native";
+import { useCities } from "../city/hooks/useCities";
+import { City } from "../city/types/city";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,30 +9,42 @@ import { useRouter } from "expo-router";
 import { PrimaryButton } from "./PrimaryButton";
 import { FormInput } from "./FormInput";
 
-interface AddressFormData {
+export interface AddressFormData {
+  label: string;
   fullName: string;
   address: string;
   aptSuiteUnit: string;
-  city: string;
+  cityName: string;
+  cityUid: string;
+  provinceUid: string;
+  postalCode: string;
   notes: string;
 }
 
 interface AddressFormScreenProps {
   onSave: (data: AddressFormData) => void;
+  isLoading?: boolean;
 }
 
-export function AddressFormScreen({ onSave }: AddressFormScreenProps) {
+export function AddressFormScreen({ onSave, isLoading }: AddressFormScreenProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useUnistyles();
   
   const [formData, setFormData] = useState<AddressFormData>({
+    label: "",
     fullName: "",
     address: "",
     aptSuiteUnit: "",
-    city: "",
+    cityName: "",
+    cityUid: "",
+    provinceUid: "",
+    postalCode: "",
     notes: "",
   });
+
+  const [isCityModalVisible, setCityModalVisible] = useState(false);
+  const { cities, isLoading: isLoadingCities } = useCities();
 
   const updateField = (field: keyof AddressFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -63,6 +77,14 @@ export function AddressFormScreen({ onSave }: AddressFormScreenProps) {
 
         <View style={styles.formSection}>
           <FormInput
+            label="Address Label"
+            icon="label-outline"
+            placeholder="e.g. Home, Work"
+            value={formData.label}
+            onChangeText={(text) => updateField("label", text)}
+          />
+
+          <FormInput
             label="Full Name"
             icon="account-outline"
             placeholder="e.g. John Smith"
@@ -86,24 +108,29 @@ export function AddressFormScreen({ onSave }: AddressFormScreenProps) {
             onChangeText={(text) => updateField("aptSuiteUnit", text)}
           />
 
-          {/* City Selection Dropdown Mock */}
+          {/* City Selection Dropdown */}
           <View style={styles.inputWrapper}>
             <Text style={styles.inputLabel}>City</Text>
             <TouchableOpacity 
               style={styles.dropdownContainer}
               activeOpacity={0.7}
-              onPress={() => {
-                // In the future, this could open a modal or action sheet to select city
-                // For now, let's just toggle some dummy data if needed, or leave it.
-              }}
+              onPress={() => setCityModalVisible(true)}
             >
               <MaterialCommunityIcons name="map-marker-outline" size={20} color={theme.colors.text} style={styles.inputIcon} />
-              <Text style={[styles.dropdownText, !formData.city && styles.dropdownPlaceholder]}>
-                {formData.city || "Select city"}
+              <Text style={[styles.dropdownText, !formData.cityName && styles.dropdownPlaceholder]}>
+                {formData.cityName || "Select city"}
               </Text>
               <MaterialCommunityIcons name="chevron-down" size={24} color={theme.colors.text} style={styles.dropdownChevron} />
             </TouchableOpacity>
           </View>
+
+          <FormInput
+            label="Postal Code"
+            icon="mailbox-outline"
+            placeholder="e.g. M4B 1B3"
+            value={formData.postalCode}
+            onChangeText={(text) => updateField("postalCode", text)}
+          />
 
           {/* Notes for Driver */}
           <View style={styles.textAreaWrapper}>
@@ -128,10 +155,66 @@ export function AddressFormScreen({ onSave }: AddressFormScreenProps) {
         <PrimaryButton 
           title="Save Address" 
           onPress={handleSave} 
-          disabled={!formData.fullName || !formData.address}
+          disabled={!formData.label || !formData.fullName || !formData.address || !formData.postalCode || !formData.cityUid || isLoading}
+          loading={isLoading}
         />
       </View>
+
+      {/* City Selection Modal */}
+      <Modal visible={isCityModalVisible} animationType="slide" presentationStyle="pageSheet">
+        <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? 44 : 20 }]}>
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Select City</Text>
+            <TouchableOpacity style={styles.headerButton} onPress={() => setCityModalVisible(false)}>
+              <MaterialCommunityIcons name="close" size={28} color={theme.colors.text} />
+            </TouchableOpacity>
+          </View>
+          {isLoadingCities ? (
+            <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: theme.spacing.xl }} />
+          ) : (
+            <FlatList
+              data={cities}
+              keyExtractor={(item) => item.uid}
+              contentContainerStyle={{ padding: theme.spacing.md }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.cityItem}
+                  onPress={() => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      cityName: item.name,
+                      cityUid: item.uid,
+                      provinceUid: item.province?.uid || "",
+                    
+  cityItem: {
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  cityNameText: {
+    fontSize: 16,
+    color: theme.colors.text,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  provinceNameText: {
+    fontSize: 14,
+    color: theme.colors.muted,
+  },
+}));
+                    setCityModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.cityNameText}>{item.name}</Text>
+                  {item.province && <Text style={styles.provinceNameText}>{item.province.name}</Text>}
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
+
   );
 }
 
@@ -225,5 +308,21 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.md,
     backgroundColor: theme.colors.surface,
+  },
+
+  cityItem: {
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  cityNameText: {
+    fontSize: 16,
+    color: theme.colors.text,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  provinceNameText: {
+    fontSize: 14,
+    color: theme.colors.muted,
   },
 }));
