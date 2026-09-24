@@ -6,28 +6,17 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 import { useRequestCreation } from "../context/RequestCreationContext";
+import { useAddresses } from "../../../shared/address/hooks/useAddresses";
+import { Address } from "../../../shared/address/types/address";
+import { ActivityIndicator } from "react-native";
 
-// Mock saved addresses
-const SAVED_ADDRESSES = [
-  {
-    id: "address-1",
-    name: "Home",
-    address: "123 Main St\nReston, MB",
-    icon: "home-outline" as const,
-  },
-  {
-    id: "address-2",
-    name: "Cottage",
-    address: "45 Lakeview Rd\nReston, MB",
-    icon: "storefront-outline" as const,
-  },
-  {
-    id: "address-3",
-    name: "Mom's House",
-    address: "678 1st Ave\nVirden, MB",
-    icon: "home-outline" as const,
-  },
-];
+const getAddressIcon = (label: string) => {
+  const lowercaseLabel = label.toLowerCase();
+  if (lowercaseLabel.includes("home")) return "home-outline";
+  if (lowercaseLabel.includes("work") || lowercaseLabel.includes("office"))
+    return "office-building-outline";
+  return "map-marker-outline";
+};
 
 export function DeliveryAddressScreen() {
   const insets = useSafeAreaInsets();
@@ -35,6 +24,7 @@ export function DeliveryAddressScreen() {
   const { theme } = useUnistyles();
 
   const { requestData, updateRequestData } = useRequestCreation();
+  const { addresses, isLoading } = useAddresses();
   const [selectedAddress, setSelectedAddress] = useState<string>(
     requestData.deliveryAddress || "",
   );
@@ -78,48 +68,62 @@ export function DeliveryAddressScreen() {
           <Text style={styles.subtitle}>Use a saved address</Text>
         </View>
 
-        {SAVED_ADDRESSES.map((addr) => {
-          const isSelected = selectedAddress === addr.id;
+        {isLoading ? (
+          <ActivityIndicator
+            size="large"
+            color={theme.colors.primary}
+            style={{ marginVertical: theme.spacing.xl }}
+          />
+        ) : (
+          addresses.map((addr) => {
+            const isSelected = selectedAddress === addr.uid;
+            const formattedAddress = `${addr.line1}${addr.line2 ? `, ${addr.line2}` : ""}\n${addr.city?.name}, ${addr.province?.name}`;
 
-          return (
-            <TouchableOpacity
-              key={addr.id}
-              style={[
-                styles.addressCard,
-                isSelected
-                  ? styles.addressCardSelected
-                  : styles.addressCardUnselected,
-              ]}
-              activeOpacity={0.7}
-              onPress={() => toggleAddress(addr.id)}
-            >
-              <View style={styles.iconContainer}>
-                <MaterialCommunityIcons
-                  name={addr.icon}
-                  size={24}
-                  color={theme.colors.text}
-                />
-              </View>
-
-              <View style={styles.addressInfo}>
-                <Text style={styles.addressNameText}>{addr.name}</Text>
-                <Text style={styles.addressDetailText}>{addr.address}</Text>
-              </View>
-
-              <View
-                style={[styles.checkbox, isSelected && styles.checkboxSelected]}
+            return (
+              <TouchableOpacity
+                key={addr.uid}
+                style={[
+                  styles.addressCard,
+                  isSelected
+                    ? styles.addressCardSelected
+                    : styles.addressCardUnselected,
+                ]}
+                activeOpacity={0.7}
+                onPress={() => toggleAddress(addr.uid)}
               >
-                {isSelected && (
+                <View style={styles.iconContainer}>
                   <MaterialCommunityIcons
-                    name="check"
-                    size={16}
-                    color={theme.colors.onPrimary}
+                    name={getAddressIcon(addr.label)}
+                    size={24}
+                    color={theme.colors.text}
                   />
-                )}
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+                </View>
+
+                <View style={styles.addressInfo}>
+                  <Text style={styles.addressNameText}>{addr.label}</Text>
+                  <Text style={styles.addressDetailText}>
+                    {formattedAddress}
+                  </Text>
+                </View>
+
+                <View
+                  style={[
+                    styles.checkbox,
+                    isSelected && styles.checkboxSelected,
+                  ]}
+                >
+                  {isSelected && (
+                    <MaterialCommunityIcons
+                      name="check"
+                      size={16}
+                      color={theme.colors.onPrimary}
+                    />
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          })
+        )}
 
         <TouchableOpacity
           style={styles.addNewAddressBtn}
@@ -140,7 +144,11 @@ export function DeliveryAddressScreen() {
           title="Continue"
           onPress={() => {
             if (selectedAddress) {
-              updateRequestData({ deliveryAddress: selectedAddress });
+              const selectedAddrObj = addresses.find(a => a.uid === selectedAddress);
+              updateRequestData({ 
+                deliveryAddress: selectedAddress,
+                deliveryCityUid: selectedAddrObj?.city?.uid || ""
+              });
             }
             router.back();
           }}

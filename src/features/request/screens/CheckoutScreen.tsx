@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -13,6 +14,7 @@ import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 import { useRequestCreation } from "../context/RequestCreationContext";
 import { CardField } from "@stripe/stripe-react-native";
+import { useCreateRequest } from "../hooks/useRequests";
 
 export function CheckoutScreen() {
   const insets = useSafeAreaInsets();
@@ -38,17 +40,49 @@ export function CheckoutScreen() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
 
+  const {
+    createRequest,
+    isLoading: isCreatingRequest,
+    error: createError,
+  } = useCreateRequest();
+
   const isNameValid = nameOnCard.trim().length > 0;
   const isAllValid = isFormValid && isNameValid;
 
-  const handlePay = () => {
+  const handlePay = async () => {
     setHasSubmitted(true);
-    if (isAllValid) {
-      router.push("/(modals)/request/payment-success");
+    if (!isAllValid) return;
+
+    try {
+      const payload = {
+        stores: requestData.stores || [],
+        items: (requestData.items || []).map((i) => ({
+          item: i.name,
+          description: i.description,
+          estimatePrice: parseFloat(i.estimatedPrice) || 0,
+        })),
+        deliveryAddress: requestData.deliveryAddress || "",
+        deliveryCityUid: requestData.deliveryCityUid || "",
+        neededBy: requestData.dayNeeded || new Date().toISOString(),
+        latestDeliveryBy:
+          requestData.latestDeliveryTime || new Date().toISOString(),
+        notes: requestData.itemsInstructions || "",
+      };
+
+      const response: any = await createRequest(payload);
+
+      if (response?.success || response?.data?.status === "open") {
+        router.push("/(modals)/request/payment-success");
+      } else {
+        throw new Error(response?.message || "Failed to create request");
+      }
+    } catch (e) {
+      // Error is handled and shown via createError state if we display it
+      console.error("Payment Error:", e);
     }
   };
 
-  const hasFailed = hasSubmitted && !isAllValid;
+  const hasFailed = (hasSubmitted && !isAllValid) || !!createError;
 
   return (
     <View
@@ -322,6 +356,7 @@ export function CheckoutScreen() {
             <TouchableOpacity
               style={[styles.payButton, { marginBottom: theme.spacing.md }]}
               onPress={handlePay}
+              disabled={isCreatingRequest}
             >
               <MaterialCommunityIcons
                 name="lock-outline"
@@ -341,16 +376,26 @@ export function CheckoutScreen() {
             </TouchableOpacity>
           </>
         ) : (
-          <TouchableOpacity style={styles.payButton} onPress={handlePay}>
-            <MaterialCommunityIcons
-              name="lock-outline"
-              size={20}
-              color={theme.colors.surface}
-              style={{ marginRight: theme.spacing.sm }}
-            />
-            <Text style={styles.payButtonText}>
-              Pay ${total.toFixed(2)} CAD
-            </Text>
+          <TouchableOpacity
+            style={styles.payButton}
+            onPress={handlePay}
+            disabled={isCreatingRequest}
+          >
+            {isCreatingRequest ? (
+              <ActivityIndicator color={theme.colors.surface} />
+            ) : (
+              <>
+                <MaterialCommunityIcons
+                  name="lock-outline"
+                  size={20}
+                  color={theme.colors.surface}
+                  style={{ marginRight: theme.spacing.sm }}
+                />
+                <Text style={styles.payButtonText}>
+                  Pay ${total.toFixed(2)} CAD
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
         )}
 

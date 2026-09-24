@@ -15,6 +15,7 @@ export function RequestCreationProvider({ children }: { children: ReactNode }) {
   const [requestData, setRequestData] = useState<Partial<CreateRequestPayload>>({
     stores: [],
     deliveryAddress: "",
+    deliveryCityUid: "",
     itemsInstructions: "",
     dayNeeded: "",
     latestDeliveryTime: "",
@@ -29,6 +30,7 @@ export function RequestCreationProvider({ children }: { children: ReactNode }) {
     setRequestData({
       stores: [],
       deliveryAddress: "",
+      deliveryCityUid: "",
       itemsInstructions: "",
       dayNeeded: "",
       latestDeliveryTime: "",
