@@ -1,4 +1,5 @@
 import { apiRequest } from "../../../shared/api/apiClient";
+import { apiEndpoints } from "../../../constant/url";
 
 export interface CreateOpenRequestApiPayload {
   stores: string[];
@@ -16,7 +17,7 @@ export interface CreateOpenRequestApiPayload {
 
 export const requestService = {
   createOpenRequest: async (payload: CreateOpenRequestApiPayload) => {
-    return apiRequest("/requests", {
+    return apiRequest(apiEndpoints.requests, {
       method: "POST",
       body: payload,
     });

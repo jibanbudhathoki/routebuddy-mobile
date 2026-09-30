@@ -1,1 +1,1 @@
-export { MessageScreen as default } from "../../features/message/screens/MessageScreen";
+export { MessageScreen as default } from "../../features/messages/screens/MessageScreen";

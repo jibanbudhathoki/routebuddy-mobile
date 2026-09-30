@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { TripCreationProvider } from '../features/trip/context/TripCreationContext';
 import { RequestCreationProvider } from '../features/request/context/RequestCreationContext';
@@ -14,7 +15,8 @@ import { StripeProvider } from '@stripe/stripe-react-native';
 export default function RootLayout() {
   return (
     <StripeProvider publishableKey="pk_test_TYooMQauvdEDq54NiTphI7jx">
-      <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
         <RequestCreationProvider>
           <TripCreationProvider>
           <Stack screenOptions={{ headerShown: false }}>
@@ -46,6 +48,7 @@ export default function RootLayout() {
       </RequestCreationProvider>
       <StatusBar style="auto" />
       </SafeAreaProvider>
+      </GestureHandlerRootView>
     </StripeProvider>
   );
 }

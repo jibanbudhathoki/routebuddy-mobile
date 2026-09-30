@@ -6,6 +6,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 import { useRequestCreation } from "../context/RequestCreationContext";
+import { useStores } from "../../../shared/store/hooks/useStores";
+import { useCities } from "../../../shared/city/hooks/useCities";
 import { RequestItem } from "../types/request";
 
 export function BuildShoppingListScreen() {
@@ -85,21 +87,21 @@ export function BuildShoppingListScreen() {
         {/* Mock Trip Info Card */}
         <View style={styles.tripCard}>
           <View style={styles.storeLogoContainer}>
-            <Text style={styles.storeLogoText}>COSTCO</Text>
-            <Text style={styles.storeLogoSubText}>WHOLESALE</Text>
+            <Text style={styles.storeLogoText} numberOfLines={1}>{storeLogoText}</Text>
+            {!!storeLogoSubText && <Text style={styles.storeLogoSubText} numberOfLines={1}>{storeLogoSubText}</Text>}
           </View>
           <View style={styles.tripCardInfo}>
-            <Text style={styles.tripCardTitle}>Costco Run</Text>
-            <Text style={styles.tripCardRoute}>Winnipeg, MB  →  Brandon, MB</Text>
+            <Text style={styles.tripCardTitle}>{storeName} Run</Text>
+            <Text style={styles.tripCardRoute}>{routeText}</Text>
             <View style={styles.tripCardDetails}>
               <View style={styles.tripCardDetailItem}>
                 <MaterialCommunityIcons name="calendar-outline" size={14} color={theme.colors.text} style={{ opacity: 0.6 }} />
-                <Text style={styles.tripCardDetailText}>May 24, 2026</Text>
+                <Text style={styles.tripCardDetailText}>{formatDate(requestData.dayNeeded)}</Text>
               </View>
               <Text style={styles.tripCardDetailDivider}>|</Text>
               <View style={styles.tripCardDetailItem}>
                 <MaterialCommunityIcons name="clock-outline" size={14} color={theme.colors.text} style={{ opacity: 0.6 }} />
-                <Text style={styles.tripCardDetailText}>Delivery by 6:00 PM</Text>
+                <Text style={styles.tripCardDetailText}>Delivery by {formatTime(requestData.latestDeliveryTime)}</Text>
               </View>
             </View>
           </View>

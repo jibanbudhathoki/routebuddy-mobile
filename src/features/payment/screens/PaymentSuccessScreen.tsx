@@ -5,7 +5,10 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
-import { useRequestCreation } from "../context/RequestCreationContext";
+import { useRequestCreation } from "../../request/context/RequestCreationContext";
+import { useStores } from "../../../shared/store/hooks/useStores";
+import { useCities } from "../../../shared/city/hooks/useCities";
+import { calculateEstimate } from "../../../shared/utils/pricing";
 
 export function PaymentSuccessScreen() {
   const insets = useSafeAreaInsets();
@@ -16,11 +19,33 @@ export function PaymentSuccessScreen() {
   const items = requestData.items || [];
   
   // Calculations
-  const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.estimatedPrice) || 0), 0);
-  const serviceFee = subtotal * 0.15;
-  const taxes = subtotal * 0.05;
-  const paymentProcessing = items.length > 0 ? (subtotal * 0.029) + 0.30 : 0;
-  const total = items.length > 0 ? (subtotal + serviceFee + taxes + paymentProcessing) : 0;
+  const { subtotal, serviceFee, taxes, total } = calculateEstimate(items);
+
+  // Real Data mapping
+  const { stores } = useStores({ limit: 100 });
+  const { cities } = useCities();
+
+  const selectedStore = stores.find(s => requestData.stores?.includes(s.uid));
+  const storeName = selectedStore?.name || "Unknown Store";
+  const storeLogoText = storeName.split(' ')[0]?.toUpperCase() || "STORE";
+  const storeLogoSubText = storeName.split(' ').slice(1).join(' ').toUpperCase() || "";
+
+  const originCity = cities.find(c => c.uid === selectedStore?.cityUid);
+  const destCity = cities.find(c => c.uid === requestData.deliveryCityUid);
+
+  const routeText = `${originCity?.name || "Origin"}, ${originCity?.provinceCode || ""}  →  ${destCity?.name || "Destination"}, ${destCity?.provinceCode || ""}`;
+  
+  const formatDate = (isoString?: string) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  };
+
+  const formatTime = (isoString?: string) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  };
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
@@ -62,21 +87,21 @@ export function PaymentSuccessScreen() {
         <View style={styles.summaryCard}>
           <View style={styles.tripCard}>
             <View style={styles.storeLogoContainer}>
-              <Text style={styles.storeLogoText}>COSTCO</Text>
-              <Text style={styles.storeLogoSubText}>WHOLESALE</Text>
+              <Text style={styles.storeLogoText} numberOfLines={1}>{storeLogoText}</Text>
+              {!!storeLogoSubText && <Text style={styles.storeLogoSubText} numberOfLines={1}>{storeLogoSubText}</Text>}
             </View>
             <View style={styles.tripCardInfo}>
-              <Text style={styles.tripCardTitle}>Costco Run</Text>
-              <Text style={styles.tripCardRoute}>Winnipeg, MB  →  Brandon, MB</Text>
+              <Text style={styles.tripCardTitle}>{storeName} Run</Text>
+              <Text style={styles.tripCardRoute}>{routeText}</Text>
               <View style={styles.tripCardDetails}>
                 <View style={styles.tripCardDetailItem}>
                   <MaterialCommunityIcons name="calendar-outline" size={14} color={theme.colors.text} style={{ opacity: 0.6 }} />
-                  <Text style={styles.tripCardDetailText}>May 24, 2026</Text>
+                  <Text style={styles.tripCardDetailText}>{formatDate(requestData.dayNeeded)}</Text>
                 </View>
                 <Text style={styles.tripCardDetailDivider}>|</Text>
                 <View style={styles.tripCardDetailItem}>
                   <MaterialCommunityIcons name="clock-outline" size={14} color={theme.colors.text} style={{ opacity: 0.6 }} />
-                  <Text style={styles.tripCardDetailText}>Delivery by 6:00 PM</Text>
+                  <Text style={styles.tripCardDetailText}>Delivery by {formatTime(requestData.latestDeliveryTime)}</Text>
                 </View>
               </View>
             </View>

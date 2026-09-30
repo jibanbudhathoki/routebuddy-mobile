@@ -1,2 +1,2 @@
-import { CheckoutScreen } from "../../../features/request/screens/CheckoutScreen";
+import { CheckoutScreen } from "../../../features/payment/screens/CheckoutScreen";
 export default CheckoutScreen;

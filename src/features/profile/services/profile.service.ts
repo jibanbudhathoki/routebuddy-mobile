@@ -18,14 +18,14 @@ export interface UserProfile {
 
 export const profileService = {
   async getProfile() {
-    const response = await apiRequest<any>(apiEndpoints.profile, {
+    const response = await apiRequest<any>(apiEndpoints.profile.base, {
       method: 'GET',
     });
     return response.data as UserProfile;
   },
 
   async updateProfile(data: { firstName: string; lastName: string; phone?: string }) {
-    const response = await apiRequest<any>(apiEndpoints.profile, {
+    const response = await apiRequest<any>(apiEndpoints.profile.base, {
       method: 'PUT',
       body: {
         displayName: `${data.firstName} ${data.lastName}`.trim(),
