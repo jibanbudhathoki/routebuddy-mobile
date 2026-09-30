@@ -10,4 +10,9 @@ export const apiEndpoints = {
 	trips: '/v1/trips',
 	stores: '/v1/stores',
 	cities: '/v1/cities',
+	payments: {
+		payment: '/v1/payments',
+		checkout: '/v1/payments/checkout',
+	},
+	requests: '/v1/requests',
 } as const;

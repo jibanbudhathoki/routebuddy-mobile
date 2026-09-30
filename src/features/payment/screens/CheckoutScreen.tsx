@@ -10,41 +10,61 @@ import {
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
-import { useRequestCreation } from "../context/RequestCreationContext";
-import { CardField } from "@stripe/stripe-react-native";
-import { useCreateRequest } from "../hooks/useRequests";
+import { useRequestCreation } from "../../request/context/RequestCreationContext";
+import { useStores } from "../../../shared/store/hooks/useStores";
+import { useCities } from "../../../shared/city/hooks/useCities";
+import { CardField, useStripe } from "@stripe/stripe-react-native";
+
+import { usePayment } from "../hooks/usePayment";
+import { calculateEstimate } from "../../../shared/utils/pricing";
 
 export function CheckoutScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { postId } = useLocalSearchParams<{ postId: string }>();
   const { theme } = useUnistyles();
   const { requestData } = useRequestCreation();
 
   const items = requestData.items || [];
 
-  // Calculations
-  const subtotal = items.reduce(
-    (sum, item) => sum + (parseFloat(item.estimatedPrice) || 0),
-    0,
-  );
-  const serviceFee = subtotal * 0.15;
-  const taxes = subtotal * 0.05;
-  const paymentProcessing = items.length > 0 ? subtotal * 0.029 + 0.3 : 0;
-  const total =
-    items.length > 0 ? subtotal + serviceFee + taxes + paymentProcessing : 0;
+  const { subtotal, serviceFee, taxes, paymentProcessing, total } = calculateEstimate(items);
+
+  // Real Data mapping
+  const { stores } = useStores({ limit: 100 });
+  const { cities } = useCities();
+
+  const selectedStore = stores.find(s => requestData.stores?.includes(s.uid));
+  const storeName = selectedStore?.name || "Unknown Store";
+  const storeLogoText = storeName.split(' ')[0]?.toUpperCase() || "STORE";
+  const storeLogoSubText = storeName.split(' ').slice(1).join(' ').toUpperCase() || "";
+
+  const originCity = cities.find(c => c.uid === selectedStore?.cityUid);
+  const destCity = cities.find(c => c.uid === requestData.deliveryCityUid);
+
+  const routeText = `${originCity?.name || "Origin"}, ${originCity?.provinceCode || ""}  →  ${destCity?.name || "Destination"}, ${destCity?.provinceCode || ""}`;
+  
+  const formatDate = (isoString?: string) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  };
+
+  const formatTime = (isoString?: string) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  };
 
   // Form State
   const [nameOnCard, setNameOnCard] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
 
-  const {
-    createRequest,
-    isLoading: isCreatingRequest,
-    error: createError,
-  } = useCreateRequest();
+  const { initiateCheckout, isInitializing, error: paymentError } = usePayment();
+
+  const { confirmPayment } = useStripe();
 
   const isNameValid = nameOnCard.trim().length > 0;
   const isAllValid = isFormValid && isNameValid;
@@ -54,35 +74,35 @@ export function CheckoutScreen() {
     if (!isAllValid) return;
 
     try {
-      const payload = {
-        stores: requestData.stores || [],
-        items: (requestData.items || []).map((i) => ({
-          item: i.name,
-          description: i.description,
-          estimatePrice: parseFloat(i.estimatedPrice) || 0,
-        })),
-        deliveryAddress: requestData.deliveryAddress || "",
-        deliveryCityUid: requestData.deliveryCityUid || "",
-        neededBy: requestData.dayNeeded || new Date().toISOString(),
-        latestDeliveryBy:
-          requestData.latestDeliveryTime || new Date().toISOString(),
-        notes: requestData.itemsInstructions || "",
-      };
+      if (!postId) throw new Error("No post ID provided for checkout");
 
-      const response: any = await createRequest(payload);
-
-      if (response?.success || response?.data?.status === "open") {
+      // Initiate Stripe payment
+      const checkoutResponse: any = await initiateCheckout(postId);
+      
+      if (checkoutResponse?.data?.clientSecret) {
+        const { error: paymentError } = await confirmPayment(checkoutResponse.data.clientSecret, {
+          paymentMethodType: 'Card',
+          paymentMethodData: {
+            billingDetails: {
+              name: nameOnCard,
+            },
+          },
+        });
+        
+        if (paymentError) {
+          throw new Error(paymentError.message || "Payment failed");
+        }
+        
         router.push("/(modals)/request/payment-success");
       } else {
-        throw new Error(response?.message || "Failed to create request");
+        throw new Error("Unable to retrieve payment client secret.");
       }
     } catch (e) {
-      // Error is handled and shown via createError state if we display it
       console.error("Payment Error:", e);
     }
   };
 
-  const hasFailed = (hasSubmitted && !isAllValid) || !!createError;
+  const hasFailed = (hasSubmitted && !isAllValid) || !!paymentError;
 
   return (
     <View
@@ -156,11 +176,11 @@ export function CheckoutScreen() {
         {/* Mock Trip Info Card */}
         <View style={styles.tripCard}>
           <View style={styles.storeLogoContainer}>
-            <Text style={styles.storeLogoText}>COSTCO</Text>
-            <Text style={styles.storeLogoSubText}>WHOLESALE</Text>
+            <Text style={styles.storeLogoText} numberOfLines={1}>{storeLogoText}</Text>
+            {!!storeLogoSubText && <Text style={styles.storeLogoSubText} numberOfLines={1}>{storeLogoSubText}</Text>}
           </View>
           <View style={styles.tripCardInfo}>
-            <Text style={styles.tripCardTitle}>Costco Run</Text>
+            <Text style={styles.tripCardTitle}>{storeName} Run</Text>
             <Text style={styles.tripCardRoute}>Winnipeg, MB → Brandon, MB</Text>
             <View style={styles.tripCardDetails}>
               <View style={styles.tripCardDetailItem}>
@@ -170,7 +190,7 @@ export function CheckoutScreen() {
                   color={theme.colors.text}
                   style={{ opacity: 0.6 }}
                 />
-                <Text style={styles.tripCardDetailText}>May 24, 2026</Text>
+                <Text style={styles.tripCardDetailText}>{formatDate(requestData.dayNeeded)}</Text>
               </View>
               <Text style={styles.tripCardDetailDivider}>|</Text>
               <View style={styles.tripCardDetailItem}>
@@ -356,15 +376,21 @@ export function CheckoutScreen() {
             <TouchableOpacity
               style={[styles.payButton, { marginBottom: theme.spacing.md }]}
               onPress={handlePay}
-              disabled={isCreatingRequest}
+              disabled={isInitializing}
             >
-              <MaterialCommunityIcons
-                name="lock-outline"
-                size={20}
-                color={theme.colors.surface}
-                style={{ marginRight: theme.spacing.sm }}
-              />
-              <Text style={styles.payButtonText}>Try Again</Text>
+              {(isInitializing) ? (
+                <ActivityIndicator color={theme.colors.surface} />
+              ) : (
+                <>
+                  <MaterialCommunityIcons
+                    name="lock-outline"
+                    size={20}
+                    color={theme.colors.surface}
+                    style={{ marginRight: theme.spacing.sm }}
+                  />
+                  <Text style={styles.payButtonText}>Try Again</Text>
+                </>
+              )}
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.secondaryButton}
@@ -379,9 +405,9 @@ export function CheckoutScreen() {
           <TouchableOpacity
             style={styles.payButton}
             onPress={handlePay}
-            disabled={isCreatingRequest}
+            disabled={isInitializing}
           >
-            {isCreatingRequest ? (
+            {(isInitializing) ? (
               <ActivityIndicator color={theme.colors.surface} />
             ) : (
               <>

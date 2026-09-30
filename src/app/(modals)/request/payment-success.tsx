@@ -1,2 +1,2 @@
-import { PaymentSuccessScreen } from "../../../features/request/screens/PaymentSuccessScreen";
+import { PaymentSuccessScreen } from "../../../features/payment/screens/PaymentSuccessScreen";
 export default PaymentSuccessScreen;
