@@ -1,3 +1,4 @@
+
 export const apiEndpoints = {
 	auth: {
 		login: '/v1/auth/sign-in',
@@ -7,7 +8,10 @@ export const apiEndpoints = {
 		base: '/v1/profile',
 		addresses: '/v1/profile/addresses',
 	},
-	trips: '/v1/trips',
+	trips: {
+		trips: '/v1/trips',
+		listMyTrips: '/v1/trips/me',
+	},
 	stores: '/v1/stores',
 	cities: '/v1/cities',
 	payments: {
@@ -15,4 +19,8 @@ export const apiEndpoints = {
 		checkout: '/v1/payments/checkout',
 	},
 	requests: '/v1/requests',
+	messages: {
+		listMessages: '/v1/messages/listMessages',
+	},
+
 } as const;

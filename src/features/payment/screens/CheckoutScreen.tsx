@@ -11,7 +11,6 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 import { useRequestCreation } from "../../request/context/RequestCreationContext";
 import { useStores } from "../../../shared/store/hooks/useStores";
 import { useCities } from "../../../shared/city/hooks/useCities";
@@ -29,32 +28,41 @@ export function CheckoutScreen() {
 
   const items = requestData.items || [];
 
-  const { subtotal, serviceFee, taxes, paymentProcessing, total } = calculateEstimate(items);
+  const { subtotal, serviceFee, taxes, paymentProcessing, total } =
+    calculateEstimate(items);
 
   // Real Data mapping
   const { stores } = useStores({ limit: 100 });
   const { cities } = useCities();
 
-  const selectedStore = stores.find(s => requestData.stores?.includes(s.uid));
+  const selectedStore = stores.find((s) => requestData.stores?.includes(s.uid));
   const storeName = selectedStore?.name || "Unknown Store";
-  const storeLogoText = storeName.split(' ')[0]?.toUpperCase() || "STORE";
-  const storeLogoSubText = storeName.split(' ').slice(1).join(' ').toUpperCase() || "";
+  const storeLogoText = storeName.split(" ")[0]?.toUpperCase() || "STORE";
+  const storeLogoSubText =
+    storeName.split(" ").slice(1).join(" ").toUpperCase() || "";
 
-  const originCity = cities.find(c => c.uid === selectedStore?.cityUid);
-  const destCity = cities.find(c => c.uid === requestData.deliveryCityUid);
+  const originCity = cities.find((c) => c.uid === selectedStore?.cityUid);
+  const destCity = cities.find((c) => c.uid === requestData.deliveryCityUid);
 
   const routeText = `${originCity?.name || "Origin"}, ${originCity?.provinceCode || ""}  →  ${destCity?.name || "Destination"}, ${destCity?.provinceCode || ""}`;
-  
+
   const formatDate = (isoString?: string) => {
     if (!isoString) return "";
     const date = new Date(isoString);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const formatTime = (isoString?: string) => {
     if (!isoString) return "";
     const date = new Date(isoString);
-    return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
   };
 
   // Form State
@@ -62,7 +70,11 @@ export function CheckoutScreen() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
 
-  const { initiateCheckout, isInitializing, error: paymentError } = usePayment();
+  const {
+    initiateCheckout,
+    isInitializing,
+    error: paymentError,
+  } = usePayment();
 
   const { confirmPayment } = useStripe();
 
@@ -78,21 +90,24 @@ export function CheckoutScreen() {
 
       // Initiate Stripe payment
       const checkoutResponse: any = await initiateCheckout(postId);
-      
+
       if (checkoutResponse?.data?.clientSecret) {
-        const { error: paymentError } = await confirmPayment(checkoutResponse.data.clientSecret, {
-          paymentMethodType: 'Card',
-          paymentMethodData: {
-            billingDetails: {
-              name: nameOnCard,
+        const { error: paymentError } = await confirmPayment(
+          checkoutResponse.data.clientSecret,
+          {
+            paymentMethodType: "Card",
+            paymentMethodData: {
+              billingDetails: {
+                name: nameOnCard,
+              },
             },
           },
-        });
-        
+        );
+
         if (paymentError) {
           throw new Error(paymentError.message || "Payment failed");
         }
-        
+
         router.push("/(modals)/request/payment-success");
       } else {
         throw new Error("Unable to retrieve payment client secret.");
@@ -176,8 +191,14 @@ export function CheckoutScreen() {
         {/* Mock Trip Info Card */}
         <View style={styles.tripCard}>
           <View style={styles.storeLogoContainer}>
-            <Text style={styles.storeLogoText} numberOfLines={1}>{storeLogoText}</Text>
-            {!!storeLogoSubText && <Text style={styles.storeLogoSubText} numberOfLines={1}>{storeLogoSubText}</Text>}
+            <Text style={styles.storeLogoText} numberOfLines={1}>
+              {storeLogoText}
+            </Text>
+            {!!storeLogoSubText && (
+              <Text style={styles.storeLogoSubText} numberOfLines={1}>
+                {storeLogoSubText}
+              </Text>
+            )}
           </View>
           <View style={styles.tripCardInfo}>
             <Text style={styles.tripCardTitle}>{storeName} Run</Text>
@@ -190,7 +211,9 @@ export function CheckoutScreen() {
                   color={theme.colors.text}
                   style={{ opacity: 0.6 }}
                 />
-                <Text style={styles.tripCardDetailText}>{formatDate(requestData.dayNeeded)}</Text>
+                <Text style={styles.tripCardDetailText}>
+                  {formatDate(requestData.dayNeeded)}
+                </Text>
               </View>
               <Text style={styles.tripCardDetailDivider}>|</Text>
               <View style={styles.tripCardDetailItem}>
@@ -378,7 +401,7 @@ export function CheckoutScreen() {
               onPress={handlePay}
               disabled={isInitializing}
             >
-              {(isInitializing) ? (
+              {isInitializing ? (
                 <ActivityIndicator color={theme.colors.surface} />
               ) : (
                 <>
@@ -407,7 +430,7 @@ export function CheckoutScreen() {
             onPress={handlePay}
             disabled={isInitializing}
           >
-            {(isInitializing) ? (
+            {isInitializing ? (
               <ActivityIndicator color={theme.colors.surface} />
             ) : (
               <>
@@ -491,14 +514,6 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.spacing.md,
     paddingBottom: theme.spacing.xl,
   },
-  // subtitle: {
-  //   fontSize: 14,
-  //   color: theme.colors.primary,
-  //   textAlign: "center",
-  //   marginBottom: theme.spacing.lg,
-  //   marginTop: theme.spacing.xs,
-  //   lineHeight: 20,
-  // },
   errorBanner: {
     flexDirection: "row",
     backgroundColor: "#FEF3F2",
