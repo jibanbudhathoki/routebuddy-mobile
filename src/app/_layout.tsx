@@ -11,10 +11,14 @@ import { RequestCreationProvider } from '../features/request/context/RequestCrea
 import { getAuthSession } from '../features/auth/services/authStorage';
 
 import { StripeProvider } from '@stripe/stripe-react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
   return (
     <StripeProvider publishableKey="pk_test_TYooMQauvdEDq54NiTphI7jx">
+      <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
         <RequestCreationProvider>
@@ -49,6 +53,7 @@ export default function RootLayout() {
       <StatusBar style="auto" />
       </SafeAreaProvider>
       </GestureHandlerRootView>
+      </QueryClientProvider>
     </StripeProvider>
   );
 }

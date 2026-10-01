@@ -16,120 +16,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Swipeable, FlatList } from "react-native-gesture-handler";
-
-const DUMMY_CHAT_MESSAGES: Record<string, any[]> = {
-  "1": [
-    { id: "date-1", type: "date", text: "Today" },
-    {
-      id: "msg-1",
-      type: "text",
-      isMe: false,
-      text: "Hi! I'm heading to Walmart now. Is there anything else you'd like me to grab?",
-      timestamp: "10:15 AM",
-      avatarUrl: "https://i.pravatar.cc/150?img=11",
-    },
-    {
-      id: "msg-2",
-      type: "text",
-      isMe: true,
-      text: "Hi Mike! No that's everything for now. Thank you!",
-      timestamp: "10:17 AM",
-      isRead: true,
-    },
-    {
-      id: "msg-3",
-      type: "text",
-      isMe: false,
-      text: "Great, I'll let you know if anything is out of stock.",
-      timestamp: "10:18 AM",
-      avatarUrl: "https://i.pravatar.cc/150?img=11",
-    },
-    {
-      id: "msg-4",
-      type: "text",
-      isMe: true,
-      text: "Sounds good 👍",
-      timestamp: "10:18 AM",
-      isRead: true,
-    },
-    {
-      id: "msg-5",
-      type: "system",
-      isMe: false,
-      text: "I'm checking out now.",
-      title: "Shopping Update",
-      icon: "cart-outline",
-      timestamp: "11:02 AM",
-      avatarUrl: "https://i.pravatar.cc/150?img=11",
-    },
-  ],
-  "2": [
-    { id: "date-2", type: "date", text: "Yesterday" },
-    {
-      id: "msg-6",
-      type: "text",
-      isMe: false,
-      text: "Are you still looking for Kirkland protein?",
-      timestamp: "3:00 PM",
-      avatarUrl: "https://i.pravatar.cc/150?img=5",
-    },
-    {
-      id: "msg-7",
-      type: "text",
-      isMe: true,
-      text: "Yes! Can you grab 2 bags?",
-      timestamp: "3:05 PM",
-      isRead: true,
-    },
-  ],
-  "3": [
-    { id: "date-3", type: "date", text: "Today" },
-    {
-      id: "msg-8",
-      type: "text",
-      isMe: true,
-      text: "Thank you! Will pickup the items today.",
-      timestamp: "1h ago",
-      isRead: false,
-    },
-  ],
-};
-
-const CHAT_DETAILS: Record<string, any> = {
-  "1": {
-    name: "Mike B.",
-    tripTitle: "Walmart Order",
-    logo: "https://cdn.iconscout.com/icon/free/png-256/free-walmart-logo-icon-download-in-svg-png-gif-file-formats--brand-brands-and-logos-pack-icons-2673892.png",
-    price: "$32.67",
-    origin: "Reston, MB",
-    dest: "Brandon, MB",
-    date: "May 26, 2025",
-    time: "Delivery by 6:00 PM",
-    items: "5 items",
-  },
-  "2": {
-    name: "Sarah L.",
-    tripTitle: "Costco Run",
-    logo: "https://cdn.iconscout.com/icon/free/png-256/free-costco-logo-icon-download-in-svg-png-gif-file-formats--company-brand-brands-logos-pack-icons-2284947.png",
-    price: "$114.50",
-    origin: "Winnipeg, MB",
-    dest: "Winkler, MB",
-    date: "Jun 2, 2025",
-    time: "Delivery by 3:00 PM",
-    items: "12 items",
-  },
-  "3": {
-    name: "David K.",
-    tripTitle: "Superstore Order",
-    logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqH62tY94yH5n6o7-M87u_Vn544485u0464673x43w7593259885w3_y8x3g&s",
-    price: "$45.20",
-    origin: "Morden, MB",
-    dest: "Winkler, MB",
-    date: "Jun 5, 2025",
-    time: "Delivery by 1:00 PM",
-    items: "8 items",
-  },
-};
+import {
+  useMessages,
+  useConversations,
+} from "../hooks/useMessages";
 
 export function ChatDetailScreen() {
   const { theme } = useUnistyles();
@@ -137,9 +27,52 @@ export function ChatDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  // Fallback to chat "1" if ID is not found
-  const chatData = CHAT_DETAILS[id || "1"] || CHAT_DETAILS["1"];
-  const messages = DUMMY_CHAT_MESSAGES[id || "1"] || DUMMY_CHAT_MESSAGES["1"];
+  const { data: conversations } = useConversations();
+  const conversation = conversations?.find((c) => c.uid === id);
+
+  const { data: apiMessages } = useMessages(id || "");
+
+  const [messageText, setMessageText] = useState("");
+
+  const chatData = conversation
+    ? {
+        name: `Participant ${conversation.participants.filter((p) => p !== "me")[0] || "Unknown"}`,
+        tripTitle: conversation.tripId
+          ? `Trip ${conversation.tripId.substring(0, 5)}...`
+          : "Direct Message",
+        logo: "https://cdn-icons-png.flaticon.com/512/615/615075.png",
+        price: "$0.00",
+        origin: "-",
+        dest: "-",
+        date: new Date(conversation.createdAt).toLocaleDateString(),
+        time: "TBD",
+        items: "-",
+      }
+    : {
+        name: "Loading...",
+        tripTitle: "...",
+        logo: "",
+        price: "",
+        origin: "",
+        dest: "",
+        date: "",
+        time: "",
+        items: "",
+      };
+
+  const messages = (apiMessages || []).map((m) => ({
+    id: m.uid,
+    type: m.type === "text" ? "text" : "system",
+    isMe: m.senderUid === "me", // Assuming "me" is current user's UID for now
+    text: m.content,
+    timestamp: new Date(m.createdAt).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    avatarUrl: "",
+    isRead: false,
+    reactions: m.reactions,
+  }));
 
   const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
   const [replyingTo, setReplyingTo] = useState<any>(null);
