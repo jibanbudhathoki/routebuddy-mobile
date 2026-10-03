@@ -4,48 +4,19 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { AppScreen } from '../../../shared/components/AppScreen';
 import { TripCard } from '../components/TripCard';
-
-const upcomingTrips = [
-  {
-    store: 'Walmart',
-    origin: 'Reston, MB',
-    destination: 'Brandon, MB',
-    date: 'May 26, 2025',
-    time: '6:00 PM',
-    earnings: '$18.11',
-    itemCount: 5,
-    requesterCount: 1,
-    unreadMessages: 2,
-  },
-  {
-    store: 'Costco',
-    origin: 'Reston, MB',
-    destination: 'Winnipeg, MB',
-    date: 'Jun 2, 2025',
-    time: '10:30 AM',
-    earnings: '$27.45',
-    itemCount: 12,
-    requesterCount: 2,
-    unreadMessages: 1,
-  },
-  {
-    store: 'Superstore',
-    origin: 'Portage la Prairie, MB',
-    destination: 'Morden, MB',
-    date: 'Jun 5, 2025',
-    time: '2:00 PM',
-    earnings: '$14.20',
-    itemCount: 7,
-    requesterCount: 1,
-    unreadMessages: 0,
-  },
-];
+import { useListMyTrip } from '../hooks/listMyTrip';
 
 type TripMode = 'driving' | 'ordering';
 
 export function TripScreen() {
   const [tripMode, setTripMode] = useState<TripMode>('driving');
   const { theme } = useUnistyles();
+  const {
+    data: trips,
+    error,
+    isLoading,
+    refetch,
+  } = useListMyTrip(tripMode === 'driving');
 
   return (
     <AppScreen>
@@ -138,11 +109,43 @@ export function TripScreen() {
         </View>
 
         {tripMode === 'driving' ? (
-          <View style={styles.tripList}>
-            {upcomingTrips.map((trip) => (
-              <TripCard key={`${trip.store}-${trip.destination}`} trip={trip} />
-            ))}
-          </View>
+          isLoading ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>Loading your trips...</Text>
+            </View>
+          ) : error ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateTitle}>Could not load trips</Text>
+              <Text style={styles.emptyStateText}>
+                {error.message || 'Please try again.'}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => refetch()}
+                style={styles.retryButton}
+              >
+                <Text style={styles.retryButtonText}>Try Again</Text>
+              </Pressable>
+            </View>
+          ) : trips?.length ? (
+            <View style={styles.tripList}>
+              {trips.map((trip) => (
+                <TripCard key={trip.uid} trip={trip} />
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <MaterialCommunityIcons
+                name="clipboard-text-outline"
+                size={30}
+                color={theme.colors.muted}
+              />
+              <Text style={styles.emptyStateTitle}>No upcoming trips</Text>
+              <Text style={styles.emptyStateText}>
+                Trips you post will show up here.
+              </Text>
+            </View>
+          )
         ) : (
           <View style={styles.emptyState}>
             <MaterialCommunityIcons
@@ -275,5 +278,17 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.muted,
     fontSize: 12,
     textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.sm,
+    marginTop: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+  },
+  retryButtonText: {
+    color: theme.colors.onPrimary,
+    fontSize: 12,
+    fontWeight: '600',
   },
 }));

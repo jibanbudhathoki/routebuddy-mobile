@@ -13,6 +13,7 @@ export interface CreateTripRequest {
 }
 
 export interface ListMyTripsResponse {
+  uid: string;
   departureAt: string;
   availableSeats: number;
   capacity: number;
@@ -22,6 +23,6 @@ export interface ListMyTripsResponse {
   destination: string;
   driver: {
     name: string;
-    photoUrl: string;
-  }
+    photoUrl?: string | null;
+  };
 }
