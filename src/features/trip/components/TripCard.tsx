@@ -1,54 +1,56 @@
-import { Text, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-
-export interface TripCardData {
-  store: string;
-  origin: string;
-  destination: string;
-  date: string;
-  time: string;
-  earnings: string;
-  itemCount: number;
-  requesterCount: number;
-  unreadMessages: number;
-}
+import type { ListMyTripsResponse } from '../types/trip';
 
 interface TripCardProps {
-  trip: TripCardData;
+  trip: ListMyTripsResponse;
 }
 
 export function TripCard({ trip }: TripCardProps) {
   const { theme } = useUnistyles();
+  const departure = new Date(trip.departureAt);
+  const date = departure.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  const time = departure.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  const price = trip.price.startsWith('$') ? trip.price : `$${trip.price}`;
+  const status = trip.status.replace(/[_-]+/g, ' ').toUpperCase();
 
   return (
     <View style={styles.card}>
       <View style={styles.tripDetails}>
-        <View
-          style={[
-            styles.storeMark,
-            trip.store !== 'Walmart' && styles.otherStoreMark,
-          ]}
-        >
-          <Text
-            style={[
-              styles.storeName,
-              trip.store !== 'Walmart' && styles.otherStoreName,
-            ]}
-          >
-            {trip.store}
-          </Text>
-          {trip.store === 'Walmart' && (
-            <MaterialCommunityIcons
-              name="asterisk"
-              size={19}
-              color={theme.colors.secondary}
-            />
-          )}
-        </View>
+        {trip.driver.photoUrl ? (
+          <Image
+            source={{ uri: trip.driver.photoUrl }}
+            style={styles.driverPhoto}
+            accessibilityLabel={`${trip.driver.name}'s profile photo`}
+          />
+        ) : (
+          <View style={styles.driverPhotoFallback}>
+            <Text style={styles.driverInitials}>
+              {trip.driver.name
+                .split(/\s+/)
+                .map((part) => part[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase()}
+            </Text>
+          </View>
+        )}
 
         <View style={styles.routeDetails}>
-          <Text style={styles.tripBadge}>DRIVING</Text>
+          <View style={styles.tripHeading}>
+            <Text style={styles.tripBadge}>{status}</Text>
+            <Text style={styles.driverName} numberOfLines={1}>
+              {trip.driver.name}
+            </Text>
+          </View>
           <View style={styles.route}>
             <Text style={styles.location} numberOfLines={1}>
               {trip.origin}
@@ -69,7 +71,7 @@ export function TripCard({ trip }: TripCardProps) {
                 size={14}
                 color={theme.colors.muted}
               />
-              <Text style={styles.scheduleText}>{trip.date}</Text>
+              <Text style={styles.scheduleText}>{date}</Text>
             </View>
             <View style={styles.scheduleItem}>
               <MaterialCommunityIcons
@@ -77,25 +79,25 @@ export function TripCard({ trip }: TripCardProps) {
                 size={14}
                 color={theme.colors.muted}
               />
-              <Text style={styles.scheduleText}>{trip.time}</Text>
+              <Text style={styles.scheduleText}>{time}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.earnings}>
-          <Text style={styles.earningsLabel}>Earnings</Text>
-          <Text style={styles.earningsAmount}>{trip.earnings}</Text>
+          <Text style={styles.earningsLabel}>Price</Text>
+          <Text style={styles.earningsAmount}>{price}</Text>
         </View>
       </View>
 
       <View style={styles.metrics}>
         <View style={styles.metric}>
           <MaterialCommunityIcons
-            name="cart-outline"
+            name="seat-outline"
             size={15}
             color={theme.colors.text}
           />
-          <Text style={styles.metricText}>{trip.itemCount} Items</Text>
+          <Text style={styles.metricText}>{trip.availableSeats} Available</Text>
         </View>
         <View style={styles.metric}>
           <MaterialCommunityIcons
@@ -104,19 +106,16 @@ export function TripCard({ trip }: TripCardProps) {
             color={theme.colors.text}
           />
           <Text style={styles.metricText}>
-            {trip.requesterCount} {trip.requesterCount === 1 ? 'Requester' : 'Requesters'}
+            {trip.capacity - trip.availableSeats} Booked
           </Text>
         </View>
         <View style={styles.metric}>
           <MaterialCommunityIcons
-            name="message-processing-outline"
+            name="seatbelt"
             size={15}
             color={theme.colors.text}
           />
-          <Text style={styles.metricText}>Messages</Text>
-          <View style={styles.messageCount}>
-            <Text style={styles.messageCountText}>{trip.unreadMessages}</Text>
-          </View>
+          <Text style={styles.metricText}>{trip.capacity} Capacity</Text>
         </View>
       </View>
 
@@ -146,34 +145,41 @@ const styles = StyleSheet.create((theme) => ({
     shadowOpacity: 0.08,
     shadowRadius: 4,
   },
+  driverPhoto: {
+    borderRadius: 7,
+    height: 54,
+    resizeMode: 'cover',
+    width: 48,
+  },
+  driverPhotoFallback: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: 7,
+    height: 54,
+    justifyContent: 'center',
+    width: 48,
+  },
+  driverInitials: {
+    color: theme.colors.primary,
+    fontSize: 15,
+    fontWeight: '700',
+  },
   tripDetails: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: theme.spacing.sm,
     minHeight: 72,
   },
-  storeMark: {
+  tripHeading: {
     alignItems: 'center',
-    backgroundColor: theme.colors.primary,
-    borderRadius: 7,
-    height: 54,
-    justifyContent: 'center',
-    width: 48,
+    flexDirection: 'row',
+    gap: theme.spacing.xs,
   },
-  otherStoreMark: {
-    backgroundColor: theme.colors.surface,
-  },
-  storeName: {
-    color: theme.colors.onPrimary,
-    fontSize: 9,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  otherStoreName: {
-    color: theme.colors.error,
-    fontSize: 11,
-    fontStyle: 'italic',
-    fontWeight: '800',
+  driverName: {
+    color: theme.colors.text,
+    flex: 1,
+    fontSize: 10,
+    fontWeight: '600',
   },
   routeDetails: {
     flex: 1,
@@ -251,20 +257,6 @@ const styles = StyleSheet.create((theme) => ({
   metricText: {
     color: theme.colors.text,
     fontSize: 9,
-  },
-  messageCount: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.primary,
-    borderRadius: 8,
-    height: 16,
-    justifyContent: 'center',
-    minWidth: 16,
-    paddingHorizontal: 3,
-  },
-  messageCountText: {
-    color: theme.colors.onPrimary,
-    fontSize: 9,
-    fontWeight: '700',
   },
   detailsButton: {
     alignItems: 'center',
