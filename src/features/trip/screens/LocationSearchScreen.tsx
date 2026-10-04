@@ -9,6 +9,7 @@ import { useTripCreation } from "../context/TripCreationContext";
 import { useCities } from "../../../shared/city/hooks/useCities";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useToast } from "../../../shared/components/ToastProvider";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 export function LocationSearchScreen() {
   const insets = useSafeAreaInsets();
@@ -43,7 +44,15 @@ export function LocationSearchScreen() {
 
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: getTopSafeAreaInset(insets.top),
+          paddingBottom: insets.bottom,
+        },
+      ]}
+    >
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />

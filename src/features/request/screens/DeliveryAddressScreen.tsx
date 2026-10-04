@@ -9,6 +9,7 @@ import { useRequestCreation } from "../context/RequestCreationContext";
 import { useAddresses } from "../../../shared/address/hooks/useAddresses";
 import { Address } from "../../../shared/address/types/address";
 import { ActivityIndicator } from "react-native";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 const getAddressIcon = (label: string) => {
   const lowercaseLabel = label.toLowerCase();
@@ -34,7 +35,7 @@ export function DeliveryAddressScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+    <View style={[styles.container, { paddingTop: getTopSafeAreaInset(insets.top), paddingBottom: insets.bottom }]}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerButton}

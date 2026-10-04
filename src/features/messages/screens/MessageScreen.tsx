@@ -8,6 +8,7 @@ import { TextField } from "../../../shared/components/TextField";
 import { MessageListItem } from "../components/MessageListItem";
 import { useListMessages } from "../hooks/useMessages";
 import { ActivityIndicator } from "react-native";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 export function MessageScreen() {
   const { theme } = useUnistyles();
@@ -78,7 +79,7 @@ export function MessageScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: getTopSafeAreaInset(insets.top) }]}>
       <View style={styles.header}>
         <Text style={styles.title}>Messages</Text>
         <TouchableOpacity style={styles.notificationBtn}>

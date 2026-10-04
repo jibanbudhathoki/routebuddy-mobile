@@ -11,6 +11,7 @@ import { Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getTopSafeAreaInset } from '../utils/safeArea';
 
 interface ToastContextValue {
   showToast: (message: string) => void;
@@ -54,7 +55,10 @@ export function ToastProvider({ children }: PropsWithChildren) {
             accessibilityLiveRegion="polite"
             accessibilityRole="alert"
             pointerEvents="none"
-            style={[styles.toast, { top: insets.top + theme.spacing.sm }]}
+            style={[
+              styles.toast,
+              { top: getTopSafeAreaInset(insets.top) + theme.spacing.sm },
+            ]}
           >
             <MaterialCommunityIcons
               name="alert-circle-outline"

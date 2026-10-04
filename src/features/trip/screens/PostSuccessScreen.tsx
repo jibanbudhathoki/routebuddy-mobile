@@ -5,6 +5,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 interface SummaryRowProps {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -58,7 +59,10 @@ export function PostSuccessScreen() {
     <View
       style={[
         styles.container,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        {
+          paddingTop: getTopSafeAreaInset(insets.top),
+          paddingBottom: insets.bottom,
+        },
       ]}
     >
       <ScrollView
