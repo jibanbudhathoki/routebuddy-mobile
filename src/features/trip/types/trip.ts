@@ -1,4 +1,4 @@
-import type { AddressLocation } from '../../../shared/address/types/address';
+import type { AddressLocation } from "../../../shared/address/types/address";
 
 export interface CreateTripRequest {
   originCityUid: string;
@@ -55,4 +55,13 @@ export interface TripDetailsResponse {
   };
   origin: string;
   destination: string;
+}
+
+export interface ListAllTripsResponse {
+  success: boolean;
+  message: string;
+  data: ListMyTripsResponse[];
+  total: number;
+  page: number;
+  limit: number;
 }

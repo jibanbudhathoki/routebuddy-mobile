@@ -1,40 +1,63 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Share, Text, View, Pressable } from "react-native";
+import { useRouter } from "expo-router";
+import { Image, Share, Text, View, Pressable } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
-import type { HomeTrip } from "../types/home";
+import type { ListMyTripsResponse } from "../../trip/types/trip";
 
 interface HomeTripCardProps {
-  trip: HomeTrip;
-  onViewDetails: (trip: HomeTrip) => void;
+  trip: ListMyTripsResponse;
 }
 
-export function HomeTripCard({ trip, onViewDetails }: HomeTripCardProps) {
+export function HomeTripCard({ trip }: HomeTripCardProps) {
+  const router = useRouter();
   const { theme } = useUnistyles();
+  const departure = new Date(trip.departureAt);
+  const departureDate = Number.isNaN(departure.getTime())
+    ? trip.departureAt
+    : departure.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+  const departureTime = Number.isNaN(departure.getTime())
+    ? ""
+    : departure.toLocaleTimeString(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+  const initials = trip.driver.name
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <View style={styles.card}>
       <View style={styles.driverRow}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarInitials}>{trip.driverInitials}</Text>
-          <View style={styles.verified}>
-            <MaterialCommunityIcons
-              name="check"
-              size={9}
-              color={theme.colors.onPrimary}
-            />
+        {trip.driver.photoUrl ? (
+          <Image
+            source={{ uri: trip.driver.photoUrl }}
+            style={styles.avatar}
+            accessibilityLabel={`${trip.driver.name}'s profile photo`}
+          />
+        ) : (
+          <View style={styles.avatar}>
+            <Text style={styles.avatarInitials}>{initials}</Text>
           </View>
-        </View>
+        )}
         <View style={styles.driverInfo}>
-          <Text style={styles.driverName}>{trip.driverName}</Text>
-          <View style={styles.ratingRow}>
+          <Text style={styles.driverName}>{trip.driver.name}</Text>
+          <View style={styles.statusRow}>
             <MaterialCommunityIcons
-              name="star"
+              name="check-circle"
               size={13}
-              color={theme.colors.secondary}
+              color={theme.colors.primary}
             />
-            <Text style={styles.rating}>{trip.rating}</Text>
-            <Text style={styles.tripCount}>({trip.tripCount} trips)</Text>
+            <Text style={styles.statusText}>
+              {trip.status.replace(/[_-]+/g, " ")}
+            </Text>
           </View>
         </View>
         <View style={styles.spotsBadge}>
@@ -44,7 +67,7 @@ export function HomeTripCard({ trip, onViewDetails }: HomeTripCardProps) {
             color={theme.colors.primary}
           />
           <Text style={styles.spotsText}>
-            {trip.remainingSpots} of 3 spots remaining
+            {trip.availableSeats} of {trip.capacity} spots remaining
           </Text>
         </View>
       </View>
@@ -66,32 +89,33 @@ export function HomeTripCard({ trip, onViewDetails }: HomeTripCardProps) {
             size={12}
             color={theme.colors.muted}
           />
-          <Text style={styles.scheduleText}>{trip.departureLabel}</Text>
+          <Text style={styles.scheduleText}>{departureDate}</Text>
         </View>
-        <View style={styles.scheduleItem}>
-          <MaterialCommunityIcons
-            name="clock-outline"
-            size={12}
-            color={theme.colors.muted}
-          />
-          <Text style={styles.scheduleText}>{trip.deliveryLabel}</Text>
-        </View>
-      </View>
-
-      <View style={styles.storeRow}>
-        {trip.stores.map((store, index) => (
-          <StoreBadge key={`${store}-${index}`} name={store} index={index} />
-        ))}
+        {departureTime ? (
+          <View style={styles.scheduleItem}>
+            <MaterialCommunityIcons
+              name="clock-outline"
+              size={12}
+              color={theme.colors.muted}
+            />
+            <Text style={styles.scheduleText}>{departureTime}</Text>
+          </View>
+        ) : null}
       </View>
 
       <View style={styles.cardFooter}>
         <View style={styles.feeRow}>
-          <Text style={styles.feeAmount}>15%</Text>
-          <Text style={styles.feeLabel}>Service Fee</Text>
+          <Text style={styles.feeLabel}>Price</Text>
+          <Text style={styles.feeAmount}>{trip.price ?? "-"}</Text>
         </View>
         <Pressable
           accessibilityRole="button"
-          onPress={() => onViewDetails(trip)}
+          onPress={() =>
+            router.push({
+              pathname: "/(tabs)/marketplace-trip-details",
+              params: { uid: trip.uid },
+            })
+          }
           style={styles.detailsButton}
         >
           <Text style={styles.detailsText}>View Trip Details</Text>
@@ -103,10 +127,10 @@ export function HomeTripCard({ trip, onViewDetails }: HomeTripCardProps) {
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Share ${trip.driverName}'s trip`}
+          accessibilityLabel={`Share ${trip.driver.name}'s trip`}
           onPress={() =>
             Share.share({
-              message: `${trip.origin} to ${trip.destination} with ${trip.driverName}`,
+              message: `${trip.origin} to ${trip.destination} with ${trip.driver.name}`,
             })
           }
           style={styles.shareButton}
@@ -118,43 +142,6 @@ export function HomeTripCard({ trip, onViewDetails }: HomeTripCardProps) {
           />
         </Pressable>
       </View>
-    </View>
-  );
-}
-
-function StoreBadge({ name, index }: { name: string; index: number }) {
-  const { theme } = useUnistyles();
-  const badgeColors = [
-    theme.colors.primarySoft,
-    theme.colors.primary,
-    theme.colors.surface,
-    theme.colors.error,
-    theme.colors.secondary,
-  ];
-  const foreground =
-    index === 1 || index === 3
-      ? theme.colors.onPrimary
-      : theme.colors.primary;
-  const shortName =
-    name === "Home Depot"
-      ? "HOME\nDEPOT"
-      : name === "No Frills"
-        ? "NO\nFRILLS"
-        : name;
-
-  return (
-    <View
-      style={[
-        styles.storeBadge,
-        { backgroundColor: badgeColors[index % badgeColors.length] },
-      ]}
-    >
-      <Text
-        numberOfLines={2}
-        style={[styles.storeBadgeText, { color: foreground }]}
-      >
-        {shortName}
-      </Text>
     </View>
   );
 }
@@ -184,25 +171,13 @@ const styles = StyleSheet.create((theme) => ({
     height: 38,
     justifyContent: "center",
     marginRight: theme.spacing.sm,
+    resizeMode: "cover",
     width: 38,
   },
   avatarInitials: {
     color: theme.colors.primary,
     fontSize: 12,
     fontWeight: "700",
-  },
-  verified: {
-    alignItems: "center",
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.surface,
-    borderRadius: 8,
-    borderWidth: 1,
-    bottom: -1,
-    height: 15,
-    justifyContent: "center",
-    position: "absolute",
-    right: -1,
-    width: 15,
   },
   driverInfo: {
     flex: 1,
@@ -213,20 +188,16 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 12,
     fontWeight: "700",
   },
-  ratingRow: {
+  statusRow: {
     alignItems: "center",
     flexDirection: "row",
     gap: 3,
     marginTop: 2,
   },
-  rating: {
-    color: theme.colors.text,
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  tripCount: {
+  statusText: {
     color: theme.colors.muted,
     fontSize: 9,
+    textTransform: "capitalize",
   },
   spotsBadge: {
     alignItems: "center",
@@ -268,26 +239,6 @@ const styles = StyleSheet.create((theme) => ({
   scheduleText: {
     color: theme.colors.muted,
     fontSize: 9,
-  },
-  storeRow: {
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-    marginTop: theme.spacing.sm,
-  },
-  storeBadge: {
-    alignItems: "center",
-    borderColor: theme.colors.border,
-    borderRadius: 5,
-    borderWidth: 1,
-    flex: 1,
-    height: 38,
-    justifyContent: "center",
-    padding: 2,
-  },
-  storeBadgeText: {
-    fontSize: 7,
-    fontWeight: "800",
-    textAlign: "center",
   },
   cardFooter: {
     alignItems: "center",
