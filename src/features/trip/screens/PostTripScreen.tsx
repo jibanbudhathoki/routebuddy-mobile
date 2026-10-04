@@ -12,6 +12,7 @@ import { useTripCreation } from "../context/TripCreationContext";
 
 import { validateTripData } from "../validations/trip";
 import { useToast } from "../../../shared/components/ToastProvider";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 export function PostTripScreen() {
   const insets = useSafeAreaInsets();
@@ -46,7 +47,12 @@ export function PostTripScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: getTopSafeAreaInset(insets.top) },
+      ]}
+    >
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerButton}

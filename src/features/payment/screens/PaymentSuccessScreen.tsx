@@ -5,6 +5,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { useRequestCreation } from "../../request/context/RequestCreationContext";
 import { useStores } from "../../../shared/store/hooks/useStores";
 import { useCities } from "../../../shared/city/hooks/useCities";
@@ -48,7 +49,7 @@ export function PaymentSuccessScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingBottom: insets.bottom, paddingTop: getTopSafeAreaInset(insets.top) }]}>
       <View style={styles.header}>
         <View style={styles.headerSpacer} />
         <TouchableOpacity

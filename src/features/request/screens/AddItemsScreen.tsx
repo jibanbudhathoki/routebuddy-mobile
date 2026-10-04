@@ -5,6 +5,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 export function AddItemsScreen() {
   const insets = useSafeAreaInsets();
@@ -12,7 +13,7 @@ export function AddItemsScreen() {
   const { theme } = useUnistyles();
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingBottom: insets.bottom, paddingTop: getTopSafeAreaInset(insets.top) }]}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerButton}

@@ -8,6 +8,7 @@ import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 import { useRequestCreation } from "../context/RequestCreationContext";
 import { useStores } from "../../../shared/store/hooks/useStores";
 import { useCities } from "../../../shared/city/hooks/useCities";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { RequestItem } from "../types/request";
 
 export function BuildShoppingListScreen() {
@@ -53,7 +54,7 @@ export function BuildShoppingListScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingBottom: insets.bottom, paddingTop: getTopSafeAreaInset(insets.top) }]}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerButton}

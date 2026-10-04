@@ -7,6 +7,7 @@ import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 import { validateTripData } from "../validations/trip";
 import { useToast } from "../../../shared/components/ToastProvider";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 interface SummaryRowProps {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -77,7 +78,15 @@ export function ReviewTripScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: getTopSafeAreaInset(insets.top),
+          paddingBottom: insets.bottom,
+        },
+      ]}
+    >
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />

@@ -4,6 +4,7 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PrimaryButton } from "./PrimaryButton";
+import { getTopSafeAreaInset } from "../utils/safeArea";
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
@@ -106,7 +107,10 @@ export function DateSelectionScreen({
     <View
       style={[
         styles.container,
-        { paddingBottom: insets.bottom, paddingTop: insets.top },
+        {
+          paddingBottom: insets.bottom,
+          paddingTop: getTopSafeAreaInset(insets.top),
+        },
       ]}
     >
       <View style={styles.header}>

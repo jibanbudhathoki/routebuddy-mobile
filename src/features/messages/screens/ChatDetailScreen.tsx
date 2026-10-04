@@ -20,6 +20,7 @@ import {
   useMessages,
   useConversations,
 } from "../hooks/useMessages";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 export function ChatDetailScreen() {
   const { theme } = useUnistyles();
@@ -376,7 +377,7 @@ export function ChatDetailScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { paddingTop: insets.top }]}
+      style={[styles.container, { paddingTop: getTopSafeAreaInset(insets.top) }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={styles.header}>
