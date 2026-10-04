@@ -8,10 +8,19 @@ import type {
 
 export const tripService = {
   async createTrip(data: CreateTripRequest) {
-    const response = await apiRequest<any>(apiEndpoints.trips.trips, {
+    const response = await apiRequest<{
+      success: boolean;
+      message?: string;
+      data?: unknown;
+    }>(apiEndpoints.trips.trips, {
       method: "POST",
       body: data,
     });
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to post trip.');
+    }
+
     return response.data;
   },
 };
