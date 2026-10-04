@@ -1,5 +1,6 @@
-import { Image, Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import type { ListMyTripsResponse } from '../types/trip';
 
@@ -8,6 +9,7 @@ interface TripCardProps {
 }
 
 export function TripCard({ trip }: TripCardProps) {
+  const router = useRouter();
   const { theme } = useUnistyles();
   const departure = new Date(trip.departureAt);
   const date = departure.toLocaleDateString(undefined, {
@@ -119,14 +121,23 @@ export function TripCard({ trip }: TripCardProps) {
         </View>
       </View>
 
-      <View style={styles.detailsButton}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() =>
+          router.push({
+            pathname: '/trip-details',
+            params: { uid: trip.uid },
+          })
+        }
+        style={styles.detailsButton}
+      >
         <Text style={styles.detailsLabel}>View Trip Details</Text>
         <MaterialCommunityIcons
           name="chevron-right"
           size={17}
           color={theme.colors.text}
         />
-      </View>
+      </Pressable>
     </View>
   );
 }

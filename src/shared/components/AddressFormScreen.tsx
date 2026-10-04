@@ -184,7 +184,10 @@ export function AddressFormScreen({ onSave, isLoading }: AddressFormScreenProps)
                       ...prev,
                       cityName: item.name,
                       cityUid: item.uid,
-                      provinceUid: item.province?.uid || "",
+                      provinceUid:
+                        typeof item.province === 'object'
+                          ? item.province?.uid || ''
+                          : '',
                     
   cityItem: {
     paddingVertical: theme.spacing.md,
@@ -206,7 +209,13 @@ export function AddressFormScreen({ onSave, isLoading }: AddressFormScreenProps)
                   }}
                 >
                   <Text style={styles.cityNameText}>{item.name}</Text>
-                  {item.province && <Text style={styles.provinceNameText}>{item.province.name}</Text>}
+                  {item.province && (
+                    <Text style={styles.provinceNameText}>
+                      {typeof item.province === 'string'
+                        ? item.province
+                        : item.province.name}
+                    </Text>
+                  )}
                 </TouchableOpacity>
               )}
             />
