@@ -11,12 +11,14 @@ import { ListItem } from "../../../shared/components/ListItem";
 import { useTripCreation } from "../context/TripCreationContext";
 
 import { validateTripData } from "../validations/trip";
+import { useToast } from "../../../shared/components/ToastProvider";
 
 export function PostTripScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useUnistyles();
   const { tripData, updateTripData } = useTripCreation();
+  const { showToast } = useToast();
 
   const handleIncrement = () => {
     updateTripData({ capacity: (tripData.capacity || 0) + 1 });
@@ -35,10 +37,9 @@ export function PostTripScreen() {
   };
 
   const handleContinue = () => {
-    const { isValid, error } = validateTripData(tripData);
-
-    if (!isValid) {
-      return alert(error);
+    const validation = validateTripData(tripData);
+    if (!validation.isValid) {
+      return showToast(validation.error);
     }
 
     router.push("/(modals)/trip/review-trip");

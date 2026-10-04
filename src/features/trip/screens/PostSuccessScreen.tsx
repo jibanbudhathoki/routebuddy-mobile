@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 
 interface SummaryRowProps {
@@ -31,13 +31,19 @@ function SummaryRow({ icon, label, value }: SummaryRowProps) {
   );
 }
 
-import { useTripCreation } from "../context/TripCreationContext";
-
 export function PostSuccessScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useUnistyles();
-  const { tripData } = useTripCreation();
+  const tripData = useLocalSearchParams<{
+    originCityName?: string;
+    destinationCityName?: string;
+    departureAt?: string;
+    orderCutoffAt?: string;
+    deliveryLatestBy?: string;
+    storesCount?: string;
+    capacity?: string;
+  }>();
 
   // Helper to format Date string
   const formatDate = (dateStr?: string) => {
@@ -151,8 +157,8 @@ export function PostSuccessScreen() {
             icon="shopping-outline"
             label="Store(s)"
             value={
-              tripData.stores?.length
-                ? `${tripData.stores.length} store(s)`
+              tripData.storesCount
+                ? `${tripData.storesCount} store(s)`
                 : "None"
             }
           />
@@ -161,7 +167,7 @@ export function PostSuccessScreen() {
           <SummaryRow
             icon="account-group-outline"
             label="Maximum Number of Orders"
-            value={tripData.capacity?.toString() || "1"}
+            value={tripData.capacity || "1"}
           />
         </View>
 
@@ -186,15 +192,13 @@ export function PostSuccessScreen() {
         <PrimaryButton
           title="View My Trips"
           onPress={() => {
-            // Navigate to My Trips tab
-            router.push("My Trips" as never);
+            router.replace("/(tabs)/trips");
           }}
         />
         <TouchableOpacity
           style={styles.outlineButton}
           onPress={() => {
-            // Reset to HomeMain
-            router.push("HomeMain" as never);
+            router.replace("/(tabs)/index");
           }}
         >
           <Text style={styles.outlineButtonText}>Back to Home</Text>

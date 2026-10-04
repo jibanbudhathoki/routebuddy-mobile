@@ -8,6 +8,7 @@ import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 import { useTripCreation } from "../context/TripCreationContext";
 import { useCities } from "../../../shared/city/hooks/useCities";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useToast } from "../../../shared/components/ToastProvider";
 
 export function LocationSearchScreen() {
   const insets = useSafeAreaInsets();
@@ -15,6 +16,7 @@ export function LocationSearchScreen() {
   const params = useLocalSearchParams<{ type: "From" | "To" }>();
   const { theme } = useUnistyles();
   const { tripData, updateTripData } = useTripCreation();
+  const { showToast } = useToast();
   
   const type = params.type || "From";
   const isFrom = type === "From";
@@ -25,6 +27,9 @@ export function LocationSearchScreen() {
   const [selectedCity, setSelectedCity] = useState<string | null>(
     isFrom ? tripData.originCityUid || null : tripData.destinationCityUid || null
   );
+  const [selectedCityName, setSelectedCityName] = useState(
+    isFrom ? tripData.originCityName || "" : tripData.destinationCityName || "",
+  );
 
   React.useEffect(() => {
     const handler = setTimeout(() => {
@@ -33,7 +38,7 @@ export function LocationSearchScreen() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  const { cities, isLoading } = useCities({ limit: 100, search: debouncedSearch || undefined });
+  const { cities, isLoading, error } = useCities({ limit: 100, search: debouncedSearch || undefined });
 
 
 
@@ -92,7 +97,10 @@ export function LocationSearchScreen() {
                     styles.cityItem,
                     isSelected && styles.cityItemSelected
                   ]}
-                  onPress={() => setSelectedCity(city.uid)}
+                  onPress={() => {
+                    setSelectedCity(city.uid);
+                    setSelectedCityName(displayName);
+                  }}
                 >
                   <Text style={[styles.cityText, isSelected && styles.cityTextSelected]}>{displayName}</Text>
                   <MaterialCommunityIcons 
@@ -116,19 +124,27 @@ export function LocationSearchScreen() {
         <PrimaryButton 
           title="Continue" 
           onPress={() => {
-            if (selectedCity) {
-              const city = cities.find(c => c.uid === selectedCity);
-              const provinceName = typeof city?.province === 'string'
-                ? city.province
-                : city?.province?.name;
-              const cityName = provinceName
-                ? `${city.name}, ${provinceName}`
-                : city?.name || '';
-              if (isFrom) {
-                updateTripData({ originCityUid: selectedCity, originCityName: cityName });
-              } else {
-                updateTripData({ destinationCityUid: selectedCity, destinationCityName: cityName });
-              }
+            if (error) {
+              showToast(error);
+              return;
+            }
+            if (isLoading) {
+              showToast("Please wait for cities to load.");
+              return;
+            }
+            if (!selectedCity) {
+              showToast(isFrom ? "Select a starting city." : "Select a destination city.");
+              return;
+            }
+            if (!selectedCityName) {
+              showToast("Select a city from the list to continue.");
+              return;
+            }
+
+            if (isFrom) {
+              updateTripData({ originCityUid: selectedCity, originCityName: selectedCityName });
+            } else {
+              updateTripData({ destinationCityUid: selectedCity, destinationCityName: selectedCityName });
             }
             router.back();
           }} 
