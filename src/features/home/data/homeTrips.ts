@@ -1,0 +1,43 @@
+import type { HomeTrip } from "../types/home";
+
+export const homeTrips: HomeTrip[] = [
+  {
+    id: "sample-john",
+    driverName: "John D.",
+    driverInitials: "JD",
+    rating: "4.9",
+    tripCount: 84,
+    remainingSpots: 3,
+    origin: "Reston",
+    destination: "Brandon",
+    departureLabel: "Mon, May 26",
+    deliveryLabel: "Deliver by 9:00 PM latest",
+    stores: ["Costco", "Walmart", "Target", "SDM", "Dollarama"],
+  },
+  {
+    id: "sample-sarah",
+    driverName: "Sarah M.",
+    driverInitials: "SM",
+    rating: "5.0",
+    tripCount: 67,
+    remainingSpots: 2,
+    origin: "Virden",
+    destination: "Winnipeg",
+    departureLabel: "Tue, May 27",
+    deliveryLabel: "Deliver by 8:30 PM latest",
+    stores: ["Walmart", "Spartan", "No Frills", "Mark's", "Home Depot"],
+  },
+  {
+    id: "sample-mike",
+    driverName: "Mike T.",
+    driverInitials: "MT",
+    rating: "4.8",
+    tripCount: 52,
+    remainingSpots: 3,
+    origin: "Reston",
+    destination: "Brandon",
+    departureLabel: "Wed, May 28",
+    deliveryLabel: "Deliver by 9:00 PM latest",
+    stores: ["Costco", "Walmart", "Target"],
+  },
+];
