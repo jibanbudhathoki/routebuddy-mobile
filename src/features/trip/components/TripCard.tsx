@@ -1,8 +1,8 @@
-import { Image, Pressable, Text, View } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import type { ListMyTripsResponse } from '../types/trip';
+import { Image, Pressable, Text, View } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import type { ListMyTripsResponse } from "../types/trip";
 
 interface TripCardProps {
   trip: ListMyTripsResponse;
@@ -13,16 +13,16 @@ export function TripCard({ trip }: TripCardProps) {
   const { theme } = useUnistyles();
   const departure = new Date(trip.departureAt);
   const date = departure.toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
   const time = departure.toLocaleTimeString(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
+    hour: "numeric",
+    minute: "2-digit",
   });
-  const price = trip.price.startsWith('$') ? trip.price : `$${trip.price}`;
-  const status = trip.status.replace(/[_-]+/g, ' ').toUpperCase();
+  const price = trip.price ?? "-";
+  const status = trip.status.replace(/[_-]+/g, " ").toUpperCase();
 
   return (
     <View style={styles.card}>
@@ -39,7 +39,7 @@ export function TripCard({ trip }: TripCardProps) {
               {trip.driver.name
                 .split(/\s+/)
                 .map((part) => part[0])
-                .join('')
+                .join("")
                 .slice(0, 2)
                 .toUpperCase()}
             </Text>
@@ -125,7 +125,7 @@ export function TripCard({ trip }: TripCardProps) {
         accessibilityRole="button"
         onPress={() =>
           router.push({
-            pathname: '/trip-details',
+            pathname: "/trip-details",
             params: { uid: trip.uid },
           })
         }
@@ -149,7 +149,7 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: theme.radius.sm,
     borderWidth: 1,
     elevation: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
     padding: theme.spacing.sm,
     shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
@@ -159,38 +159,38 @@ const styles = StyleSheet.create((theme) => ({
   driverPhoto: {
     borderRadius: 7,
     height: 54,
-    resizeMode: 'cover',
+    resizeMode: "cover",
     width: 48,
   },
   driverPhotoFallback: {
-    alignItems: 'center',
+    alignItems: "center",
     backgroundColor: theme.colors.primarySoft,
     borderRadius: 7,
     height: 54,
-    justifyContent: 'center',
+    justifyContent: "center",
     width: 48,
   },
   driverInitials: {
     color: theme.colors.primary,
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   tripDetails: {
-    alignItems: 'center',
-    flexDirection: 'row',
+    alignItems: "center",
+    flexDirection: "row",
     gap: theme.spacing.sm,
     minHeight: 72,
   },
   tripHeading: {
-    alignItems: 'center',
-    flexDirection: 'row',
+    alignItems: "center",
+    flexDirection: "row",
     gap: theme.spacing.xs,
   },
   driverName: {
     color: theme.colors.text,
     flex: 1,
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   routeDetails: {
     flex: 1,
@@ -198,36 +198,36 @@ const styles = StyleSheet.create((theme) => ({
     minWidth: 0,
   },
   tripBadge: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     backgroundColor: theme.colors.primary,
     borderRadius: 4,
     color: theme.colors.onPrimary,
     fontSize: 9,
-    fontWeight: '700',
-    overflow: 'hidden',
+    fontWeight: "700",
+    overflow: "hidden",
     paddingHorizontal: 5,
     paddingVertical: 2,
   },
   route: {
-    alignItems: 'center',
-    flexDirection: 'row',
+    alignItems: "center",
+    flexDirection: "row",
     gap: 4,
   },
   location: {
     color: theme.colors.text,
     flexShrink: 1,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   schedule: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: theme.spacing.sm,
   },
   scheduleItem: {
-    alignItems: 'center',
-    flexDirection: 'row',
+    alignItems: "center",
+    flexDirection: "row",
     gap: 4,
   },
   scheduleText: {
@@ -235,9 +235,9 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 10,
   },
   earnings: {
-    alignItems: 'flex-end',
-    alignSelf: 'stretch',
-    justifyContent: 'center',
+    alignItems: "flex-end",
+    alignSelf: "stretch",
+    justifyContent: "center",
     paddingLeft: theme.spacing.xs,
   },
   earningsLabel: {
@@ -247,22 +247,22 @@ const styles = StyleSheet.create((theme) => ({
   earningsAmount: {
     color: theme.colors.text,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     marginTop: 4,
   },
   metrics: {
-    alignItems: 'center',
+    alignItems: "center",
     borderBottomColor: theme.colors.border,
     borderTopColor: theme.colors.border,
     borderTopWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: theme.spacing.sm,
     paddingVertical: theme.spacing.sm,
   },
   metric: {
-    alignItems: 'center',
-    flexDirection: 'row',
+    alignItems: "center",
+    flexDirection: "row",
     gap: 4,
   },
   metricText: {
@@ -270,17 +270,17 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 9,
   },
   detailsButton: {
-    alignItems: 'center',
+    alignItems: "center",
     backgroundColor: theme.colors.background,
     borderRadius: 6,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: theme.spacing.xs,
-    justifyContent: 'center',
+    justifyContent: "center",
     minHeight: 34,
   },
   detailsLabel: {
     color: theme.colors.text,
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 }));

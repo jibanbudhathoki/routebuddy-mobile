@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
+import { FormInput } from "../../../shared/components/FormInput";
 
 import { ListItem } from "../../../shared/components/ListItem";
 
@@ -20,6 +21,9 @@ export function PostTripScreen() {
   const { theme } = useUnistyles();
   const { tripData, updateTripData } = useTripCreation();
   const { showToast } = useToast();
+  const [priceInput, setPriceInput] = useState(
+    tripData.price === undefined ? "" : String(tripData.price),
+  );
 
   const handleIncrement = () => {
     updateTripData({ capacity: (tripData.capacity || 0) + 1 });
@@ -38,7 +42,20 @@ export function PostTripScreen() {
   };
 
   const handleContinue = () => {
-    const validation = validateTripData(tripData);
+    if (
+      priceInput.trim() !== "" &&
+      (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(priceInput) ||
+        !Number.isFinite(Number(priceInput)) ||
+        Number(priceInput) < 0)
+    ) {
+      showToast("Enter a valid price or leave it blank.");
+      return;
+    }
+
+    const price = priceInput.trim() === "" ? undefined : Number(priceInput);
+    updateTripData({ price });
+
+    const validation = validateTripData({ ...tripData, price });
     if (!validation.isValid) {
       return showToast(validation.error);
     }
@@ -172,6 +189,38 @@ export function PostTripScreen() {
           onDecrement={handleDecrement}
         />
 
+        <FormInput
+          label="Trip Price (Optional)"
+          icon="cash"
+          placeholder="Enter price"
+          value={priceInput}
+          onChangeText={(value) => {
+            if (/^\d*(\.\d*)?$/.test(value)) {
+              setPriceInput(value);
+              updateTripData({
+                price:
+                  value.trim() === "" || !Number.isFinite(Number(value))
+                    ? undefined
+                    : Number(value),
+              });
+            }
+          }}
+          keyboardType="decimal-pad"
+          maxLength={12}
+          accessibilityLabel="Optional trip price"
+        />
+
+        <FormInput
+          label="Notes for Shoppers (Optional)"
+          icon="file-document-outline"
+          placeholder="Add any helpful details for shoppers"
+          value={tripData.notes ?? ""}
+          onChangeText={(notes) => updateTripData({ notes })}
+          multiline
+          maxLength={500}
+          accessibilityLabel="Optional notes for shoppers"
+        />
+
         <View style={styles.infoBanner}>
           <MaterialCommunityIcons
             name="information-outline"
@@ -180,8 +229,8 @@ export function PostTripScreen() {
             style={styles.infoIcon}
           />
           <Text style={styles.infoText}>
-            You can add more details, pricing and availability after you post
-            your trip.
+            Review your trip details before posting. You can update
+            availability after your trip is posted.
           </Text>
         </View>
       </ScrollView>
