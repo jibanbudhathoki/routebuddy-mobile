@@ -18,7 +18,7 @@ export function TripDetailsScreen() {
   const departureDate = trip ? formatDate(trip.departureAt) : '';
   const deliveryDate = trip ? formatDate(trip.deliveryLatestBy) : '';
   const deliveryTime = trip ? formatTime(trip.deliveryLatestBy) : '';
-  const tripPrice = trip?.price.startsWith('$') ? trip.price : `$${trip?.price ?? ''}`;
+  const tripPrice = trip?.price ?? '-';
 
   return (
     <AppScreen>

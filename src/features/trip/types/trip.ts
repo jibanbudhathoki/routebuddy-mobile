@@ -10,7 +10,7 @@ export interface CreateTripRequest {
   orderCutoffAt: string;
   deliveryLatestBy: string;
   capacity: number;
-  price?: number; // Backend schema has price, but UI won't set it for now.
+  price?: number;
   notes: string;
 }
 
@@ -19,7 +19,7 @@ export interface ListMyTripsResponse {
   departureAt: string;
   availableSeats: number;
   capacity: number;
-  price: string;
+  price: string | null;
   status: string;
   origin: string;
   destination: string;

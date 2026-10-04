@@ -159,6 +159,11 @@ export function ReviewTripScreen() {
             sublabel="Maximum requests you can take"
             value={tripData.capacity?.toString() || "Not set"}
           />
+          <SummaryRow
+            icon="cash"
+            label="Trip Price"
+            value={tripData.price === undefined ? "-" : String(tripData.price)}
+          />
           
           <View style={styles.summaryRow}>
             <View style={styles.summaryRowLeft}>
