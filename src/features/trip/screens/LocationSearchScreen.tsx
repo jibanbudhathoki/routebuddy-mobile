@@ -78,8 +78,11 @@ export function LocationSearchScreen() {
           <View style={styles.listContainer}>
             {cities.map((city) => {
               const isSelected = selectedCity === city.uid;
-              const displayName = city.province?.name 
-                ? `${city.name}, ${city.province.name}`
+              const provinceName = typeof city.province === 'string'
+                ? city.province
+                : city.province?.name;
+              const displayName = provinceName
+                ? `${city.name}, ${provinceName}`
                 : city.name;
                 
               return (
@@ -115,8 +118,11 @@ export function LocationSearchScreen() {
           onPress={() => {
             if (selectedCity) {
               const city = cities.find(c => c.uid === selectedCity);
-              const cityName = city?.province?.name 
-                ? `${city.name}, ${city.province.name}` 
+              const provinceName = typeof city?.province === 'string'
+                ? city.province
+                : city?.province?.name;
+              const cityName = provinceName
+                ? `${city.name}, ${provinceName}`
                 : city?.name || '';
               if (isFrom) {
                 updateTripData({ originCityUid: selectedCity, originCityName: cityName });

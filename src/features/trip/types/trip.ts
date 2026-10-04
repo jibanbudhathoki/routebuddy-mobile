@@ -1,3 +1,5 @@
+import type { AddressLocation } from '../../../shared/address/types/address';
+
 export interface CreateTripRequest {
   originCityUid: string;
   originCityName?: string;
@@ -25,4 +27,32 @@ export interface ListMyTripsResponse {
     name: string;
     photoUrl?: string | null;
   };
+}
+
+export interface TripDetailsResponse {
+  uid: string;
+  departureAt: string;
+  orderCutoffAt: string;
+  deliveryLatestBy: string;
+  capacity: number;
+  availableSeats: number;
+  price: string;
+  notes: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  stores: Array<{
+    uid: string;
+    name: string;
+    location: AddressLocation;
+  }>;
+  originAddress: AddressLocation;
+  destinationAddress: AddressLocation;
+  driver: {
+    uid: string;
+    photoUrl?: string | null;
+    name: string;
+  };
+  origin: string;
+  destination: string;
 }
