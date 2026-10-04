@@ -97,6 +97,26 @@ export function DateSelectionScreen({
     );
   };
 
+  const handleContinue = () => {
+    if (!selectedDate) {
+      onContinue(null);
+      return;
+    }
+
+    const now = new Date();
+    const selectedDateWithCurrentTime = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate(),
+      now.getHours(),
+      now.getMinutes(),
+      now.getSeconds(),
+      now.getMilliseconds(),
+    );
+
+    onContinue(selectedDateWithCurrentTime);
+  };
+
   const weeks = generateCalendar(
     currentDate.getFullYear(),
     currentDate.getMonth(),
@@ -252,7 +272,7 @@ export function DateSelectionScreen({
       <View style={styles.footer}>
         <PrimaryButton
           title="Continue"
-          onPress={() => onContinue(selectedDate)}
+          onPress={handleContinue}
           disabled={!selectedDate}
         />
       </View>

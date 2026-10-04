@@ -5,38 +5,42 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { AppScreen } from "../../../shared/components/AppScreen";
 import { useToast } from "../../../shared/components/ToastProvider";
+import { useListAllTrips } from "../../trip/hooks/useListAllTrips";
 import { HomeBrowseControls, type BrowseMode } from "../components/HomeBrowseControls";
 import { HomeHeader } from "../components/HomeHeader";
 import { HomeTripCard } from "../components/HomeTripCard";
-import { homeTrips } from "../data/homeTrips";
-import type { HomeTrip } from "../types/home";
 
 export function HomeScreen() {
   const [mode, setMode] = useState<BrowseMode>("trips");
   const [search, setSearch] = useState("");
-  const [locationFilter, setLocationFilter] = useState("Reston");
+  const [locationFilter, setLocationFilter] = useState("All locations");
   const [dateFilter, setDateFilter] = useState("Any date");
-  const [storeFilter, setStoreFilter] = useState("All stores");
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const { theme } = useUnistyles();
   const { showToast } = useToast();
+  const {
+    data: trips,
+    error,
+    isLoading,
+    refetch,
+  } = useListAllTrips(mode === "trips");
 
   const filteredTrips = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return homeTrips.filter((trip) => {
+    return (trips ?? []).filter((trip) => {
       const matchesLocation =
-        locationFilter === "All locations" || trip.origin === locationFilter;
+        locationFilter === "All locations" ||
+        trip.origin === locationFilter ||
+        trip.destination === locationFilter;
+      const tripDate = formatDepartureDate(trip.departureAt);
       const matchesDate =
-        dateFilter === "Any date" || trip.departureLabel === dateFilter;
-      const matchesStore =
-        storeFilter === "All stores" ||
-        trip.stores.some((store) => store.toLowerCase() === storeFilter.toLowerCase());
+        dateFilter === "Any date" || tripDate === dateFilter;
       const searchableText = [
-        trip.driverName,
+        trip.driver.name,
         trip.origin,
         trip.destination,
-        ...trip.stores,
+        trip.departureAt,
       ]
         .join(" ")
         .toLowerCase();
@@ -44,43 +48,46 @@ export function HomeScreen() {
       return (
         matchesLocation &&
         matchesDate &&
-        matchesStore &&
+        (!showMoreFilters || trip.availableSeats > 0) &&
         (!query || searchableText.includes(query))
       );
     });
-  }, [dateFilter, locationFilter, search, storeFilter]);
+  }, [dateFilter, locationFilter, search, showMoreFilters, trips]);
 
   const cycleLocation = () => {
-    setLocationFilter((current) =>
-      current === "Reston" ? "All locations" : "Reston",
+    const locations = Array.from(
+      new Set(
+        (trips ?? []).flatMap((trip) => [trip.origin, trip.destination]),
+      ),
+    );
+    const currentIndex = locations.indexOf(locationFilter);
+    setLocationFilter(
+      currentIndex < 0 || currentIndex === locations.length - 1
+        ? "All locations"
+        : locations[currentIndex + 1],
     );
   };
 
   const cycleDate = () => {
-    setDateFilter((current) => {
-      if (current === "Any date") return "Mon, May 26";
-      if (current === "Mon, May 26") return "Tue, May 27";
-      if (current === "Tue, May 27") return "Wed, May 28";
-      return "Any date";
-    });
-  };
-
-  const cycleStore = () => {
-    setStoreFilter((current) => {
-      if (current === "All stores") return "Walmart";
-      if (current === "Walmart") return "Costco";
-      return "All stores";
-    });
-  };
-
-  const showTripDetails = (_trip: HomeTrip) => {
-    showToast("Trip details will be available when trip browsing is connected.");
+    const dates = Array.from(
+      new Set((trips ?? []).map((trip) => formatDepartureDate(trip.departureAt))),
+    );
+    const currentIndex = dates.indexOf(dateFilter);
+    setDateFilter(
+      currentIndex < 0 || currentIndex === dates.length - 1
+        ? "Any date"
+        : dates[currentIndex + 1],
+    );
   };
 
   return (
     <AppScreen>
       <HomeHeader
-        location={locationFilter}
+        location={
+          locationFilter === "All locations"
+            ? trips?.[0]?.origin ?? "All locations"
+            : locationFilter
+        }
         onLocationPress={cycleLocation}
         onNotificationsPress={() => showToast("You are all caught up.")}
       />
@@ -89,13 +96,15 @@ export function HomeScreen() {
         search={search}
         locationFilter={locationFilter}
         dateFilter={dateFilter}
-        storeFilter={storeFilter}
+        storeFilter="All stores"
         showMoreFilters={showMoreFilters}
         onModeChange={setMode}
         onSearchChange={setSearch}
         onLocationFilterPress={cycleLocation}
         onDateFilterPress={cycleDate}
-        onStoreFilterPress={cycleStore}
+        onStoreFilterPress={() =>
+          showToast("Store information is not included in the trips list.")
+        }
         onToggleMoreFilters={() => setShowMoreFilters((visible) => !visible)}
       />
 
@@ -115,15 +124,34 @@ export function HomeScreen() {
                 />
                 <Text style={styles.sectionTitle}>Trips near you</Text>
               </View>
-              <Text style={styles.resultCount}>{filteredTrips.length} trips</Text>
+              <Text style={styles.resultCount}>
+                {isLoading ? "Loading..." : `${filteredTrips.length} trips`}
+              </Text>
             </View>
-            {filteredTrips.length ? (
-              filteredTrips.map((trip) => (
-                <HomeTripCard
-                  key={trip.id}
-                  trip={trip}
-                  onViewDetails={showTripDetails}
+            {isLoading ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyDescription}>Loading trips...</Text>
+              </View>
+            ) : error ? (
+              <View style={styles.emptyState}>
+                <MaterialCommunityIcons
+                  name="alert-circle-outline"
+                  size={28}
+                  color={theme.colors.error}
                 />
+                <Text style={styles.emptyTitle}>Could not load trips</Text>
+                <Text style={styles.emptyDescription}>{error.message}</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => refetch()}
+                  style={styles.retryButton}
+                >
+                  <Text style={styles.retryButtonText}>Try Again</Text>
+                </Pressable>
+              </View>
+            ) : filteredTrips.length ? (
+              filteredTrips.map((trip) => (
+                <HomeTripCard key={trip.uid} trip={trip} />
               ))
             ) : (
               <View style={styles.emptyState}>
@@ -142,7 +170,7 @@ export function HomeScreen() {
                     setSearch("");
                     setLocationFilter("All locations");
                     setDateFilter("Any date");
-                    setStoreFilter("All stores");
+                    setShowMoreFilters(false);
                   }}
                 >
                   <Text style={styles.resetFilters}>Clear filters</Text>
@@ -166,6 +194,19 @@ export function HomeScreen() {
       </ScrollView>
     </AppScreen>
   );
+}
+
+function formatDepartureDate(departureAt: string) {
+  const departure = new Date(departureAt);
+  if (Number.isNaN(departure.getTime())) {
+    return departureAt;
+  }
+
+  return departure.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 const styles = StyleSheet.create((theme) => ({
@@ -219,5 +260,17 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 11,
     fontWeight: "700",
     marginTop: theme.spacing.xs,
+  },
+  retryButton: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.sm,
+    marginTop: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+  },
+  retryButtonText: {
+    color: theme.colors.onPrimary,
+    fontSize: 11,
+    fontWeight: "600",
   },
 }));
