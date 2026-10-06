@@ -84,8 +84,16 @@ export function HomeBrowseControls({
             color={theme.colors.muted}
           />
           <TextInput
-            accessibilityLabel="Search trips, locations, or stores"
-            placeholder="Search trips, locations or store"
+            accessibilityLabel={
+              mode === "trips"
+                ? "Search trips, locations, or stores"
+                : "Search requests, locations, or stores"
+            }
+            placeholder={
+              mode === "trips"
+                ? "Search trips, locations or store"
+                : "Search requests, locations or store"
+            }
             placeholderTextColor={theme.colors.muted}
             value={search}
             onChangeText={onSearchChange}
@@ -132,7 +140,9 @@ export function HomeBrowseControls({
       {showMoreFilters && (
         <View style={styles.moreFilters}>
           <Text style={styles.moreFiltersText}>
-            Showing trips with available spots
+            {mode === "trips"
+              ? "Showing trips with available spots"
+              : "Showing open requests"}
           </Text>
           <MaterialCommunityIcons
             name="check-circle"

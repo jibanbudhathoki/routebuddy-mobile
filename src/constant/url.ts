@@ -23,6 +23,7 @@ export const apiEndpoints = {
     requests: "/v1/requests",
     listMyRequests: "/v1/requests/me",
     requestDetails: "/v1/requests/:uid",
+    listAllRequests: "/v1/requests",
   },
   messages: {
     listMessages: "/v1/messages/listMessages",
