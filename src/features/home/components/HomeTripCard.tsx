@@ -3,10 +3,10 @@ import { useRouter } from "expo-router";
 import { Image, Share, Text, View, Pressable } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
-import type { ListMyTripsResponse } from "../../trip/types/trip";
+import type { ListAllTripsItem } from "../../trip/types/trip";
 
 interface HomeTripCardProps {
-  trip: ListMyTripsResponse;
+  trip: ListAllTripsItem;
 }
 
 export function HomeTripCard({ trip }: HomeTripCardProps) {
@@ -26,6 +26,13 @@ export function HomeTripCard({ trip }: HomeTripCardProps) {
         hour: "numeric",
         minute: "2-digit",
       });
+  const delivery = new Date(trip.deliveryLatestBy);
+  const deliveryLabel = Number.isNaN(delivery.getTime())
+    ? "Delivery time unavailable"
+    : `Deliver by ${delivery.toLocaleTimeString(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+      })} latest`;
   const initials = trip.driver.name
     .split(/\s+/)
     .map((part) => part[0])
@@ -101,12 +108,45 @@ export function HomeTripCard({ trip }: HomeTripCardProps) {
             <Text style={styles.scheduleText}>{departureTime}</Text>
           </View>
         ) : null}
+        <View style={styles.scheduleItem}>
+          <MaterialCommunityIcons
+            name="clock-outline"
+            size={12}
+            color={theme.colors.muted}
+          />
+          <Text style={styles.scheduleText}>{deliveryLabel}</Text>
+        </View>
       </View>
+
+      {trip.stores.length > 0 ? (
+        <View style={styles.storeRow}>
+          {trip.stores.slice(0, 5).map((store, index) => (
+            <View key={`${store}-${index}`} style={styles.storeTile}>
+              <MaterialCommunityIcons
+                name="storefront-outline"
+                size={14}
+                color={theme.colors.primary}
+              />
+              <Text style={styles.storeName} numberOfLines={2}>
+                {store}
+              </Text>
+            </View>
+          ))}
+          {trip.stores.length > 5 ? (
+            <View style={[styles.storeTile, styles.moreStoresTile]}>
+              <Text style={styles.moreStoresText}>
+                +{trip.stores.length - 5}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
 
       <View style={styles.cardFooter}>
         <View style={styles.feeRow}>
-          <Text style={styles.feeLabel}>Price</Text>
-          <Text style={styles.feeAmount}>{trip.price ?? "-"}</Text>
+          <Text style={styles.feeAmount}>15%</Text>
+          <Text style={styles.feeLabel}>Service Fee</Text>
+          <Text style={styles.price}>{trip.price ?? "-"}</Text>
         </View>
         <Pressable
           accessibilityRole="button"
@@ -240,6 +280,39 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.muted,
     fontSize: 9,
   },
+  storeRow: {
+    flexDirection: "row",
+    gap: theme.spacing.xs,
+    marginTop: theme.spacing.sm,
+  },
+  storeTile: {
+    alignItems: "center",
+    backgroundColor: theme.colors.background,
+    borderColor: theme.colors.border,
+    borderRadius: 5,
+    borderWidth: 1,
+    flex: 1,
+    gap: 2,
+    height: 38,
+    justifyContent: "center",
+    minWidth: 0,
+    paddingHorizontal: 2,
+  },
+  storeName: {
+    color: theme.colors.text,
+    fontSize: 7,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  moreStoresTile: {
+    flex: 0,
+    width: 34,
+  },
+  moreStoresText: {
+    color: theme.colors.primary,
+    fontSize: 9,
+    fontWeight: "700",
+  },
   cardFooter: {
     alignItems: "center",
     flexDirection: "row",
@@ -260,6 +333,12 @@ const styles = StyleSheet.create((theme) => ({
   feeLabel: {
     color: theme.colors.muted,
     fontSize: 8,
+  },
+  price: {
+    color: theme.colors.text,
+    fontSize: 8,
+    fontWeight: "600",
+    marginLeft: theme.spacing.xs,
   },
   detailsButton: {
     alignItems: "center",

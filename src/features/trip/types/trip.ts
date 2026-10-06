@@ -29,6 +29,11 @@ export interface ListMyTripsResponse {
   };
 }
 
+export interface ListAllTripsItem extends ListMyTripsResponse {
+  deliveryLatestBy: string;
+  stores: string[];
+}
+
 export interface TripDetailsResponse {
   uid: string;
   departureAt: string;
@@ -60,7 +65,7 @@ export interface TripDetailsResponse {
 export interface ListAllTripsResponse {
   success: boolean;
   message: string;
-  data: ListMyTripsResponse[];
+  data: ListAllTripsItem[];
   total: number;
   page: number;
   limit: number;

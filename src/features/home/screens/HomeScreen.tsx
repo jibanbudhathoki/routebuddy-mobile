@@ -15,6 +15,7 @@ export function HomeScreen() {
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("All locations");
   const [dateFilter, setDateFilter] = useState("Any date");
+  const [storeFilter, setStoreFilter] = useState("All stores");
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const { theme } = useUnistyles();
   const { showToast } = useToast();
@@ -36,11 +37,18 @@ export function HomeScreen() {
       const tripDate = formatDepartureDate(trip.departureAt);
       const matchesDate =
         dateFilter === "Any date" || tripDate === dateFilter;
+      const matchesStore =
+        storeFilter === "All stores" ||
+        trip.stores.some(
+          (store) => store.toLowerCase() === storeFilter.toLowerCase(),
+        );
       const searchableText = [
         trip.driver.name,
         trip.origin,
         trip.destination,
         trip.departureAt,
+        trip.deliveryLatestBy,
+        ...trip.stores,
       ]
         .join(" ")
         .toLowerCase();
@@ -48,11 +56,12 @@ export function HomeScreen() {
       return (
         matchesLocation &&
         matchesDate &&
+        matchesStore &&
         (!showMoreFilters || trip.availableSeats > 0) &&
         (!query || searchableText.includes(query))
       );
     });
-  }, [dateFilter, locationFilter, search, showMoreFilters, trips]);
+  }, [dateFilter, locationFilter, search, showMoreFilters, storeFilter, trips]);
 
   const cycleLocation = () => {
     const locations = Array.from(
@@ -80,6 +89,18 @@ export function HomeScreen() {
     );
   };
 
+  const cycleStore = () => {
+    const stores = Array.from(
+      new Set((trips ?? []).flatMap((trip) => trip.stores)),
+    );
+    const currentIndex = stores.indexOf(storeFilter);
+    setStoreFilter(
+      currentIndex < 0 || currentIndex === stores.length - 1
+        ? "All stores"
+        : stores[currentIndex + 1],
+    );
+  };
+
   return (
     <AppScreen>
       <HomeHeader
@@ -96,15 +117,13 @@ export function HomeScreen() {
         search={search}
         locationFilter={locationFilter}
         dateFilter={dateFilter}
-        storeFilter="All stores"
+        storeFilter={storeFilter}
         showMoreFilters={showMoreFilters}
         onModeChange={setMode}
         onSearchChange={setSearch}
         onLocationFilterPress={cycleLocation}
         onDateFilterPress={cycleDate}
-        onStoreFilterPress={() =>
-          showToast("Store information is not included in the trips list.")
-        }
+        onStoreFilterPress={cycleStore}
         onToggleMoreFilters={() => setShowMoreFilters((visible) => !visible)}
       />
 
@@ -170,6 +189,7 @@ export function HomeScreen() {
                     setSearch("");
                     setLocationFilter("All locations");
                     setDateFilter("Any date");
+                    setStoreFilter("All stores");
                     setShowMoreFilters(false);
                   }}
                 >
