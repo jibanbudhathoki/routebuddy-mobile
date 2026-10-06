@@ -5,9 +5,12 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { AppScreen } from "../../../shared/components/AppScreen";
 import { useToast } from "../../../shared/components/ToastProvider";
+import { useListAllRequests } from "../../request/hooks/useListAllRequests";
+import type { MyRequestListItem } from "../../request/types/request";
 import { useListAllTrips } from "../../trip/hooks/useListAllTrips";
 import { HomeBrowseControls, type BrowseMode } from "../components/HomeBrowseControls";
 import { HomeHeader } from "../components/HomeHeader";
+import { HomeRequestCard } from "../components/HomeRequestCard";
 import { HomeTripCard } from "../components/HomeTripCard";
 
 export function HomeScreen() {
@@ -25,6 +28,12 @@ export function HomeScreen() {
     isLoading,
     refetch,
   } = useListAllTrips(mode === "trips");
+  const {
+    data: requests,
+    error: requestsError,
+    isLoading: areRequestsLoading,
+    refetch: refetchRequests,
+  } = useListAllRequests(mode === "requests");
 
   const filteredTrips = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -63,41 +72,101 @@ export function HomeScreen() {
     });
   }, [dateFilter, locationFilter, search, showMoreFilters, storeFilter, trips]);
 
+  const filteredRequests = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return (requests ?? []).filter((request) => {
+      const matchesLocation =
+        locationFilter === "All locations" ||
+        request.origin === locationFilter ||
+        request.destination === locationFilter ||
+        request.deliveryCity === locationFilter;
+      const matchesDate =
+        dateFilter === "Any date" ||
+        formatRequestFilterDate(request.neededBy) === dateFilter;
+      const matchesStore =
+        storeFilter === "All stores" ||
+        request.stores.some(
+          (store) => store.toLowerCase() === storeFilter.toLowerCase(),
+        );
+      const searchableText = [
+        request.requester?.name,
+        request.origin,
+        request.destination,
+        request.deliveryCity,
+        request.neededBy,
+        request.latestDeliveryBy,
+        ...request.stores,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return (
+        matchesLocation &&
+        matchesDate &&
+        matchesStore &&
+        (!query || searchableText.includes(query))
+      );
+    });
+  }, [dateFilter, locationFilter, requests, search, storeFilter]);
+
+  const activeLocations =
+    mode === "trips"
+      ? Array.from(
+          new Set(
+            (trips ?? []).flatMap((trip) => [trip.origin, trip.destination]),
+          ),
+        )
+      : Array.from(
+          new Set(
+            (requests ?? []).flatMap((request) => [
+              request.origin,
+              request.destination,
+              request.deliveryCity,
+            ]),
+          ),
+        );
+  const activeDates =
+    mode === "trips"
+      ? Array.from(
+          new Set((trips ?? []).map((trip) => formatDepartureDate(trip.departureAt))),
+        )
+      : Array.from(
+          new Set(
+            (requests ?? []).map((request) =>
+              formatRequestFilterDate(request.neededBy),
+            ),
+          ),
+        );
+  const activeStores =
+    mode === "trips"
+      ? Array.from(new Set((trips ?? []).flatMap((trip) => trip.stores)))
+      : Array.from(new Set((requests ?? []).flatMap((request) => request.stores)));
+
   const cycleLocation = () => {
-    const locations = Array.from(
-      new Set(
-        (trips ?? []).flatMap((trip) => [trip.origin, trip.destination]),
-      ),
-    );
-    const currentIndex = locations.indexOf(locationFilter);
+    const currentIndex = activeLocations.indexOf(locationFilter);
     setLocationFilter(
-      currentIndex < 0 || currentIndex === locations.length - 1
+      currentIndex < 0 || currentIndex === activeLocations.length - 1
         ? "All locations"
-        : locations[currentIndex + 1],
+        : activeLocations[currentIndex + 1],
     );
   };
 
   const cycleDate = () => {
-    const dates = Array.from(
-      new Set((trips ?? []).map((trip) => formatDepartureDate(trip.departureAt))),
-    );
-    const currentIndex = dates.indexOf(dateFilter);
+    const currentIndex = activeDates.indexOf(dateFilter);
     setDateFilter(
-      currentIndex < 0 || currentIndex === dates.length - 1
+      currentIndex < 0 || currentIndex === activeDates.length - 1
         ? "Any date"
-        : dates[currentIndex + 1],
+        : activeDates[currentIndex + 1],
     );
   };
 
   const cycleStore = () => {
-    const stores = Array.from(
-      new Set((trips ?? []).flatMap((trip) => trip.stores)),
-    );
-    const currentIndex = stores.indexOf(storeFilter);
+    const currentIndex = activeStores.indexOf(storeFilter);
     setStoreFilter(
-      currentIndex < 0 || currentIndex === stores.length - 1
+      currentIndex < 0 || currentIndex === activeStores.length - 1
         ? "All stores"
-        : stores[currentIndex + 1],
+        : activeStores[currentIndex + 1],
     );
   };
 
@@ -106,7 +175,8 @@ export function HomeScreen() {
       <HomeHeader
         location={
           locationFilter === "All locations"
-            ? trips?.[0]?.origin ?? "All locations"
+            ? (mode === "trips" ? trips?.[0]?.origin : requests?.[0]?.origin) ??
+              "All locations"
             : locationFilter
         }
         onLocationPress={cycleLocation}
@@ -199,17 +269,87 @@ export function HomeScreen() {
             )}
           </>
         ) : (
-          <View style={styles.emptyState}>
-            <MaterialCommunityIcons
-              name="bag-personal-outline"
-              size={28}
-              color={theme.colors.muted}
-            />
-            <Text style={styles.emptyTitle}>No open requests nearby</Text>
-            <Text style={styles.emptyDescription}>
-              Open requests will show here when request browsing is available.
-            </Text>
-          </View>
+          <>
+            <View style={styles.sectionHeading}>
+              <View style={styles.sectionTitleGroup}>
+                <MaterialCommunityIcons
+                  name="bag-personal-outline"
+                  size={18}
+                  color={theme.colors.primary}
+                />
+                <Text style={styles.sectionTitle}>Open requests near you</Text>
+              </View>
+              <Text style={styles.resultCount}>
+                {areRequestsLoading
+                  ? "Loading..."
+                  : `${filteredRequests.length} requests`}
+              </Text>
+            </View>
+            {areRequestsLoading ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyDescription}>
+                  Loading open requests...
+                </Text>
+              </View>
+            ) : requestsError ? (
+              <View style={styles.emptyState}>
+                <MaterialCommunityIcons
+                  name="alert-circle-outline"
+                  size={28}
+                  color={theme.colors.error}
+                />
+                <Text style={styles.emptyTitle}>
+                  Could not load open requests
+                </Text>
+                <Text style={styles.emptyDescription}>
+                  {requestsError.message}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => refetchRequests()}
+                  style={styles.retryButton}
+                >
+                  <Text style={styles.retryButtonText}>Try Again</Text>
+                </Pressable>
+              </View>
+            ) : filteredRequests.length ? (
+              filteredRequests.map((request: MyRequestListItem) => (
+                <HomeRequestCard key={request.uid} request={request} />
+              ))
+            ) : (
+              <View style={styles.emptyState}>
+                <MaterialCommunityIcons
+                  name="bag-personal-outline"
+                  size={28}
+                  color={theme.colors.muted}
+                />
+                <Text style={styles.emptyTitle}>
+                  {requests?.length
+                    ? "No matching requests"
+                    : "No open requests nearby"}
+                </Text>
+                <Text style={styles.emptyDescription}>
+                  {requests?.length
+                    ? "Try changing your search or filters."
+                    : "Open requests will appear here when available."}
+                </Text>
+                {requests?.length ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => {
+                      setSearch("");
+                      setLocationFilter("All locations");
+                      setDateFilter("Any date");
+                      setStoreFilter("All stores");
+                      setShowMoreFilters(false);
+                    }}
+                  >
+                    <Text style={styles.resetFilters}>Clear filters</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            )}
+          </>
         )}
       </ScrollView>
     </AppScreen>
@@ -221,11 +361,24 @@ function formatDepartureDate(departureAt: string) {
   if (Number.isNaN(departure.getTime())) {
     return departureAt;
   }
-
   return departure.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
+  });
+}
+
+function formatRequestFilterDate(neededBy: string) {
+  const needed = new Date(neededBy);
+  if (Number.isNaN(needed.getTime())) {
+    return neededBy;
+  }
+
+  return needed.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
   });
 }
 

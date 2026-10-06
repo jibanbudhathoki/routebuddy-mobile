@@ -1,6 +1,7 @@
 import { apiRequest } from "../../../shared/api/apiClient";
 import { apiEndpoints } from "../../../constant/url";
 import type {
+  ListAllRequestsResponse,
   ListMyRequestsResponse,
   RequestDetailsResponse,
 } from "../types/request";
@@ -38,6 +39,25 @@ export const listMyRequests = async (): Promise<
 
   if (!response.success) {
     throw new Error(response.message || "Failed to load your requests.");
+  }
+
+  if (!Array.isArray(response.data)) {
+    throw new Error("The requests response did not include a valid data list.");
+  }
+
+  return response.data;
+};
+
+export const listAllRequests = async (): Promise<
+  ListAllRequestsResponse["data"]
+> => {
+  const response = await apiRequest<ListAllRequestsResponse>(
+    apiEndpoints.requests.listAllRequests,
+    { method: "GET" },
+  );
+
+  if (!response.success) {
+    throw new Error(response.message || "Failed to load open requests.");
   }
 
   if (!Array.isArray(response.data)) {

@@ -46,6 +46,8 @@ export interface ListMyRequestsResponse {
   limit: number;
 }
 
+export interface ListAllRequestsResponse extends ListMyRequestsResponse {}
+
 export interface RequestDetailsResponse {
   uid: string;
   kind: string;
