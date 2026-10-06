@@ -11,9 +11,8 @@ export function RequestDetailsOverview({
   request: RequestDetailsResponse;
 }) {
   const { theme } = useUnistyles();
-  const status = request.status.replace(/[_-]+/g, " ").toUpperCase();
   const store = request.stores?.[0];
-  const driver = request.driver;
+  const requesterName = request.requester?.name || "Requester";
 
   return (
     <View style={styles.card}>
@@ -30,18 +29,20 @@ export function RequestDetailsOverview({
         </View>
 
         <View style={styles.requestInfo}>
-          <Text style={styles.statusBadge}>{status}</Text>
+          <Text style={styles.requesterName} numberOfLines={1}>
+            {requesterName}
+          </Text>
           <View style={styles.routeRow}>
-            <Text style={styles.routeText} numberOfLines={1}>
-              {request.origin}
+            <Text style={styles.routeText}>
+              {formatRouteLocation(request.origin, request)}
             </Text>
             <MaterialCommunityIcons
               name="arrow-right"
               size={16}
               color={theme.colors.text}
             />
-            <Text style={styles.routeText} numberOfLines={1}>
-              {request.destination}
+            <Text style={styles.routeText}>
+              {formatRouteLocation(request.destination, request)}
             </Text>
           </View>
           <View style={styles.dateRows}>
@@ -61,11 +62,6 @@ export function RequestDetailsOverview({
         <MetaItem
           icon="shopping-outline"
           label={`${request.items?.length ?? 0} items`}
-        />
-        <View style={styles.divider} />
-        <MetaItem
-          icon="account-outline"
-          label={driver?.name ?? "Driver pending"}
         />
         <View style={styles.divider} />
         <MetaItem
@@ -109,6 +105,27 @@ function MetaItem({ icon, label }: { icon: string; label: string }) {
       </Text>
     </View>
   );
+}
+
+function formatRouteLocation(name: string, request: RequestDetailsResponse) {
+  const locations = [
+    request.deliveryLocation,
+    ...(request.stores ?? []).map((store) => store.location),
+  ];
+  const location = locations.find(
+    (candidate) =>
+      candidate?.city?.name?.toLowerCase() === name.trim().toLowerCase(),
+  );
+
+  if (!location) return name;
+
+  return [
+    location.country?.name,
+    location.province?.name,
+    location.city?.name,
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
 
 function getInitials(value: string) {
@@ -158,24 +175,19 @@ const styles = StyleSheet.create((theme) => ({
     gap: 5,
     minWidth: 0,
   },
-  statusBadge: {
-    alignSelf: "flex-start",
-    backgroundColor: theme.colors.primary,
-    borderRadius: 4,
-    color: theme.colors.onPrimary,
-    fontSize: 8,
+  requesterName: {
+    color: theme.colors.text,
+    fontSize: 11,
     fontWeight: "700",
-    overflow: "hidden",
-    paddingHorizontal: 5,
-    paddingVertical: 3,
   },
   routeRow: {
-    alignItems: "center",
+    alignItems: "flex-start",
     flexDirection: "row",
     gap: theme.spacing.xs,
   },
   routeText: {
     color: theme.colors.text,
+    flex: 1,
     flexShrink: 1,
     fontSize: 10,
     fontWeight: "600",

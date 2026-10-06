@@ -135,7 +135,7 @@ export function HomeRequestCard({ request }: HomeRequestCardProps) {
           accessibilityRole="button"
           onPress={() =>
             router.push({
-              pathname: "/request-details",
+              pathname: "/(tabs)/marketplace-request-details",
               params: { uid: request.uid },
             })
           }
