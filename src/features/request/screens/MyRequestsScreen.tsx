@@ -1,15 +1,15 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
-import { useToast } from "../../../shared/components/ToastProvider";
 import { MyRequestCard } from "../components/MyRequestCard";
 import type { MyRequestListItem } from "../types/request";
 import { useListMyRequests } from "../hooks/useListMyRequests";
 
 export function MyRequestsScreen() {
+  const router = useRouter();
   const { theme } = useUnistyles();
-  const { showToast } = useToast();
   const {
     data: requests,
     error,
@@ -17,8 +17,11 @@ export function MyRequestsScreen() {
     refetch,
   } = useListMyRequests();
 
-  const showRequestDetails = (_request: MyRequestListItem) => {
-    showToast("Request details are not available yet.");
+  const showRequestDetails = (request: MyRequestListItem) => {
+    router.push({
+      pathname: "/request-details",
+      params: { uid: request.uid },
+    });
   };
 
   return (

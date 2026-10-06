@@ -1,6 +1,9 @@
 import { apiRequest } from "../../../shared/api/apiClient";
 import { apiEndpoints } from "../../../constant/url";
-import type { ListMyRequestsResponse } from "../types/request";
+import type {
+  ListMyRequestsResponse,
+  RequestDetailsResponse,
+} from "../types/request";
 
 export interface CreateOpenRequestApiPayload {
   stores: string[];
@@ -39,6 +42,28 @@ export const listMyRequests = async (): Promise<
 
   if (!Array.isArray(response.data)) {
     throw new Error("The requests response did not include a valid data list.");
+  }
+
+  return response.data;
+};
+
+export const getRequestDetails = async (
+  uid: string,
+): Promise<RequestDetailsResponse> => {
+  const response = await apiRequest<{
+    success: boolean;
+    message: string;
+    data: RequestDetailsResponse;
+  }>(apiEndpoints.requests.requestDetails.replace(":uid", encodeURIComponent(uid)), {
+    method: "GET",
+  });
+
+  if (!response.success) {
+    throw new Error(response.message || "Failed to load request details.");
+  }
+
+  if (!response.data) {
+    throw new Error("The request details response did not include request data.");
   }
 
   return response.data;
