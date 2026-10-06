@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { AppScreen } from '../../../shared/components/AppScreen';
+import { MyRequestsScreen } from '../../request/screens/MyRequestsScreen';
 import { TripCard } from '../components/TripCard';
 import { useListMyTrip } from '../hooks/listMyTrip';
 
@@ -87,77 +88,66 @@ export function TripScreen() {
           </Pressable>
         </View>
 
-        <View style={styles.sectionHeading}>
-          <View style={styles.sectionTitleGroup}>
-            <MaterialCommunityIcons
-              name={tripMode === 'driving' ? 'car' : 'bag-personal-outline'}
-              size={20}
-              color={theme.colors.text}
-            />
-            <Text style={styles.sectionTitle}>
-              {tripMode === 'driving' ? 'Trips Coming Up' : 'Requests Coming Up'}
-            </Text>
-          </View>
-          <View style={styles.viewAll}>
-            <Text style={styles.viewAllText}>View All</Text>
-            <MaterialCommunityIcons
-              name="chevron-right"
-              size={18}
-              color={theme.colors.text}
-            />
-          </View>
-        </View>
-
         {tripMode === 'driving' ? (
-          isLoading ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>Loading your trips...</Text>
+          <>
+            <View style={styles.sectionHeading}>
+              <View style={styles.sectionTitleGroup}>
+                <MaterialCommunityIcons
+                  name="car"
+                  size={20}
+                  color={theme.colors.text}
+                />
+                <Text style={styles.sectionTitle}>Trips Coming Up</Text>
+              </View>
+              <View style={styles.viewAll}>
+                <Text style={styles.viewAllText}>View All</Text>
+                <MaterialCommunityIcons
+                  name="chevron-right"
+                  size={18}
+                  color={theme.colors.text}
+                />
+              </View>
             </View>
-          ) : error ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateTitle}>Could not load trips</Text>
-              <Text style={styles.emptyStateText}>
-                {error.message || 'Please try again.'}
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => refetch()}
-                style={styles.retryButton}
-              >
-                <Text style={styles.retryButtonText}>Try Again</Text>
-              </Pressable>
-            </View>
-          ) : trips?.length ? (
-            <View style={styles.tripList}>
-              {trips.map((trip) => (
-                <TripCard key={trip.uid} trip={trip} />
-              ))}
-            </View>
-          ) : (
-            <View style={styles.emptyState}>
-              <MaterialCommunityIcons
-                name="clipboard-text-outline"
-                size={30}
-                color={theme.colors.muted}
-              />
-              <Text style={styles.emptyStateTitle}>No upcoming trips</Text>
-              <Text style={styles.emptyStateText}>
-                Trips you post will show up here.
-              </Text>
-            </View>
-          )
+            {isLoading ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>Loading your trips...</Text>
+              </View>
+            ) : error ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateTitle}>Could not load trips</Text>
+                <Text style={styles.emptyStateText}>
+                  {error.message || 'Please try again.'}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => refetch()}
+                  style={styles.retryButton}
+                >
+                  <Text style={styles.retryButtonText}>Try Again</Text>
+                </Pressable>
+              </View>
+            ) : trips?.length ? (
+              <View style={styles.tripList}>
+                {trips.map((trip) => (
+                  <TripCard key={trip.uid} trip={trip} />
+                ))}
+              </View>
+            ) : (
+              <View style={styles.emptyState}>
+                <MaterialCommunityIcons
+                  name="clipboard-text-outline"
+                  size={30}
+                  color={theme.colors.muted}
+                />
+                <Text style={styles.emptyStateTitle}>No upcoming trips</Text>
+                <Text style={styles.emptyStateText}>
+                  Trips you post will show up here.
+                </Text>
+              </View>
+            )}
+          </>
         ) : (
-          <View style={styles.emptyState}>
-            <MaterialCommunityIcons
-              name="clipboard-text-outline"
-              size={30}
-              color={theme.colors.muted}
-            />
-            <Text style={styles.emptyStateTitle}>No upcoming requests</Text>
-            <Text style={styles.emptyStateText}>
-              Requests you place will show up here.
-            </Text>
-          </View>
+          <MyRequestsScreen />
         )}
       </ScrollView>
     </AppScreen>

@@ -19,7 +19,10 @@ export const apiEndpoints = {
     payment: "/v1/payments",
     checkout: "/v1/payments/checkout",
   },
-  requests: "/v1/requests",
+  requests: {
+    requests: "/v1/requests",
+    listMyRequests: "/v1/requests/me",
+  },
   messages: {
     listMessages: "/v1/messages/listMessages",
   },
