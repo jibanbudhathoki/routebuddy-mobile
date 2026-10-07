@@ -2,6 +2,7 @@ import { apiRequest } from "../../../shared/api/apiClient";
 import { apiEndpoints } from "../../../constant/url";
 import type {
   CreateTripRequest,
+  DeleteTripResponse,
   ListMyTripsResponse,
   TripDetailsResponse,
   ListAllTripsResponse,
@@ -49,6 +50,19 @@ export const getTripDetails = async (
   }
 
   return response.data;
+};
+
+export const deleteTrip = async (uid: string): Promise<DeleteTripResponse> => {
+  const response = await apiRequest<DeleteTripResponse>(
+    apiEndpoints.trips.deleteTrip.replace(":uid", encodeURIComponent(uid)),
+    { method: "DELETE" },
+  );
+
+  if (!response.success) {
+    throw new Error(response.message);
+  }
+
+  return response;
 };
 
 export const listAllTrips = async (): Promise<ListAllTripsResponse["data"]> => {
