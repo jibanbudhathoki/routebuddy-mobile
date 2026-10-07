@@ -1,15 +1,20 @@
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { AppScreen } from '../../../shared/components/AppScreen';
 import { Button } from '../../../shared/components/Button';
+import { useToast } from '../../../shared/components/ToastProvider';
+import { TripOptionsSheet, type TripOptionAction } from '../components/TripOptionsSheet';
 import { useTripDetails } from '../hooks/useTripDetails';
 
 export function TripDetailsScreen() {
   const router = useRouter();
+  const [showOptions, setShowOptions] = useState(false);
   const { uid } = useLocalSearchParams<{ uid?: string }>();
   const { theme } = useUnistyles();
+  const { showToast } = useToast();
   const tripUid = typeof uid === 'string' ? uid : '';
   const { data: trip, error, isLoading, refetch } = useTripDetails(tripUid);
   const status = trip?.status.toLowerCase().replace(/[_-]+/g, ' ') ?? '';
@@ -37,13 +42,20 @@ export function TripDetailsScreen() {
             />
           </Pressable>
           <Text style={styles.headerTitle}>Trip Details</Text>
-          <View style={styles.headerAction}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Trip options"
+            accessibilityState={{ disabled: !trip }}
+            disabled={!trip}
+            onPress={() => setShowOptions(true)}
+            style={styles.headerAction}
+          >
             <MaterialCommunityIcons
               name="dots-horizontal"
               size={22}
               color={theme.colors.text}
             />
-          </View>
+          </Pressable>
         </View>
 
         <ScrollView
@@ -217,8 +229,57 @@ export function TripDetailsScreen() {
           </View>
         </View>
       </View>
+      <TripOptionsSheet
+        visible={showOptions}
+        acceptsNewOrders={trip?.status.toLowerCase() === 'open'}
+        onClose={() => setShowOptions(false)}
+        onSelect={(action) => handleTripOption(action)}
+      />
     </AppScreen>
   );
+
+  async function handleTripOption(action: TripOptionAction) {
+    setShowOptions(false);
+    if (!trip) return;
+
+    if (action === 'share') {
+      try {
+        await Share.share({
+          message: `Trip: ${trip.origin} to ${trip.destination}, departing ${formatDate(trip.departureAt)}.`,
+        });
+      } catch {
+        showToast('Unable to share this trip.');
+      }
+      return;
+    }
+
+    if (action === 'delete') {
+      Alert.alert(
+        'Delete Trip',
+        'Are you sure you want to delete this trip? This action cannot be undone.',
+        [
+          { text: 'Keep Trip', style: 'cancel' },
+          {
+            text: 'Delete Trip',
+            style: 'destructive',
+            onPress: () =>
+              showToast('Trip deletion is not connected yet.'),
+          },
+        ],
+      );
+      return;
+    }
+
+    const messages: Record<
+      Exclude<TripOptionAction, 'share' | 'delete'>,
+      string
+    > = {
+      edit: 'Editing trips is not available yet.',
+      'close-orders': 'Trip order settings are not saved yet.',
+      cancel: 'Trip cancellation is not available yet.',
+    };
+    showToast(messages[action]);
+  }
 }
 
 function formatDate(value: string) {
