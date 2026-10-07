@@ -1,4 +1,4 @@
-import { Alert, Image, Pressable, ScrollView, Share, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -6,16 +6,20 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { AppScreen } from '../../../shared/components/AppScreen';
 import { Button } from '../../../shared/components/Button';
 import { useToast } from '../../../shared/components/ToastProvider';
+import { DeleteTripConfirmationModal } from '../components/DeleteTripConfirmationModal';
 import { TripOptionsSheet, type TripOptionAction } from '../components/TripOptionsSheet';
+import { useDeleteTrip } from '../hooks/useDeleteTrip';
 import { useTripDetails } from '../hooks/useTripDetails';
 
 export function TripDetailsScreen() {
   const router = useRouter();
   const [showOptions, setShowOptions] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const { uid } = useLocalSearchParams<{ uid?: string }>();
   const { theme } = useUnistyles();
   const { showToast } = useToast();
   const tripUid = typeof uid === 'string' ? uid : '';
+  const deleteTripMutation = useDeleteTrip();
   const { data: trip, error, isLoading, refetch } = useTripDetails(tripUid);
   const status = trip?.status.toLowerCase().replace(/[_-]+/g, ' ') ?? '';
   const timelineProgress =
@@ -235,6 +239,12 @@ export function TripDetailsScreen() {
         onClose={() => setShowOptions(false)}
         onSelect={(action) => handleTripOption(action)}
       />
+      <DeleteTripConfirmationModal
+        visible={showDeleteConfirmation}
+        isDeleting={deleteTripMutation.isPending}
+        onCancel={() => setShowDeleteConfirmation(false)}
+        onConfirm={confirmDeleteTrip}
+      />
     </AppScreen>
   );
 
@@ -254,19 +264,7 @@ export function TripDetailsScreen() {
     }
 
     if (action === 'delete') {
-      Alert.alert(
-        'Delete Trip',
-        'Are you sure you want to delete this trip? This action cannot be undone.',
-        [
-          { text: 'Keep Trip', style: 'cancel' },
-          {
-            text: 'Delete Trip',
-            style: 'destructive',
-            onPress: () =>
-              showToast('Trip deletion is not connected yet.'),
-          },
-        ],
-      );
+      setShowDeleteConfirmation(true);
       return;
     }
 
@@ -279,6 +277,26 @@ export function TripDetailsScreen() {
       cancel: 'Trip cancellation is not available yet.',
     };
     showToast(messages[action]);
+  }
+
+  function confirmDeleteTrip() {
+    if (!tripUid || deleteTripMutation.isPending) return;
+
+    deleteTripMutation.mutate(tripUid, {
+      onSuccess: (response) => {
+        setShowDeleteConfirmation(false);
+        showToast(response.message || 'Trip deleted successfully.');
+        router.back();
+      },
+      onError: (deleteError) => {
+        setShowDeleteConfirmation(false);
+        showToast(
+          deleteError instanceof Error
+            ? deleteError.message
+            : 'Failed to delete trip.',
+        );
+      },
+    });
   }
 }
 

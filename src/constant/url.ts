@@ -12,6 +12,8 @@ export const apiEndpoints = {
     listMyTrips: "/v1/trips/me",
     tripDetails: "/v1/trips/:uid",
     listAllTrips: "/v1/trips",
+    deleteTrip: "/v1/trips/:uid",
+    openOrcloseOrder: "/v1/trips/:uid/orders",
   },
   stores: "/v1/stores",
   cities: "/v1/cities",

@@ -70,3 +70,9 @@ export interface ListAllTripsResponse {
   page: number;
   limit: number;
 }
+
+export interface DeleteTripResponse {
+  success: boolean;
+  message: string;
+  data: Record<string, never>;
+}
