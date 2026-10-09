@@ -31,10 +31,10 @@ export function PaymentSuccessScreen() {
   const storeLogoText = storeName.split(' ')[0]?.toUpperCase() || "STORE";
   const storeLogoSubText = storeName.split(' ').slice(1).join(' ').toUpperCase() || "";
 
-  const originCity = cities.find(c => c.uid === selectedStore?.cityUid);
+  const originCity = selectedStore?.city;
   const destCity = cities.find(c => c.uid === requestData.deliveryCityUid);
 
-  const routeText = `${originCity?.name || "Origin"}, ${originCity?.provinceCode || ""}  →  ${destCity?.name || "Destination"}, ${destCity?.provinceCode || ""}`;
+  const routeText = `${originCity?.name || "Origin"}${formatProvince(selectedStore?.province)} → ${destCity?.name || "Destination"}${formatProvince(destCity?.province)}`;
   
   const formatDate = (isoString?: string) => {
     if (!isoString) return "";
@@ -215,6 +215,11 @@ export function PaymentSuccessScreen() {
       </ScrollView>
     </View>
   );
+}
+
+function formatProvince(province?: string | { name: string }) {
+  const name = typeof province === "string" ? province : province?.name;
+  return name ? `, ${name}` : "";
 }
 
 const styles = StyleSheet.create((theme) => ({

@@ -29,5 +29,9 @@ export const apiEndpoints = {
   },
   messages: {
     listMessages: "/v1/messages/listMessages",
+    createConversationForTripOrRequest: "/v1/messages/conversations",
+  },
+  orders: {
+    postOrder: "/v1/requests/order",
   },
 } as const;

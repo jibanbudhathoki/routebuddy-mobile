@@ -17,6 +17,77 @@ export interface CreateRequestPayload {
   items: RequestItem[];
 }
 
+export interface CreateTripOrderPayload {
+  tripUid: string;
+  stores: string[];
+  items: Array<{
+    item: string;
+    description: string;
+    estimatePrice: number;
+  }>;
+  deliveryAddress: string;
+  notes: string;
+}
+
+export interface CreateTripOrderResponse {
+  success: boolean;
+  message: string;
+  data: TripOrder;
+}
+
+export interface TripOrder {
+  uid: string;
+  kind: "order";
+  deliveryAddress: string;
+  neededBy: string;
+  latestDeliveryBy: string;
+  notes: string;
+  itemSubtotal: string;
+  serviceFee: string;
+  driverFee: string;
+  platformFee: string;
+  tax: string;
+  total: string;
+  paymentIntentId: string | null;
+  captureBefore: string | null;
+  deliveryProof: string | null;
+  issue: string | null;
+  rating: number | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  items: Array<{
+    item: string;
+    description: string;
+    estimatePrice: string;
+  }>;
+  stores: Array<{
+    uid: string;
+    name: string;
+    location: AddressLocation;
+  }>;
+  requester: {
+    uid: string;
+    fName: string;
+    photoUrl: string | null;
+    photoKey: string | null;
+  };
+  deliveryLocation: AddressLocation;
+  driver: {
+    uid: string;
+    fName: string;
+    photoUrl: string | null;
+    photoKey: string | null;
+  } | null;
+  trip: {
+    uid: string;
+    origin: string;
+    destination: string;
+  } | null;
+  offers: unknown[];
+}
+
 export interface MyRequestListItem {
   uid: string;
   neededBy: string;

@@ -47,6 +47,7 @@ export default function RootLayout() {
             <Stack.Screen name="(modals)/request/latest-delivery-time" options={{ presentation: 'modal' }} />
             <Stack.Screen name="(modals)/request/add-items" options={{ presentation: 'fullScreenModal' }} />
             <Stack.Screen name="(modals)/request/build-shopping-list" options={{ presentation: 'fullScreenModal' }} />
+            <Stack.Screen name="(modals)/request/build-trip-order" options={{ presentation: 'fullScreenModal' }} />
             <Stack.Screen name="(modals)/request/order-summary" options={{ presentation: 'fullScreenModal' }} />
             <Stack.Screen name="(modals)/request/checkout" options={{ presentation: 'fullScreenModal' }} />
             <Stack.Screen name="(modals)/request/payment-success" options={{ presentation: 'fullScreenModal' }} />
