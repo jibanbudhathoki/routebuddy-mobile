@@ -56,7 +56,10 @@ export function MarketplaceTripDetailsScreen() {
         {trip && !isLoading && !error ? (
           <MarketplaceTripDetailsActions
             onBuildShoppingList={() =>
-              showToast("Shopping list booking is not available yet.")
+              router.push({
+                pathname: "/(modals)/request/build-trip-order",
+                params: { tripUid: trip.uid },
+              })
             }
             onMessageDriver={() =>
               showToast("Driver messaging is not available yet.")

@@ -42,10 +42,10 @@ export function CheckoutScreen() {
   const storeLogoSubText =
     storeName.split(" ").slice(1).join(" ").toUpperCase() || "";
 
-  const originCity = cities.find((c) => c.uid === selectedStore?.cityUid);
+  const originCity = selectedStore?.city;
   const destCity = cities.find((c) => c.uid === requestData.deliveryCityUid);
 
-  const routeText = `${originCity?.name || "Origin"}, ${originCity?.provinceCode || ""}  →  ${destCity?.name || "Destination"}, ${destCity?.provinceCode || ""}`;
+  const routeText = `${originCity?.name || "Origin"}${formatProvince(selectedStore?.province)} → ${destCity?.name || "Destination"}${formatProvince(destCity?.province)}`;
 
   const formatDate = (isoString?: string) => {
     if (!isoString) return "";
@@ -206,7 +206,7 @@ export function CheckoutScreen() {
           </View>
           <View style={styles.tripCardInfo}>
             <Text style={styles.tripCardTitle}>{storeName} Run</Text>
-            <Text style={styles.tripCardRoute}>Winnipeg, MB → Brandon, MB</Text>
+            <Text style={styles.tripCardRoute}>{routeText}</Text>
             <View style={styles.tripCardDetails}>
               <View style={styles.tripCardDetailItem}>
                 <MaterialCommunityIcons
@@ -474,6 +474,11 @@ export function CheckoutScreen() {
       </ScrollView>
     </View>
   );
+}
+
+function formatProvince(province?: string | { name: string }) {
+  const name = typeof province === "string" ? province : province?.name;
+  return name ? `, ${name}` : "";
 }
 
 const styles = StyleSheet.create((theme) => ({

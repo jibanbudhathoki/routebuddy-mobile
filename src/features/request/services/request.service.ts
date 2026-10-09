@@ -1,6 +1,8 @@
 import { apiRequest } from "../../../shared/api/apiClient";
 import { apiEndpoints } from "../../../constant/url";
 import type {
+  CreateTripOrderPayload,
+  CreateTripOrderResponse,
   ListAllRequestsResponse,
   ListMyRequestsResponse,
   RequestDetailsResponse,
@@ -21,6 +23,31 @@ export interface CreateOpenRequestApiPayload {
 }
 
 export const requestService = {
+  createTripOrder: async (
+    payload: CreateTripOrderPayload,
+  ): Promise<CreateTripOrderResponse> => {
+    const response = await apiRequest<CreateTripOrderResponse>(
+      apiEndpoints.orders.postOrder,
+      {
+        method: "POST",
+        body: payload,
+      },
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || "Failed to create trip order.");
+    }
+
+    if (
+      !response.data ||
+      typeof response.data.uid !== "string" ||
+      !response.data.uid.trim()
+    ) {
+      throw new Error("The order response did not include a valid order ID.");
+    }
+
+    return response;
+  },
   createOpenRequest: async (payload: CreateOpenRequestApiPayload) => {
     return apiRequest(apiEndpoints.requests.requests, {
       method: "POST",
