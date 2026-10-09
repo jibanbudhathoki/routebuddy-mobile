@@ -106,6 +106,18 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="marketplace-trip-details"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="marketplace-request-details"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
           name="post-trip"
           options={{
             href: null,

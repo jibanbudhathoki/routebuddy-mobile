@@ -22,14 +22,12 @@ export interface Store {
 export interface StoreResponse {
   success: boolean;
   message: string;
-  data: {
-    data: Store[];
-    // Include pagination meta if backend returns it
-  };
+  data: Store[];
+  total: number;
 }
 
 export interface GetStoresParams {
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   sortBy?: string;
   type?: string;
   provinceUid?: string;

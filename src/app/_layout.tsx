@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { TripCreationProvider } from '../features/trip/context/TripCreationContext';
 import { RequestCreationProvider } from '../features/request/context/RequestCreationContext';
 import { getAuthSession } from '../features/auth/services/authStorage';
+import { ToastProvider } from '../shared/components/ToastProvider';
 
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -23,9 +24,11 @@ export default function RootLayout() {
         <SafeAreaProvider>
         <RequestCreationProvider>
           <TripCreationProvider>
+          <ToastProvider>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="request-details" options={{ headerShown: false }} />
             {/* Post Trip Flow Modals */}
 
             <Stack.Screen name="(modals)/trip/select-store" options={{ presentation: 'modal' }} />
@@ -48,6 +51,7 @@ export default function RootLayout() {
             <Stack.Screen name="(modals)/request/checkout" options={{ presentation: 'fullScreenModal' }} />
             <Stack.Screen name="(modals)/request/payment-success" options={{ presentation: 'fullScreenModal' }} />
           </Stack>
+          </ToastProvider>
         </TripCreationProvider>
       </RequestCreationProvider>
       <StatusBar style="auto" />

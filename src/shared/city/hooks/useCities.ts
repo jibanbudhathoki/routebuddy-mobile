@@ -12,7 +12,7 @@ export function useCities(initialParams?: GetCitiesParams) {
     setError(null);
     try {
       const response = await cityService.getCities(params);
-      setCities(response.data?.data || []);
+      setCities(response.data || []);
     } catch (err: any) {
       setError(err?.message || 'Failed to fetch cities.');
       console.error(err);

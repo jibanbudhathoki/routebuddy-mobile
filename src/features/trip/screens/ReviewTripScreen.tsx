@@ -5,6 +5,9 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
+import { validateTripData } from "../validations/trip";
+import { useToast } from "../../../shared/components/ToastProvider";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 interface SummaryRowProps {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -32,38 +35,40 @@ function SummaryRow({ icon, label, value, sublabel }: SummaryRowProps) {
 
 import { useTripCreation } from "../context/TripCreationContext";
 import { useCreateTrip } from "../hooks/useCreateTrip";
-import { CreateTripRequest } from "../types/trip";
 
 export function ReviewTripScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useUnistyles();
-  const { tripData } = useTripCreation();
-  const { createTrip, isLoading, error } = useCreateTrip();
+  const { showToast } = useToast();
+  const { tripData, resetTripData } = useTripCreation();
+  const { createTrip, isLoading } = useCreateTrip();
 
   const handlePostTrip = async () => {
-    // Validate minimal fields before submitting
-    if (!tripData.originCityUid || !tripData.destinationCityUid || !tripData.stores?.length) {
-      alert("Please fill out required fields (Origin, Destination, Stores) before posting.");
+    const validation = validateTripData(tripData);
+    if (!validation.isValid) {
+      showToast(validation.error);
       return;
     }
 
-    const payload: CreateTripRequest = {
-      originCityUid: tripData.originCityUid,
-      destinationCityUid: tripData.destinationCityUid,
-      stores: tripData.stores,
-      departureAt: tripData.departureAt || new Date().toISOString(),
-      orderCutoffAt: tripData.orderCutoffAt || new Date().toISOString(),
-      deliveryLatestBy: tripData.deliveryLatestBy || new Date().toISOString(),
-      capacity: tripData.capacity || 1,
-      notes: tripData.notes || "",
-    };
-
+    const payload = validation.data;
     const result = await createTrip(payload);
     if (result.success) {
-      router.push("/(modals)/trip/post-success" as never);
+      resetTripData();
+      router.replace({
+        pathname: "/(modals)/trip/post-success",
+        params: {
+          originCityName: payload.originCityName || "Origin",
+          destinationCityName: payload.destinationCityName || "Destination",
+          departureAt: payload.departureAt,
+          orderCutoffAt: payload.orderCutoffAt,
+          deliveryLatestBy: payload.deliveryLatestBy,
+          storesCount: String(payload.stores.length),
+          capacity: String(payload.capacity),
+        },
+      } as never);
     } else {
-      alert(result.error);
+      showToast(result.error ?? "Failed to post trip. Please try again.");
     }
   };
 
@@ -73,13 +78,27 @@ export function ReviewTripScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: getTopSafeAreaInset(insets.top),
+          paddingBottom: insets.bottom,
+        },
+      ]}
+    >
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Review Trip</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={() => router.push("HomeMain" as never)}>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => {
+            resetTripData();
+            router.replace("/(tabs)/index");
+          }}
+        >
           <MaterialCommunityIcons name="close" size={28} color={theme.colors.text} />
         </TouchableOpacity>
       </View>
@@ -138,7 +157,12 @@ export function ReviewTripScreen() {
             icon="account-group-outline" 
             label="Maximum Number of Orders" 
             sublabel="Maximum requests you can take"
-            value={tripData.capacity?.toString() || "5"} 
+            value={tripData.capacity?.toString() || "Not set"}
+          />
+          <SummaryRow
+            icon="cash"
+            label="Trip Price"
+            value={tripData.price === undefined ? "-" : String(tripData.price)}
           />
           
           <View style={styles.summaryRow}>

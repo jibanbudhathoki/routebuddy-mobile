@@ -4,6 +4,7 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PrimaryButton } from "./PrimaryButton";
+import { getTopSafeAreaInset } from "../utils/safeArea";
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
@@ -96,6 +97,26 @@ export function DateSelectionScreen({
     );
   };
 
+  const handleContinue = () => {
+    if (!selectedDate) {
+      onContinue(null);
+      return;
+    }
+
+    const now = new Date();
+    const selectedDateWithCurrentTime = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate(),
+      now.getHours(),
+      now.getMinutes(),
+      now.getSeconds(),
+      now.getMilliseconds(),
+    );
+
+    onContinue(selectedDateWithCurrentTime);
+  };
+
   const weeks = generateCalendar(
     currentDate.getFullYear(),
     currentDate.getMonth(),
@@ -106,7 +127,10 @@ export function DateSelectionScreen({
     <View
       style={[
         styles.container,
-        { paddingBottom: insets.bottom, paddingTop: insets.top },
+        {
+          paddingBottom: insets.bottom,
+          paddingTop: getTopSafeAreaInset(insets.top),
+        },
       ]}
     >
       <View style={styles.header}>
@@ -248,7 +272,7 @@ export function DateSelectionScreen({
       <View style={styles.footer}>
         <PrimaryButton
           title="Continue"
-          onPress={() => onContinue(selectedDate)}
+          onPress={handleContinue}
           disabled={!selectedDate}
         />
       </View>

@@ -7,18 +7,16 @@ export interface City {
   uid: string;
   slug: string;
   name: string;
-  province?: Province;
+  province?: Province | string;
 }
 
 export interface CityResponse {
   success: boolean;
   message: string;
-  data: {
-    data: City[];
-    total: number;
-    page: number;
-    limit: number;
-  };
+  data: City[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface GetCitiesParams {

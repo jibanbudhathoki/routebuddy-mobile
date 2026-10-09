@@ -18,6 +18,7 @@ import { CardField, useStripe } from "@stripe/stripe-react-native";
 
 import { usePayment } from "../hooks/usePayment";
 import { calculateEstimate } from "../../../shared/utils/pricing";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 export function CheckoutScreen() {
   const insets = useSafeAreaInsets();
@@ -123,7 +124,10 @@ export function CheckoutScreen() {
     <View
       style={[
         styles.container,
-        { paddingBottom: insets.bottom, paddingTop: insets.top },
+        {
+          paddingBottom: insets.bottom,
+          paddingTop: getTopSafeAreaInset(insets.top),
+        },
       ]}
     >
       <View style={styles.header}>

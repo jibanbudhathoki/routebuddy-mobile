@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.routebuddymobile",
+      "bundleIdentifier": "routebuddyapp",
       "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
@@ -20,7 +20,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.routebuddymobile",
+      "package": "routebuddy.app",
       "googleServicesFile": "./google-services.json"
     },
     "web": {

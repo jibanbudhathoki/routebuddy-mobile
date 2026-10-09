@@ -10,6 +10,7 @@ import { useStores } from "../../../shared/store/hooks/useStores";
 import { useCities } from "../../../shared/city/hooks/useCities";
 import { useCreateRequest } from "../hooks/useRequests";
 import { calculateEstimate, PRICING_RATES } from "../../../shared/utils/pricing";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 export function OrderSummaryScreen() {
   const insets = useSafeAreaInsets();
@@ -94,7 +95,10 @@ export function OrderSummaryScreen() {
     <View
       style={[
         styles.container,
-        { paddingBottom: insets.bottom, paddingTop: insets.top },
+        {
+          paddingBottom: insets.bottom,
+          paddingTop: getTopSafeAreaInset(insets.top),
+        },
       ]}
     >
       <View style={styles.header}>
