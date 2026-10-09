@@ -12,7 +12,7 @@ export function useStores(initialParams?: GetStoresParams) {
     setError(null);
     try {
       const response = await storeService.getStores(params);
-      setStores(response.data?.data || []);
+      setStores(response.data || []);
     } catch (err: any) {
       setError(err?.message || 'Failed to fetch stores.');
       console.error(err);

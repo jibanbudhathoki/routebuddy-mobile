@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { PrimaryButton } from "./PrimaryButton";
 import { FormInput } from "./FormInput";
+import { getTopSafeAreaInset } from "../utils/safeArea";
 
 export interface AddressFormData {
   label: string;
@@ -59,7 +60,7 @@ export function AddressFormScreen({ onSave, isLoading }: AddressFormScreenProps)
       style={styles.container} 
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={[styles.header, { marginTop: insets.top }]}>
+      <View style={[styles.header, { marginTop: getTopSafeAreaInset(insets.top) }]}>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />
         </TouchableOpacity>
@@ -162,7 +163,7 @@ export function AddressFormScreen({ onSave, isLoading }: AddressFormScreenProps)
 
       {/* City Selection Modal */}
       <Modal visible={isCityModalVisible} animationType="slide" presentationStyle="pageSheet">
-        <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? 44 : 20 }]}>
+        <View style={[styles.container, { paddingTop: getTopSafeAreaInset(insets.top) }]}>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Select City</Text>
             <TouchableOpacity style={styles.headerButton} onPress={() => setCityModalVisible(false)}>
@@ -184,7 +185,10 @@ export function AddressFormScreen({ onSave, isLoading }: AddressFormScreenProps)
                       ...prev,
                       cityName: item.name,
                       cityUid: item.uid,
-                      provinceUid: item.province?.uid || "",
+                      provinceUid:
+                        typeof item.province === 'object'
+                          ? item.province?.uid || ''
+                          : '',
                     
   cityItem: {
     paddingVertical: theme.spacing.md,
@@ -206,7 +210,13 @@ export function AddressFormScreen({ onSave, isLoading }: AddressFormScreenProps)
                   }}
                 >
                   <Text style={styles.cityNameText}>{item.name}</Text>
-                  {item.province && <Text style={styles.provinceNameText}>{item.province.name}</Text>}
+                  {item.province && (
+                    <Text style={styles.provinceNameText}>
+                      {typeof item.province === 'string'
+                        ? item.province
+                        : item.province.name}
+                    </Text>
+                  )}
                 </TouchableOpacity>
               )}
             />

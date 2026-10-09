@@ -12,8 +12,11 @@ export function useCreateTrip() {
     try {
       const response = await tripService.createTrip(data);
       return { success: true, data: response };
-    } catch (err: any) {
-      const message = err?.message || 'Failed to post trip. Please try again.';
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Failed to post trip. Please try again.';
       setError(message);
       return { success: false, error: message };
     } finally {

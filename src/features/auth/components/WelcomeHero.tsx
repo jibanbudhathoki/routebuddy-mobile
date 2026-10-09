@@ -1,17 +1,29 @@
 import { Image, ImageBackground, Text, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getTopSafeAreaInset } from '../../../shared/utils/safeArea';
 
 type WelcomeHeroProps = {
   variant?: 'curved' | 'flat';
 };
 
 export function WelcomeHero({ variant = 'curved' }: WelcomeHeroProps) {
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.heroWrapper(variant)}>
       <ImageBackground
         source={require('../../../../assets/rural-road-bg.png')}
         resizeMode="cover"
-        style={styles.hero(variant)}
+        style={[
+          styles.hero(variant),
+          {
+            paddingTop: Math.max(
+              60,
+              getTopSafeAreaInset(insets.top) + 16,
+            ),
+          },
+        ]}
       >
         <View style={styles.heroShade} />
         <Image source={require('../../../../assets/rb-logo.png')} style={styles.logo(variant)} />

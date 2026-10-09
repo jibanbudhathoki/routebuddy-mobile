@@ -8,6 +8,7 @@ import { useRouter } from "expo-router";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 import { ListItem } from "../../../shared/components/ListItem";
 import { useRequestCreation } from "../context/RequestCreationContext";
+import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 export function PostRequestScreen() {
   const insets = useSafeAreaInsets();
@@ -16,7 +17,7 @@ export function PostRequestScreen() {
   const { requestData } = useRequestCreation();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: getTopSafeAreaInset(insets.top) }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { PrimaryButton } from "./PrimaryButton";
 import { useStores } from "../store/hooks/useStores";
+import { getTopSafeAreaInset } from "../utils/safeArea";
 
 interface StoreSelectionScreenProps {
   initialSelectedStores: string[];
@@ -27,7 +28,15 @@ export function StoreSelectionScreen({ initialSelectedStores, onSave }: StoreSel
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: getTopSafeAreaInset(insets.top),
+          paddingBottom: insets.bottom,
+        },
+      ]}
+    >
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
           <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />
