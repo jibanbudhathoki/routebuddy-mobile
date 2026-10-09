@@ -20,9 +20,14 @@ import { loginSchema } from "../validations/auth";
 type AuthScreenProps = {
   onAuthenticated: () => void;
   onSignUp: () => void;
+  onForgotPassword: () => void;
 };
 
-export function AuthScreen({ onAuthenticated, onSignUp }: AuthScreenProps) {
+export function AuthScreen({
+  onAuthenticated,
+  onSignUp,
+  onForgotPassword,
+}: AuthScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -148,7 +153,7 @@ export function AuthScreen({ onAuthenticated, onSignUp }: AuthScreenProps) {
                 error={fieldErrors.password}
               />
 
-              <Pressable>
+              <Pressable onPress={onForgotPassword} accessibilityRole="button">
                 <Text style={styles.forgotPassword}>Forgot password?</Text>
               </Pressable>
 

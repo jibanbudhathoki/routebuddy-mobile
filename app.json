@@ -2,6 +2,7 @@
   "expo": {
     "name": "routebuddy-mobile",
     "slug": "routebuddy-mobile",
+    "owner": "davidho416s-team",
     "scheme": "routebuddy",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,6 +10,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
+      "enableSceneSupport": true,
       "bundleIdentifier": "routebuddyapp",
       "googleServicesFile": "./GoogleService-Info.plist"
     },
@@ -38,6 +40,12 @@
           "enableApplePay": false
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c89c2345-60c5-4ed3-8942-bf7501a1c1ce"
+      }
+    }
   }
 }
