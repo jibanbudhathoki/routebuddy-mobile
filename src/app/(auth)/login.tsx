@@ -8,6 +8,7 @@ export default function LoginRoute() {
     <AuthScreen
       onAuthenticated={() => router.replace('/(tabs)')}
       onSignUp={() => router.push('/(auth)/signup')}
+      onForgotPassword={() => router.push('/(auth)/forgot-password')}
     />
   );
 }

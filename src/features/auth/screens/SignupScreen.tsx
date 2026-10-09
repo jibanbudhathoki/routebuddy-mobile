@@ -14,14 +14,16 @@ import { StyleSheet } from "react-native-unistyles";
 import { Button } from "../../../shared/components/Button";
 import { TextField } from "../../../shared/components/TextField";
 import { WelcomeHero } from "../components/WelcomeHero";
+import { EmailVerificationModal } from "../components/EmailVerificationModal";
 import { authService } from "../services/auth.service";
+import { signUpSchema } from "../validations/auth";
 
 type SignupScreenProps = {
-  onAuthenticated: () => void;
+  onEmailVerified: () => void;
   onLogIn: () => void;
 };
 
-export function SignupScreen({ onAuthenticated, onLogIn }: SignupScreenProps) {
+export function SignupScreen({ onEmailVerified, onLogIn }: SignupScreenProps) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,32 +35,48 @@ export function SignupScreen({ onAuthenticated, onLogIn }: SignupScreenProps) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestError, setRequestError] = useState<string>();
-  const canContinue = Boolean(
-    fullName.trim() &&
-    email.trim() &&
-    password &&
-    confirmPassword &&
-    password === confirmPassword &&
-    acceptedTerms,
-  );
+  const [verificationEmail, setVerificationEmail] = useState<string>();
+  const [isVerificationVisible, setIsVerificationVisible] = useState(false);
+
+  const validation = signUpSchema.safeParse({
+    fullName,
+    email,
+    password,
+    confirmPassword,
+  });
+  const fieldErrors = validation.success
+    ? {}
+    : validation.error.issues.reduce<Record<string, string>>((errors, issue) => {
+        const field = issue.path[0];
+        if (typeof field === "string" && !errors[field]) {
+          errors[field] = issue.message;
+        }
+        return errors;
+      }, {});
 
   async function handleCreateAccount() {
     setSubmitted(true);
     setRequestError(undefined);
 
-    if (!canContinue || isSubmitting) {
+    if (!validation.success || !acceptedTerms || isSubmitting) {
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+      const normalizedEmail = email.trim().toLowerCase();
       await authService.signUp({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         fullName: fullName.trim(),
         password,
+        confirmPassword,
+        termsAccepted: acceptedTerms,
+        deviceToken: "placeholder-device-token",
+        platform: Platform.OS,
       });
-      onAuthenticated();
+      setVerificationEmail(normalizedEmail);
+      setIsVerificationVisible(true);
     } catch (error) {
       setRequestError(
         error instanceof Error
@@ -72,6 +90,14 @@ export function SignupScreen({ onAuthenticated, onLogIn }: SignupScreenProps) {
 
   return (
     <View style={styles.screen}>
+      <EmailVerificationModal
+        email={verificationEmail ?? ""}
+        visible={isVerificationVisible}
+        onVerified={() => {
+          setIsVerificationVisible(false);
+          onEmailVerified();
+        }}
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.keyboardView}
@@ -98,15 +124,12 @@ export function SignupScreen({ onAuthenticated, onLogIn }: SignupScreenProps) {
                     name="account-outline"
                     size={24}
                     color={styles.icon.color}
+                    style={styles.inputIcon}
                   />
                 }
                 placeholder="Full Name"
                 autoCapitalize="words"
-                error={
-                  submitted && !fullName.trim()
-                    ? "Enter your full name."
-                    : undefined
-                }
+                error={submitted ? fieldErrors.fullName : undefined}
                 onChangeText={setFullName}
                 value={fullName}
               />
@@ -116,17 +139,14 @@ export function SignupScreen({ onAuthenticated, onLogIn }: SignupScreenProps) {
                     name="email-outline"
                     size={24}
                     color={styles.icon.color}
+                    style={styles.inputIcon}
                   />
                 }
                 placeholder="Email address"
                 autoCapitalize="none"
                 autoComplete="email"
                 keyboardType="email-address"
-                error={
-                  submitted && !email.trim()
-                    ? "Enter your email address."
-                    : undefined
-                }
+                error={submitted ? fieldErrors.email : undefined}
                 onChangeText={setEmail}
                 value={email}
               />
@@ -134,7 +154,7 @@ export function SignupScreen({ onAuthenticated, onLogIn }: SignupScreenProps) {
                 placeholder="Password"
                 value={password}
                 visible={showPassword}
-                error={submitted && !password ? "Enter a password." : undefined}
+                error={submitted ? fieldErrors.password : undefined}
                 onChangeText={setPassword}
                 onToggle={() => setShowPassword((current) => !current)}
               />
@@ -142,12 +162,7 @@ export function SignupScreen({ onAuthenticated, onLogIn }: SignupScreenProps) {
                 placeholder="Confirm password"
                 value={confirmPassword}
                 visible={showConfirmPassword}
-                error={
-                  submitted &&
-                  (!confirmPassword || password !== confirmPassword)
-                    ? "Passwords must match."
-                    : undefined
-                }
+                error={submitted ? fieldErrors.confirmPassword : undefined}
                 onChangeText={setConfirmPassword}
                 onToggle={() => setShowConfirmPassword((current) => !current)}
               />
@@ -155,7 +170,10 @@ export function SignupScreen({ onAuthenticated, onLogIn }: SignupScreenProps) {
               <Pressable
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: acceptedTerms }}
-                onPress={() => setAcceptedTerms((current) => !current)}
+                onPress={() => {
+                  setAcceptedTerms((current) => !current);
+                  setRequestError(undefined);
+                }}
                 style={styles.termsRow}
               >
                 <MaterialCommunityIcons
@@ -173,6 +191,11 @@ export function SignupScreen({ onAuthenticated, onLogIn }: SignupScreenProps) {
                   <Text style={styles.termsLink}>Privacy Policy</Text>
                 </Text>
               </Pressable>
+              {submitted && !acceptedTerms ? (
+                <Text accessibilityRole="alert" style={styles.requestError}>
+                  Please accept the Terms of Service and Privacy Policy.
+                </Text>
+              ) : null}
 
               {requestError ? (
                 <Text accessibilityRole="alert" style={styles.requestError}>
@@ -231,6 +254,7 @@ function PasswordField({
           name="lock-outline"
           size={24}
           color={styles.icon.color}
+          style={styles.inputIcon}
         />
       }
       rightElement={
@@ -303,6 +327,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   form: { gap: theme.spacing.md },
   icon: { color: theme.colors.text },
+  inputIcon: { marginRight: theme.spacing.sm },
   termsRow: {
     alignItems: "center",
     flexDirection: "row",
