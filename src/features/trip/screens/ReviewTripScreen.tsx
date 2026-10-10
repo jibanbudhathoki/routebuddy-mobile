@@ -1,40 +1,16 @@
-import React from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
-import { validateTripData } from "../validations/trip";
 import { useToast } from "../../../shared/components/ToastProvider";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
-
-interface SummaryRowProps {
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
-  label: string;
-  value: string;
-  sublabel?: string;
-}
-
-function SummaryRow({ icon, label, value, sublabel }: SummaryRowProps) {
-  const { theme } = useUnistyles();
-  
-  return (
-    <View style={styles.summaryRow}>
-      <View style={styles.summaryRowLeft}>
-        <MaterialCommunityIcons name={icon} size={20} color={theme.colors.text} style={styles.summaryIcon} />
-        <View>
-          <Text style={styles.summaryLabel}>{label}</Text>
-          {sublabel && <Text style={styles.summarySublabel}>{sublabel}</Text>}
-        </View>
-      </View>
-      <Text style={styles.summaryValue}>{value}</Text>
-    </View>
-  );
-}
-
+import { TripReviewSummary } from "../components/TripReviewSummary";
 import { useTripCreation } from "../context/TripCreationContext";
 import { useCreateTrip } from "../hooks/useCreateTrip";
+import { validateTripData } from "../validations/trip";
 
 export function ReviewTripScreen() {
   const insets = useSafeAreaInsets();
@@ -72,11 +48,6 @@ export function ReviewTripScreen() {
     }
   };
 
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "Not set";
-    return new Date(dateStr).toLocaleString();
-  };
-
   return (
     <View
       style={[
@@ -88,8 +59,15 @@ export function ReviewTripScreen() {
       ]}
     >
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-          <MaterialCommunityIcons name="chevron-left" size={32} color={theme.colors.text} />
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => router.back()}
+        >
+          <MaterialCommunityIcons
+            name="chevron-left"
+            size={32}
+            color={theme.colors.text}
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Review Trip</Text>
         <TouchableOpacity
@@ -99,101 +77,41 @@ export function ReviewTripScreen() {
             router.replace("/(tabs)/index");
           }}
         >
-          <MaterialCommunityIcons name="close" size={28} color={theme.colors.text} />
+          <MaterialCommunityIcons
+            name="close"
+            size={28}
+            color={theme.colors.text}
+          />
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.titleSection}>
-          <Text style={styles.title}>Review your trip details{"\n"}before posting.</Text>
+          <Text style={styles.title}>
+            Review your trip details{"\n"}before posting.
+          </Text>
           <Text style={styles.subtitle}>
-            Please review all information below.{"\n"}You can go back to edit any details.
+            Please review all information below.{"\n"}You can go back to edit any
+            details.
           </Text>
         </View>
-
-        <Text style={styles.sectionTitle}>Trip Summary</Text>
-
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardHeaderLocation}>{tripData.originCityName || "Not set"}</Text>
-            <MaterialCommunityIcons name="arrow-right" size={20} color={theme.colors.muted} style={styles.cardHeaderIcon} />
-            <Text style={styles.cardHeaderLocation}>{tripData.destinationCityName || "Not set"}</Text>
-          </View>
-
-          <SummaryRow 
-            icon="calendar-blank-outline" 
-            label="Day of Departure" 
-            value={formatDate(tripData.departureAt)} 
-          />
-          <SummaryRow 
-            icon="clock-outline" 
-            label="Ordering Cut-off" 
-            value={formatDate(tripData.orderCutoffAt)} 
-          />
-          <SummaryRow 
-            icon="calendar-check-outline" 
-            label="Delivery Latest By" 
-            value={formatDate(tripData.deliveryLatestBy)} 
-          />
-          
-          <View style={styles.divider} />
-          
-          <SummaryRow 
-            icon="shopping-outline" 
-            label="Store(s)" 
-            value={tripData.stores?.length ? `${tripData.stores.length} store(s) selected` : "None"} 
-          />
-          <SummaryRow 
-            icon="map-marker-outline" 
-            label="From" 
-            value={tripData.originCityName || "Not set"} 
-          />
-          <SummaryRow 
-            icon="map-marker-outline" 
-            label="To" 
-            value={tripData.destinationCityName || "Not set"} 
-          />
-          <SummaryRow 
-            icon="account-group-outline" 
-            label="Maximum Number of Orders" 
-            sublabel="Maximum requests you can take"
-            value={tripData.capacity?.toString() || "Not set"}
-          />
-          <SummaryRow
-            icon="cash"
-            label="Trip Price"
-            value={tripData.price === undefined ? "-" : String(tripData.price)}
-          />
-          
-          <View style={styles.summaryRow}>
-            <View style={styles.summaryRowLeft}>
-              <MaterialCommunityIcons name="file-document-outline" size={20} color={theme.colors.text} style={styles.summaryIcon} />
-              <Text style={styles.summaryLabel}>Notes to Shoppers (Optional)</Text>
-            </View>
-            <Text style={[styles.summaryValue, styles.summaryValueMultiline]}>
-              {tripData.notes || "None"}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.infoBanner}>
-          <MaterialCommunityIcons name="information-outline" size={24} color={theme.colors.text} style={styles.infoIcon} />
-          <View style={styles.infoTextContainer}>
-            <Text style={styles.infoTitle}>Looks good?</Text>
-            <Text style={styles.infoText}>
-              Once posted, shoppers in your area will see your trip and can place requests.
-            </Text>
-          </View>
-        </View>
+        <TripReviewSummary trip={tripData} />
       </ScrollView>
 
       <View style={styles.footer}>
-        <PrimaryButton 
-          title={isLoading ? "Posting..." : "Post Trip"} 
-          onPress={handlePostTrip} 
+        <PrimaryButton
+          title={isLoading ? "Posting..." : "Post Trip"}
+          onPress={handlePostTrip}
           disabled={isLoading}
         />
-        <TouchableOpacity style={styles.secondaryButton} onPress={() => router.back()} disabled={isLoading}>
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={() => router.back()}
+          disabled={isLoading}
+        >
           <Text style={styles.secondaryButtonText}>Go Back and Edit</Text>
         </TouchableOpacity>
       </View>
@@ -241,100 +159,6 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.muted,
     lineHeight: 24,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
-  },
-  card: {
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.lg,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: theme.spacing.lg,
-  },
-  cardHeaderLocation: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: theme.colors.text,
-  },
-  cardHeaderIcon: {
-    marginHorizontal: theme.spacing.sm,
-  },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: theme.spacing.md,
-  },
-  summaryRowLeft: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    flex: 1,
-    marginRight: theme.spacing.md,
-  },
-  summaryIcon: {
-    marginTop: 2,
-    marginRight: theme.spacing.sm,
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: theme.colors.muted,
-    marginTop: 3,
-  },
-  summarySublabel: {
-    fontSize: 12,
-    color: theme.colors.muted,
-    marginTop: 2,
-  },
-  summaryValue: {
-    fontSize: 14,
-    color: theme.colors.text,
-    fontWeight: "500",
-    textAlign: "right",
-    marginTop: 3,
-  },
-  summaryValueMultiline: {
-    flex: 1,
-    textAlign: "right",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: theme.colors.border,
-    marginVertical: theme.spacing.sm,
-    marginBottom: theme.spacing.md,
-  },
-  infoBanner: {
-    flexDirection: "row",
-    backgroundColor: theme.colors.primarySoft,
-    padding: theme.spacing.md,
-    borderRadius: theme.radius.md,
-    marginBottom: theme.spacing.xl,
-  },
-  infoIcon: {
-    marginRight: theme.spacing.sm,
-  },
-  infoTextContainer: {
-    flex: 1,
-  },
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: theme.colors.text,
-    marginBottom: 4,
-  },
-  infoText: {
-    fontSize: 14,
-    color: theme.colors.text,
-    lineHeight: 20,
-  },
   footer: {
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.md,
@@ -348,7 +172,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   secondaryButtonText: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "bold",
     color: theme.colors.text,
   },
 }));

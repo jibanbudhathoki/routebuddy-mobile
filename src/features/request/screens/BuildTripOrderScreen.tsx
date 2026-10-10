@@ -3,7 +3,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Modal,
   ScrollView,
   Text,
   TextInput,
@@ -13,19 +12,24 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
+import { BuildTripOrderAddressPicker } from "../components/BuildTripOrderAddressPicker";
+import { BuildTripOrderAddressSection } from "../components/BuildTripOrderAddressSection";
+import { BuildTripOrderEstimateCard } from "../components/BuildTripOrderEstimateCard";
+import { BuildTripOrderInstructions } from "../components/BuildTripOrderInstructions";
+import { BuildTripOrderLoadState } from "../components/BuildTripOrderLoadState";
+import { AddRequestItemModal } from "../components/AddRequestItemModal";
+import { RequestItemsEditor } from "../components/RequestItemsEditor";
+import { RequestTripPreviewCard } from "../components/RequestTripPreviewCard";
+import { useRequestCreation } from "../context/RequestCreationContext";
+import { useCreateTripOrder } from "../hooks/useCreateTripOrder";
+import { createTripOrderSchema } from "../validations/createTripOrder";
+import type { RequestItem } from "../types/request";
 import { useAddresses } from "../../../shared/address/hooks/useAddresses";
 import type { Address } from "../../../shared/address/types/address";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 import { calculateEstimate } from "../../../shared/utils/pricing";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { useTripDetails } from "../../trip/hooks/useTripDetails";
-import { useRequestCreation } from "../context/RequestCreationContext";
-import { AddRequestItemModal } from "../components/AddRequestItemModal";
-import { RequestItemsEditor } from "../components/RequestItemsEditor";
-import { RequestTripPreviewCard } from "../components/RequestTripPreviewCard";
-import { useCreateTripOrder } from "../hooks/useCreateTripOrder";
-import { createTripOrderSchema } from "../validations/createTripOrder";
-import type { RequestItem } from "../types/request";
 
 export function BuildTripOrderScreen() {
   const insets = useSafeAreaInsets();
@@ -33,14 +37,15 @@ export function BuildTripOrderScreen() {
   const { tripUid: routeTripUid } = useLocalSearchParams<{ tripUid?: string }>();
   const tripUid = typeof routeTripUid === "string" ? routeTripUid : "";
   const { theme } = useUnistyles();
-  const { data: trip, error: tripError, isLoading, refetch } = useTripDetails(tripUid);
+  const { data: trip, error: tripError, isLoading, refetch } =
+    useTripDetails(tripUid);
   const {
     addresses,
     isLoading: addressesLoading,
     error: addressError,
     refetch: refetchAddresses,
   } = useAddresses();
-  const { updateRequestData } = useRequestCreation();
+  const { updateRequestData, setTripOrderConversation } = useRequestCreation();
   const createTripOrder = useCreateTripOrder();
 
   const [items, setItems] = useState<RequestItem[]>([]);
@@ -49,7 +54,6 @@ export function BuildTripOrderScreen() {
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [isChoosingAddress, setIsChoosingAddress] = useState(false);
   const [submitError, setSubmitError] = useState("");
-
   const selectedAddress = useMemo(
     () => addresses.find((address) => address.uid === selectedAddressUid),
     [addresses, selectedAddressUid],
@@ -91,7 +95,9 @@ export function BuildTripOrderScreen() {
     };
     const validation = createTripOrderSchema.safeParse(payload);
     if (!validation.success) {
-      setSubmitError(validation.error.issues[0]?.message ?? "Check your order details.");
+      setSubmitError(
+        validation.error.issues[0]?.message ?? "Check your order details.",
+      );
       return;
     }
 
@@ -99,6 +105,11 @@ export function BuildTripOrderScreen() {
     try {
       const response = await createTripOrder.mutateAsync(validation.data);
       const checkoutId = response.data.uid;
+      if (response.data.status !== "pending" && response.data.status !== "open") {
+        throw new Error(
+          `The order was created with an unsupported status: ${response.data.status}.`,
+        );
+      }
 
       updateRequestData({
         stores: validation.data.stores,
@@ -109,6 +120,18 @@ export function BuildTripOrderScreen() {
         latestDeliveryTime: trip.deliveryLatestBy,
         items,
       });
+      setTripOrderConversation({
+        orderUid: response.data.uid,
+        tripUid: response.data.trip?.uid ?? trip.uid,
+        driverUid: response.data.driver?.uid ?? trip.driver.uid,
+        items: response.data.items.map((item, index) => ({
+          id: `${response.data.uid}-${index}`,
+          name: item.item,
+          description: item.description,
+          estimatedPrice: item.estimatePrice,
+        })),
+        total: response.data.total,
+      });
 
       if (response.data.status === "pending") {
         router.push({
@@ -116,11 +139,10 @@ export function BuildTripOrderScreen() {
           params: { postId: checkoutId },
         });
       } else if (response.data.status === "open") {
-        router.push("/(modals)/request/payment-success");
-      } else {
-        throw new Error(
-          `The order was created with an unsupported status: ${response.data.status}.`,
-        );
+        router.push({
+          pathname: "/(modals)/request/payment-success",
+          params: { orderUid: checkoutId },
+        });
       }
     } catch (error) {
       setSubmitError(
@@ -134,6 +156,11 @@ export function BuildTripOrderScreen() {
   const routeText = trip
     ? `${trip.originAddress.country.name}, ${trip.originAddress.province.name}, ${trip.originAddress.city.name} → ${trip.destinationAddress.country.name}, ${trip.destinationAddress.province.name}, ${trip.destinationAddress.city.name}`
     : "";
+
+  const openAddAddress = () => {
+    setIsChoosingAddress(false);
+    router.push("/(modals)/request/add-address");
+  };
 
   return (
     <View
@@ -167,27 +194,13 @@ export function BuildTripOrderScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {isLoading ? (
-          <ActivityIndicator
-            color={theme.colors.primary}
-            size="large"
-            style={styles.loading}
+        {isLoading || tripError || !trip ? (
+          <BuildTripOrderLoadState
+            isLoading={isLoading}
+            error={tripError?.message}
+            hasTripUid={!!tripUid}
+            onRetry={() => refetch()}
           />
-        ) : tripError || !trip ? (
-          <View style={styles.stateCard}>
-            <Text style={styles.stateTitle}>Could not load trip details</Text>
-            <Text style={styles.stateText}>
-              {tripError?.message ?? "Trip details are unavailable."}
-            </Text>
-            {tripUid ? (
-              <TouchableOpacity
-                accessibilityRole="button"
-                onPress={() => refetch()}
-              >
-                <Text style={styles.retryText}>Try Again</Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
         ) : (
           <>
             <RequestTripPreviewCard
@@ -198,7 +211,6 @@ export function BuildTripOrderScreen() {
               neededBy={trip.departureAt}
               latestDeliveryTime={trip.deliveryLatestBy}
             />
-
             <RequestItemsEditor
               items={items}
               onRemoveItem={(id) =>
@@ -208,92 +220,16 @@ export function BuildTripOrderScreen() {
               }
               onAddItem={() => setIsAddingItem(true)}
             />
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Delivery Address</Text>
-              {addressesLoading ? (
-                <ActivityIndicator
-                  color={theme.colors.primary}
-                  style={styles.addressLoading}
-                />
-              ) : addressError ? (
-                <View style={styles.stateCard}>
-                  <Text style={styles.stateText}>{addressError}</Text>
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    onPress={() => refetchAddresses()}
-                  >
-                    <Text style={styles.retryText}>Retry</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : selectedAddress ? (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  style={styles.addressCard}
-                  onPress={() => setIsChoosingAddress(true)}
-                >
-                  <MaterialCommunityIcons
-                    name="map-marker-outline"
-                    size={22}
-                    color={theme.colors.primary}
-                  />
-                  <View style={styles.addressDetails}>
-                    <Text style={styles.addressTitle}>
-                      {selectedAddress.label}
-                    </Text>
-                    <Text style={styles.addressText}>
-                      {formatAddress(selectedAddress)}
-                    </Text>
-                  </View>
-                  <MaterialCommunityIcons
-                    name="chevron-down"
-                    size={22}
-                    color={theme.colors.muted}
-                  />
-                </TouchableOpacity>
-              ) : (
-                <View style={styles.stateCard}>
-                  <Text style={styles.stateText}>
-                    Add a saved address to continue with this order.
-                  </Text>
-                  <TouchableOpacity
-                    accessibilityRole="button"
-                    onPress={() => router.push("/(modals)/request/add-address")}
-                  >
-                    <Text style={styles.retryText}>Add Address</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Instructions</Text>
-              <TextInput
-                accessibilityLabel="Order instructions"
-                multiline
-                placeholder="Add any notes for the driver"
-                placeholderTextColor={theme.colors.muted}
-                style={styles.notesInput}
-                value={notes}
-                onChangeText={setNotes}
-              />
-            </View>
-
-            <View style={styles.summaryCard}>
-              <Text style={styles.summaryTitle}>Estimated Total</Text>
-              <SummaryRow label="Items subtotal" value={estimate.subtotal} />
-              <SummaryRow label="Service fee" value={estimate.serviceFee} />
-              <SummaryRow label="Estimated taxes" value={estimate.taxes} />
-              <SummaryRow
-                label="Payment processing"
-                value={estimate.paymentProcessing}
-              />
-              <View style={styles.totalDivider} />
-              <SummaryRow label="Total" value={estimate.total} bold />
-              <Text style={styles.estimateNote}>
-                Final charges may vary based on actual item prices.
-              </Text>
-            </View>
+            <BuildTripOrderAddressSection
+              isLoading={addressesLoading}
+              error={addressError ?? ""}
+              selectedAddress={selectedAddress}
+              onRetry={() => refetchAddresses()}
+              onChooseAddress={() => setIsChoosingAddress(true)}
+              onAddAddress={openAddAddress}
+            />
+            <BuildTripOrderInstructions value={notes} onChange={setNotes} />
+            <BuildTripOrderEstimateCard estimate={estimate} />
           </>
         )}
       </ScrollView>
@@ -324,138 +260,19 @@ export function BuildTripOrderScreen() {
         onClose={() => setIsAddingItem(false)}
         onAddItem={handleAddItem}
       />
-
-      <AddressPickerModal
+      <BuildTripOrderAddressPicker
         addresses={addresses}
         selectedUid={selectedAddressUid}
         visible={isChoosingAddress}
         onClose={() => setIsChoosingAddress(false)}
-        onAddAddress={() => {
-          setIsChoosingAddress(false);
-          router.push("/(modals)/request/add-address");
-        }}
-        onSelect={(address) => {
+        onAddAddress={openAddAddress}
+        onSelect={(address: Address) => {
           setSelectedAddressUid(address.uid);
           setIsChoosingAddress(false);
         }}
       />
     </View>
   );
-}
-
-function AddressPickerModal({
-  addresses,
-  selectedUid,
-  visible,
-  onClose,
-  onAddAddress,
-  onSelect,
-}: {
-  addresses: Address[];
-  selectedUid: string;
-  visible: boolean;
-  onClose: () => void;
-  onAddAddress: () => void;
-  onSelect: (address: Address) => void;
-}) {
-  const { theme } = useUnistyles();
-
-  return (
-    <Modal
-      animationType="slide"
-      transparent
-      visible={visible}
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Choose delivery address</Text>
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityLabel="Close address picker"
-              onPress={onClose}
-            >
-              <MaterialCommunityIcons
-                name="close"
-                size={24}
-                color={theme.colors.primary}
-              />
-            </TouchableOpacity>
-          </View>
-          <ScrollView>
-            {addresses.map((address) => {
-              const isSelected = selectedUid === address.uid;
-              return (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  key={address.uid}
-                  style={[
-                    styles.addressOption,
-                    isSelected && styles.addressOptionSelected,
-                  ]}
-                  onPress={() => onSelect(address)}
-                >
-                  <View style={styles.addressDetails}>
-                    <Text style={styles.addressTitle}>{address.label}</Text>
-                    <Text style={styles.addressText}>
-                      {formatAddress(address)}
-                    </Text>
-                  </View>
-                  {isSelected ? (
-                    <MaterialCommunityIcons
-                      name="check-circle"
-                      size={22}
-                      color={theme.colors.primary}
-                    />
-                  ) : null}
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-          <TouchableOpacity
-            accessibilityRole="button"
-            style={styles.addAddressButton}
-            onPress={onAddAddress}
-          >
-            <Text style={styles.retryText}>Add New Address</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
-function SummaryRow({
-  label,
-  value,
-  bold = false,
-}: {
-  label: string;
-  value: number;
-  bold?: boolean;
-}) {
-  return (
-    <View style={styles.summaryRow}>
-      <Text style={[styles.summaryLabel, bold && styles.totalText]}>{label}</Text>
-      <Text style={[styles.summaryValue, bold && styles.totalText]}>
-        ${value.toFixed(2)}
-      </Text>
-    </View>
-  );
-}
-
-function formatAddress(address: Address) {
-  return [
-    address.line1,
-    address.line2,
-    address.city.name,
-    address.province.name,
-    address.postalCode,
-    address.country.name,
-  ]
-    .filter(Boolean)
-    .join(", ");
 }
 
 const styles = StyleSheet.create((theme) => ({
@@ -485,99 +302,6 @@ const styles = StyleSheet.create((theme) => ({
     paddingBottom: theme.spacing.xl,
     paddingHorizontal: theme.spacing.md,
   },
-  loading: {
-    marginTop: theme.spacing.xl,
-  },
-  section: {
-    marginBottom: theme.spacing.lg,
-  },
-  sectionTitle: {
-    color: theme.colors.primary,
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: theme.spacing.sm,
-  },
-  addressLoading: {
-    marginVertical: theme.spacing.md,
-  },
-  addressCard: {
-    alignItems: "center",
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-    padding: theme.spacing.md,
-  },
-  addressDetails: {
-    flex: 1,
-    gap: theme.spacing.xs,
-    minWidth: 0,
-  },
-  addressTitle: {
-    color: theme.colors.text,
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  addressText: {
-    color: theme.colors.muted,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  notesInput: {
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    color: theme.colors.text,
-    minHeight: 90,
-    padding: theme.spacing.md,
-    textAlignVertical: "top",
-  },
-  summaryCard: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    marginBottom: theme.spacing.md,
-    padding: theme.spacing.md,
-  },
-  summaryTitle: {
-    color: theme.colors.primary,
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: theme.spacing.md,
-  },
-  summaryRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: theme.spacing.sm,
-  },
-  summaryLabel: {
-    color: theme.colors.muted,
-    flex: 1,
-    fontSize: 14,
-  },
-  summaryValue: {
-    color: theme.colors.text,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  totalDivider: {
-    backgroundColor: theme.colors.border,
-    height: 1,
-    marginVertical: theme.spacing.sm,
-  },
-  totalText: {
-    color: theme.colors.primary,
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  estimateNote: {
-    color: theme.colors.muted,
-    fontSize: 12,
-    marginTop: theme.spacing.xs,
-  },
   footer: {
     backgroundColor: theme.colors.surface,
     borderTopColor: theme.colors.border,
@@ -589,75 +313,5 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.error,
     fontSize: 13,
     marginBottom: theme.spacing.sm,
-  },
-  stateCard: {
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.lg,
-  },
-  stateTitle: {
-    color: theme.colors.text,
-    fontSize: 16,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  stateText: {
-    color: theme.colors.muted,
-    fontSize: 13,
-    textAlign: "center",
-  },
-  retryText: {
-    color: theme.colors.primary,
-    fontSize: 14,
-    fontWeight: "700",
-    padding: theme.spacing.xs,
-  },
-  modalOverlay: {
-    backgroundColor: theme.colors.overlay,
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: theme.colors.surface,
-    borderTopLeftRadius: theme.radius.lg,
-    borderTopRightRadius: theme.radius.lg,
-    maxHeight: "75%",
-    padding: theme.spacing.lg,
-  },
-  modalHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: theme.spacing.md,
-  },
-  modalTitle: {
-    color: theme.colors.primary,
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  addressOption: {
-    alignItems: "center",
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-    marginBottom: theme.spacing.sm,
-    padding: theme.spacing.md,
-  },
-  addressOptionSelected: {
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primary,
-  },
-  addAddressButton: {
-    alignItems: "center",
-    borderTopColor: theme.colors.border,
-    borderTopWidth: 1,
-    marginTop: theme.spacing.sm,
-    paddingTop: theme.spacing.md,
   },
 }));
