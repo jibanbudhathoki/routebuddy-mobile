@@ -1,20 +1,19 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { Image } from "expo-image";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
 import { z } from "zod";
-import { FormInput } from "../../../shared/components/FormInput";
+
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
+import { PersonalInformationFields } from "../components/PersonalInformationFields";
 import { useProfile } from "../hooks/useProfile";
 
 const personalInfoSchema = z.object({
@@ -36,15 +35,15 @@ export function PersonalInformationScreen() {
   const { theme } = useUnistyles();
 
   useEffect(() => {
-    if (profile) {
-      const nameParts = profile.displayName
-        ? profile.displayName.split(" ")
-        : [];
-      setFirstName(nameParts[0] || "");
-      setLastName(nameParts.length > 1 ? nameParts[nameParts.length - 1] : "");
-      setEmail(profile.email || "");
-      setPhone(profile.phone || "");
-    }
+    if (!profile) return;
+
+    const nameParts = profile.displayName
+      ? profile.displayName.split(" ")
+      : [];
+    setFirstName(nameParts[0] || "");
+    setLastName(nameParts.length > 1 ? nameParts[nameParts.length - 1] : "");
+    setEmail(profile.email || "");
+    setPhone(profile.phone || "");
   }, [profile]);
 
   const handleSave = async () => {
@@ -62,21 +61,17 @@ export function PersonalInformationScreen() {
       setErrors(formattedErrors);
       return;
     }
+
     setErrors({});
     setIsSaving(true);
-
     const { success } = await updateProfile({
       firstName: result.data.firstName,
       lastName: result.data.lastName,
       phone: result.data.phone,
     });
-
     setIsSaving(false);
-    if (success) {
-      router.back();
-    } else {
-      // In a real app, show a toast or alert here
-    }
+
+    if (success) router.back();
   };
 
   return (
@@ -87,6 +82,8 @@ export function PersonalInformationScreen() {
       >
         <View style={styles.header}>
           <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
             style={styles.backButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             onPress={() => router.back()}
@@ -99,100 +96,21 @@ export function PersonalInformationScreen() {
           </TouchableOpacity>
           <View style={styles.headerTextContainer}>
             <Text style={styles.title}>Personal Information</Text>
-            {/* <Text style={styles.subtitle}>Update your personal details and contact{'\n'}information.</Text> */}
           </View>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={styles.sectionLabel}>Profile Photo</Text>
-          <View style={styles.photoSection}>
-            <View style={styles.photoContainer}>
-              <Image
-                source={{
-                  uri:
-                    profile?.photoUrl ||
-                    +encodeURIComponent(firstName + " " + lastName) +
-                      "&background=0D8ABC&color=fff&size=200",
-                }}
-                style={styles.profilePhoto}
-              />
-              <View style={styles.cameraIconContainer}>
-                <MaterialCommunityIcons
-                  name="camera"
-                  size={16}
-                  color={theme.colors.onPrimary}
-                />
-              </View>
-            </View>
-            <View style={styles.photoActions}>
-              <Text style={styles.photoLabel}>Profile Photo</Text>
-              <Text style={styles.photoDesc}>
-                Add a profile photo so other{"\n"}members can recognize you.
-              </Text>
-              <View style={styles.photoButtonsRow}>
-                <TouchableOpacity style={styles.changePhotoButton}>
-                  <Text style={styles.changePhotoText}>Change Photo</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.deletePhotoButton}>
-                  <MaterialCommunityIcons
-                    name="trash-can-outline"
-                    size={24}
-                    color={theme.colors.muted}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <Text style={styles.sectionLabel}>Full Name</Text>
-          <View style={styles.row}>
-            <View style={styles.halfInput}>
-              <FormInput
-                label="First Name"
-                placeholder="John"
-                value={firstName}
-                onChangeText={setFirstName}
-                error={errors.firstName}
-              />
-            </View>
-            <View style={styles.halfInput}>
-              <FormInput
-                label="Last Name"
-                placeholder="D."
-                value={lastName}
-                onChangeText={setLastName}
-                error={errors.lastName}
-              />
-            </View>
-          </View>
-
-          <Text style={styles.sectionLabel}>Email Address</Text>
-          <FormInput
-            icon="email-outline"
-            placeholder="john.doe@email.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            editable={false}
-            error={errors.email}
-          />
-
-          <Text style={styles.sectionLabel}>Phone Number</Text>
-          <FormInput
-            icon="phone-outline"
-            placeholder="(204) 555-0123"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-            error={errors.phone}
-          />
-        </ScrollView>
+        <PersonalInformationFields
+          photoUrl={profile?.photoUrl}
+          firstName={firstName}
+          lastName={lastName}
+          email={email}
+          phone={phone}
+          errors={errors}
+          onFirstNameChange={setFirstName}
+          onLastNameChange={setLastName}
+          onEmailChange={setEmail}
+          onPhoneChange={setPhone}
+        />
         <View style={styles.footer}>
           <PrimaryButton
             title="Save Changes"
@@ -229,98 +147,6 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 8,
-  },
-  // subtitle: {
-  //   color: theme.colors.muted,
-  //   fontSize: 14,
-  //   textAlign: 'center',
-  //   lineHeight: 20,
-  // },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 40,
-  },
-  sectionLabel: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginBottom: 16,
-    marginTop: 8,
-  },
-  photoSection: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  photoContainer: {
-    marginRight: 20,
-    position: "relative",
-  },
-  profilePhoto: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
-  cameraIconContainer: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    backgroundColor: theme.colors.text,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: theme.colors.surface,
-  },
-  photoActions: {
-    flex: 1,
-  },
-  photoLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: theme.colors.text,
-    marginBottom: 4,
-  },
-  photoDesc: {
-    fontSize: 13,
-    color: theme.colors.muted,
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  photoButtonsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  changePhotoButton: {
-    borderWidth: 1,
-    borderColor: theme.colors.text,
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginRight: 12,
-  },
-  changePhotoText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: theme.colors.text,
-  },
-  deletePhotoButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: theme.colors.primarySoft,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#E8ECF2",
-    marginVertical: 24,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  halfInput: {
-    width: "48%",
   },
   footer: {
     padding: 16,
