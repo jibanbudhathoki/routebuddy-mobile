@@ -11,24 +11,36 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { ProfileHeader } from "../components/ProfileHeader";
 import { ProfileSection } from "../components/ProfileSection";
 import { ProfileMenuItem } from "../components/ProfileMenuItem";
 import { clearAuthSession } from "../../auth/services/authStorage";
 import { useProfile } from "../hooks/useProfile";
 import { UnistylesRuntime } from "react-native-unistyles";
+import { useToast } from "../../../shared/components/ToastProvider";
 
 import { AppearanceModal } from "../components/AppearanceModal";
 
 export function ProfileScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const { profile, isLoading } = useProfile();
   const { theme } = useUnistyles();
   const [isAppearanceModalVisible, setAppearanceModalVisible] = useState(false);
 
   const handleLogout = async () => {
-    await clearAuthSession();
-    alert("Logged out! Please restart the app.");
+    try {
+      await clearAuthSession();
+      queryClient.clear();
+      router.replace("/(auth)/login");
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Unable to log out. Please try again.",
+        { title: "Logout failed", variant: "error" },
+      );
+    }
   };
 
   const handleAppearancePress = () => {

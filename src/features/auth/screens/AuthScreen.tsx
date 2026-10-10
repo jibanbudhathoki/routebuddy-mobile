@@ -1,7 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -14,7 +13,10 @@ import { StyleSheet } from "react-native-unistyles";
 import { Button } from "../../../shared/components/Button";
 import { TextField } from "../../../shared/components/TextField";
 import { WelcomeHero } from "../components/WelcomeHero";
+import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { authService } from "../services/auth.service";
+import { getDeviceToken } from "../services/deviceToken";
+import { useGoogleSignIn } from "../hooks/useGoogleSignIn";
 import { loginSchema } from "../validations/auth";
 
 type AuthScreenProps = {
@@ -33,6 +35,7 @@ export function AuthScreen({
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestError, setRequestError] = useState<string>();
+  const googleSignIn = useGoogleSignIn();
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
 
   async function handleContinue() {
@@ -52,17 +55,18 @@ export function AuthScreen({
       return;
     }
 
-    if (isSubmitting) {
+    if (isSubmitting || googleSignIn.isSubmitting) {
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+      const deviceToken = await getDeviceToken();
       await authService.logIn({
         email: email.trim().toLowerCase(),
         password,
-        deviceToken: "placeholder-device-token",
+        deviceToken,
         platform: Platform.OS,
       });
       onAuthenticated();
@@ -166,6 +170,7 @@ export function AuthScreen({
               <Button
                 title="Log In"
                 loading={isSubmitting}
+                disabled={googleSignIn.isSubmitting}
                 onPress={handleContinue}
                 style={styles.button}
               />
@@ -176,18 +181,19 @@ export function AuthScreen({
                 <View style={styles.dividerLine} />
               </View>
 
-              <Pressable style={styles.socialButton}>
-                <View style={styles.socialIconLeft}>
-                  <Image
-                    source={require("../../../../assets/google-logo.png")}
-                    style={styles.googleIcon}
-                    resizeMode="contain"
-                  />
-                </View>
-                <Text style={styles.socialButtonText}>
-                  Continue with Google
+              {googleSignIn.error ? (
+                <Text accessibilityRole="alert" style={styles.requestError}>
+                  {googleSignIn.error}
                 </Text>
-              </Pressable>
+              ) : null}
+              <GoogleSignInButton
+                loading={googleSignIn.isSubmitting}
+                onPress={async () => {
+                  if (await googleSignIn.signIn()) {
+                    onAuthenticated();
+                  }
+                }}
+              />
             </View>
 
             <Text onPress={onSignUp} style={styles.footer}>
@@ -272,31 +278,6 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 12,
     fontWeight: "600",
     paddingHorizontal: theme.spacing.md,
-  },
-  socialButton: {
-    alignItems: "center",
-    borderColor: theme.colors.border,
-    borderRadius: 12,
-    borderWidth: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    minHeight: 56,
-    paddingHorizontal: theme.spacing.md,
-    position: "relative",
-    backgroundColor: theme.colors.surface,
-  },
-  socialIconLeft: {
-    position: "absolute",
-    left: theme.spacing.md,
-  },
-  googleIcon: {
-    width: 24,
-    height: 24,
-  },
-  socialButtonText: {
-    color: theme.colors.text,
-    fontSize: 16,
-    fontWeight: "500",
   },
   footer: {
     marginTop: theme.spacing.xl,

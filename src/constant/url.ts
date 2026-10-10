@@ -1,6 +1,7 @@
 export const apiEndpoints = {
   auth: {
     login: "/v1/auth/sign-in",
+    session: "/v1/auth/session",
     register: "/v1/auth/register",
     verifyEmail: "/v1/auth/verify-email",
     forgotPassword: "/v1/auth/forgot-password",
