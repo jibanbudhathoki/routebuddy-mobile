@@ -1,19 +1,15 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   Text,
   View,
 } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 
-import { Button } from "../../../shared/components/Button";
-import { TextField } from "../../../shared/components/TextField";
 import { WelcomeHero } from "../components/WelcomeHero";
+import { SignupForm } from "../components/SignupForm";
 import { authService } from "../services/auth.service";
 
 type SignupScreenProps = {
@@ -28,30 +24,25 @@ export function SignupScreen({ onAuthenticated, onLogIn }: SignupScreenProps) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestError, setRequestError] = useState<string>();
+
   const canContinue = Boolean(
     fullName.trim() &&
-    email.trim() &&
-    password &&
-    confirmPassword &&
-    password === confirmPassword &&
-    acceptedTerms,
+      email.trim() &&
+      password &&
+      confirmPassword &&
+      password === confirmPassword &&
+      acceptedTerms,
   );
 
   async function handleCreateAccount() {
     setSubmitted(true);
     setRequestError(undefined);
 
-    if (!canContinue || isSubmitting) {
-      return;
-    }
+    if (!canContinue || isSubmitting) return;
 
     setIsSubmitting(true);
-
     try {
       await authService.signUp({
         email: email.trim().toLowerCase(),
@@ -82,7 +73,6 @@ export function SignupScreen({ onAuthenticated, onLogIn }: SignupScreenProps) {
           showsVerticalScrollIndicator={false}
         >
           <WelcomeHero variant="flat" />
-
           <View style={styles.bottomSheet}>
             <View style={styles.header}>
               <Text style={styles.title}>Create your account</Text>
@@ -90,194 +80,27 @@ export function SignupScreen({ onAuthenticated, onLogIn }: SignupScreenProps) {
                 Join your community and start helping your neighbours.
               </Text>
             </View>
-
-            <View style={styles.form}>
-              <TextField
-                leftElement={
-                  <MaterialCommunityIcons
-                    name="account-outline"
-                    size={24}
-                    color={styles.icon.color}
-                  />
-                }
-                placeholder="Full Name"
-                autoCapitalize="words"
-                error={
-                  submitted && !fullName.trim()
-                    ? "Enter your full name."
-                    : undefined
-                }
-                onChangeText={setFullName}
-                value={fullName}
-              />
-              <TextField
-                leftElement={
-                  <MaterialCommunityIcons
-                    name="email-outline"
-                    size={24}
-                    color={styles.icon.color}
-                  />
-                }
-                placeholder="Email address"
-                autoCapitalize="none"
-                autoComplete="email"
-                keyboardType="email-address"
-                error={
-                  submitted && !email.trim()
-                    ? "Enter your email address."
-                    : undefined
-                }
-                onChangeText={setEmail}
-                value={email}
-              />
-              <PasswordField
-                placeholder="Password"
-                value={password}
-                visible={showPassword}
-                error={submitted && !password ? "Enter a password." : undefined}
-                onChangeText={setPassword}
-                onToggle={() => setShowPassword((current) => !current)}
-              />
-              <PasswordField
-                placeholder="Confirm password"
-                value={confirmPassword}
-                visible={showConfirmPassword}
-                error={
-                  submitted &&
-                  (!confirmPassword || password !== confirmPassword)
-                    ? "Passwords must match."
-                    : undefined
-                }
-                onChangeText={setConfirmPassword}
-                onToggle={() => setShowConfirmPassword((current) => !current)}
-              />
-
-              <Pressable
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: acceptedTerms }}
-                onPress={() => setAcceptedTerms((current) => !current)}
-                style={styles.termsRow}
-              >
-                <MaterialCommunityIcons
-                  name={
-                    acceptedTerms
-                      ? "checkbox-marked-outline"
-                      : "checkbox-blank-outline"
-                  }
-                  size={27}
-                  color={styles.termsIcon.color}
-                />
-                <Text style={styles.termsText}>
-                  I agree to the{" "}
-                  <Text style={styles.termsLink}>Terms of Service</Text> and{" "}
-                  <Text style={styles.termsLink}>Privacy Policy</Text>
-                </Text>
-              </Pressable>
-
-              {requestError ? (
-                <Text accessibilityRole="alert" style={styles.requestError}>
-                  {requestError}
-                </Text>
-              ) : null}
-              <Button
-                title="Create Account"
-                loading={isSubmitting}
-                onPress={handleCreateAccount}
-              />
-
-              <View style={styles.dividerContainer}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>OR</Text>
-                <View style={styles.dividerLine} />
-              </View>
-
-              <SocialButton icon="google" title="Continue with Google" />
-            </View>
-
-            <Text onPress={onLogIn} style={styles.footer}>
-              <Text style={styles.footerText}>
-                Already have an account?{" "}
-                <Text style={styles.footerLink}>Log in</Text>
-              </Text>
-            </Text>
+            <SignupForm
+              fullName={fullName}
+              email={email}
+              password={password}
+              confirmPassword={confirmPassword}
+              acceptedTerms={acceptedTerms}
+              submitted={submitted}
+              isSubmitting={isSubmitting}
+              requestError={requestError}
+              onFullNameChange={setFullName}
+              onEmailChange={setEmail}
+              onPasswordChange={setPassword}
+              onConfirmPasswordChange={setConfirmPassword}
+              onTermsChange={() => setAcceptedTerms((current) => !current)}
+              onSubmit={handleCreateAccount}
+              onLogIn={onLogIn}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
-  );
-}
-
-type PasswordFieldProps = {
-  placeholder: string;
-  value: string;
-  visible: boolean;
-  error?: string;
-  onChangeText: (value: string) => void;
-  onToggle: () => void;
-};
-
-function PasswordField({
-  placeholder,
-  value,
-  visible,
-  error,
-  onChangeText,
-  onToggle,
-}: PasswordFieldProps) {
-  return (
-    <TextField
-      leftElement={
-        <MaterialCommunityIcons
-          name="lock-outline"
-          size={24}
-          color={styles.icon.color}
-        />
-      }
-      rightElement={
-        <Pressable
-          accessibilityLabel={`Toggle ${placeholder.toLowerCase()}`}
-          onPress={onToggle}
-        >
-          <MaterialCommunityIcons
-            name={visible ? "eye-outline" : "eye-off-outline"}
-            size={24}
-            color={styles.icon.color}
-          />
-        </Pressable>
-      }
-      placeholder={placeholder}
-      secureTextEntry={!visible}
-      error={error}
-      onChangeText={onChangeText}
-      value={value}
-    />
-  );
-}
-
-type SocialButtonProps = {
-  icon: "facebook" | "google";
-  title: string;
-};
-
-function SocialButton({ icon, title }: SocialButtonProps) {
-  return (
-    <Pressable style={styles.socialButton}>
-      {icon === "google" ? (
-        <Image
-          source={require("../../../../assets/google-logo.png")}
-          style={[styles.socialIcon, { width: 24, height: 24 }]}
-          resizeMode="contain"
-        />
-      ) : (
-        <MaterialCommunityIcons
-          name={icon}
-          size={26}
-          color={styles.facebookIcon.color}
-          style={styles.socialIcon}
-        />
-      )}
-      <Text style={styles.socialButtonText}>{title}</Text>
-    </Pressable>
   );
 }
 
@@ -300,58 +123,5 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.muted,
     fontSize: 15,
     marginTop: theme.spacing.xs,
-  },
-  form: { gap: theme.spacing.md },
-  icon: { color: theme.colors.text },
-  termsRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-  },
-  termsIcon: { color: theme.colors.text },
-  termsText: {
-    color: theme.colors.text,
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  termsLink: { color: theme.colors.text, fontWeight: "600" },
-  dividerContainer: {
-    alignItems: "center",
-    flexDirection: "row",
-    marginVertical: theme.spacing.xs,
-  },
-  dividerLine: { backgroundColor: theme.colors.border, flex: 1, height: 1 },
-  dividerText: {
-    color: theme.colors.muted,
-    fontSize: 12,
-    fontWeight: "600",
-    paddingHorizontal: theme.spacing.md,
-  },
-  socialButton: {
-    alignItems: "center",
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    minHeight: 54,
-    position: "relative",
-  },
-  socialIcon: { left: theme.spacing.lg, position: "absolute" },
-  facebookIcon: { color: theme.colors.facebook },
-  googleIcon: { color: theme.colors.google },
-  socialButtonText: {
-    color: theme.colors.text,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  footer: { marginTop: theme.spacing.lg, paddingVertical: theme.spacing.xs },
-  footerText: { color: theme.colors.muted, fontSize: 15, textAlign: "center" },
-  footerLink: { color: theme.colors.text, fontWeight: "600" },
-  requestError: {
-    color: theme.colors.error,
-    fontSize: 14,
-    lineHeight: 20,
   },
 }));
