@@ -20,6 +20,12 @@ export type LoginRequest = {
   platform: string;
 };
 
+export type GoogleSessionRequest = {
+  idToken: string;
+  deviceToken: string;
+  platform: string;
+};
+
 export type ForgotPasswordRequest = {
   email: string;
 };

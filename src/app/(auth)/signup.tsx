@@ -7,6 +7,7 @@ export default function SignupRoute() {
   return (
     <SignupScreen
       onEmailVerified={() => router.replace('/(auth)/login')}
+      onAuthenticated={() => router.replace('/(tabs)')}
       onLogIn={() => router.push('/(auth)/login')}
     />
   );

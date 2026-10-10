@@ -1,7 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -15,15 +14,23 @@ import { Button } from "../../../shared/components/Button";
 import { TextField } from "../../../shared/components/TextField";
 import { WelcomeHero } from "../components/WelcomeHero";
 import { EmailVerificationModal } from "../components/EmailVerificationModal";
+import { GoogleSignInButton } from "../components/GoogleSignInButton";
+import { useGoogleSignIn } from "../hooks/useGoogleSignIn";
 import { authService } from "../services/auth.service";
+import { getDeviceToken } from "../services/deviceToken";
 import { signUpSchema } from "../validations/auth";
 
 type SignupScreenProps = {
   onEmailVerified: () => void;
+  onAuthenticated: () => void;
   onLogIn: () => void;
 };
 
-export function SignupScreen({ onEmailVerified, onLogIn }: SignupScreenProps) {
+export function SignupScreen({
+  onEmailVerified,
+  onAuthenticated,
+  onLogIn,
+}: SignupScreenProps) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,6 +44,7 @@ export function SignupScreen({ onEmailVerified, onLogIn }: SignupScreenProps) {
   const [requestError, setRequestError] = useState<string>();
   const [verificationEmail, setVerificationEmail] = useState<string>();
   const [isVerificationVisible, setIsVerificationVisible] = useState(false);
+  const googleSignIn = useGoogleSignIn();
 
   const validation = signUpSchema.safeParse({
     fullName,
@@ -58,7 +66,12 @@ export function SignupScreen({ onEmailVerified, onLogIn }: SignupScreenProps) {
     setSubmitted(true);
     setRequestError(undefined);
 
-    if (!validation.success || !acceptedTerms || isSubmitting) {
+    if (
+      !validation.success ||
+      !acceptedTerms ||
+      isSubmitting ||
+      googleSignIn.isSubmitting
+    ) {
       return;
     }
 
@@ -66,13 +79,14 @@ export function SignupScreen({ onEmailVerified, onLogIn }: SignupScreenProps) {
 
     try {
       const normalizedEmail = email.trim().toLowerCase();
+      const deviceToken = await getDeviceToken();
       await authService.signUp({
         email: normalizedEmail,
         fullName: fullName.trim(),
         password,
         confirmPassword,
         termsAccepted: acceptedTerms,
-        deviceToken: "placeholder-device-token",
+        deviceToken,
         platform: Platform.OS,
       });
       setVerificationEmail(normalizedEmail);
@@ -205,6 +219,7 @@ export function SignupScreen({ onEmailVerified, onLogIn }: SignupScreenProps) {
               <Button
                 title="Create Account"
                 loading={isSubmitting}
+                disabled={googleSignIn.isSubmitting}
                 onPress={handleCreateAccount}
               />
 
@@ -214,7 +229,19 @@ export function SignupScreen({ onEmailVerified, onLogIn }: SignupScreenProps) {
                 <View style={styles.dividerLine} />
               </View>
 
-              <SocialButton icon="google" title="Continue with Google" />
+              {googleSignIn.error ? (
+                <Text accessibilityRole="alert" style={styles.requestError}>
+                  {googleSignIn.error}
+                </Text>
+              ) : null}
+              <GoogleSignInButton
+                loading={googleSignIn.isSubmitting}
+                onPress={async () => {
+                  if (await googleSignIn.signIn()) {
+                    onAuthenticated();
+                  }
+                }}
+              />
             </View>
 
             <Text onPress={onLogIn} style={styles.footer}>
@@ -278,33 +305,6 @@ function PasswordField({
   );
 }
 
-type SocialButtonProps = {
-  icon: "facebook" | "google";
-  title: string;
-};
-
-function SocialButton({ icon, title }: SocialButtonProps) {
-  return (
-    <Pressable style={styles.socialButton}>
-      {icon === "google" ? (
-        <Image
-          source={require("../../../../assets/google-logo.png")}
-          style={[styles.socialIcon, { width: 24, height: 24 }]}
-          resizeMode="contain"
-        />
-      ) : (
-        <MaterialCommunityIcons
-          name={icon}
-          size={26}
-          color={styles.facebookIcon.color}
-          style={styles.socialIcon}
-        />
-      )}
-      <Text style={styles.socialButtonText}>{title}</Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create((theme) => ({
   screen: { backgroundColor: theme.colors.surface, flex: 1 },
   keyboardView: { flex: 1 },
@@ -352,24 +352,6 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 12,
     fontWeight: "600",
     paddingHorizontal: theme.spacing.md,
-  },
-  socialButton: {
-    alignItems: "center",
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    minHeight: 54,
-    position: "relative",
-  },
-  socialIcon: { left: theme.spacing.lg, position: "absolute" },
-  facebookIcon: { color: theme.colors.facebook },
-  googleIcon: { color: theme.colors.google },
-  socialButtonText: {
-    color: theme.colors.text,
-    fontSize: 16,
-    fontWeight: "600",
   },
   footer: { marginTop: theme.spacing.lg, paddingVertical: theme.spacing.xs },
   footerText: { color: theme.colors.muted, fontSize: 15, textAlign: "center" },

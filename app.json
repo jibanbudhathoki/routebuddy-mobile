@@ -33,13 +33,15 @@
       "expo-secure-store",
       "expo-image",
       "expo-status-bar",
+      "expo-notifications",
       [
         "@stripe/stripe-react-native",
         {
           "merchantIdentifier": "merchant.com.anonymous.routebuddymobile",
           "enableApplePay": false
         }
-      ]
+      ],
+      "@react-native-google-signin/google-signin"
     ],
     "extra": {
       "router": {},
