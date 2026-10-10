@@ -1,10 +1,20 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import type { CreateRequestPayload } from "../types/request";
+import type { CreateRequestPayload, RequestItem } from "../types/request";
 
 interface RequestCreationContextType {
   requestData: Partial<CreateRequestPayload>;
   updateRequestData: (data: Partial<CreateRequestPayload>) => void;
+  tripOrderConversation: TripOrderConversationData | null;
+  setTripOrderConversation: (data: TripOrderConversationData | null) => void;
   resetRequestData: () => void;
+}
+
+export interface TripOrderConversationData {
+  orderUid: string;
+  tripUid: string;
+  driverUid: string;
+  items: RequestItem[];
+  total: string;
 }
 
 const RequestCreationContext = createContext<RequestCreationContextType | undefined>(
@@ -21,12 +31,15 @@ export function RequestCreationProvider({ children }: { children: ReactNode }) {
     latestDeliveryTime: "",
     items: [],
   });
+  const [tripOrderConversation, setTripOrderConversation] =
+    useState<TripOrderConversationData | null>(null);
 
   const updateRequestData = (newData: Partial<CreateRequestPayload>) => {
     setRequestData((prev) => ({ ...prev, ...newData }));
   };
 
   const resetRequestData = () => {
+    setTripOrderConversation(null);
     setRequestData({
       stores: [],
       deliveryAddress: "",
@@ -40,7 +53,13 @@ export function RequestCreationProvider({ children }: { children: ReactNode }) {
 
   return (
     <RequestCreationContext.Provider
-      value={{ requestData, updateRequestData, resetRequestData }}
+      value={{
+        requestData,
+        updateRequestData,
+        tripOrderConversation,
+        setTripOrderConversation,
+        resetRequestData,
+      }}
     >
       {children}
     </RequestCreationContext.Provider>

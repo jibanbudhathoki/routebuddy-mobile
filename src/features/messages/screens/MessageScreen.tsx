@@ -1,4 +1,10 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import {
+  ActivityIndicator,
+  View,
+  Text,
+  TouchableOpacity,
+} from "react-native";
+import { useState } from "react";
 import { FlatList } from "react-native-gesture-handler";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -6,8 +12,12 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { TextField } from "../../../shared/components/TextField";
 import { MessageListItem } from "../components/MessageListItem";
-import { useListMessages } from "../hooks/useMessages";
-import { ActivityIndicator } from "react-native";
+import { MessageDialog, type MessageDialogAction } from "../components/MessageDialog";
+import {
+  useDeleteConversation,
+  useListMessages,
+  useMarkConversationAsRead,
+} from "../hooks/useMessages";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 export function MessageScreen() {
@@ -15,7 +25,37 @@ export function MessageScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-    const { data: conversations, isLoading, isError } = useListMessages();
+  const { data: conversations, isLoading, isError, error, refetch } =
+    useListMessages();
+  const markAsRead = useMarkConversationAsRead();
+  const deleteConversation = useDeleteConversation();
+  const [dialog, setDialog] = useState<{
+    title: string;
+    message?: string;
+    actions: MessageDialogAction[];
+  } | null>(null);
+
+  const handleDeleteConversation = (conversationId: string) => {
+    setDialog({
+      title: "Delete conversation?",
+      message: "This will hide the conversation from your inbox.",
+      actions: [
+        { label: "Cancel", onPress: () => {} },
+        {
+          label: "Delete",
+          destructive: true,
+          onPress: () =>
+            deleteConversation.mutate(conversationId, {
+              onError: (error) => setDialog({
+                title: "Unable to delete conversation",
+                message: error instanceof Error ? error.message : "Please try again.",
+                actions: [{ label: "OK", onPress: () => {} }],
+              }),
+              }),
+        },
+      ],
+    });
+  };
 
   const renderContent = () => {
     if (isLoading) {
@@ -34,8 +74,15 @@ export function MessageScreen() {
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
           <Text style={{ color: theme.colors.error }}>
-            Failed to load conversations
+            {error instanceof Error
+              ? error.message
+              : "Failed to load conversations"}
           </Text>
+          <TouchableOpacity accessibilityRole="button" onPress={() => refetch()}>
+            <Text style={{ color: theme.colors.primary, marginTop: theme.spacing.sm }}>
+              Try again
+            </Text>
+          </TouchableOpacity>
         </View>
       );
     }
@@ -57,7 +104,7 @@ export function MessageScreen() {
         renderItem={({ item }) => (
           <MessageListItem
             id={item.msgId}
-            avatarUrl=""
+            avatarUrl={item.avatarUrl ?? ""}
             name={item.recipientName}
             tripInfo={
               item.contextType === "request"
@@ -67,9 +114,19 @@ export function MessageScreen() {
                   : "Direct Message"
             }
             messagePreview={item.latestMsg || "No messages yet"}
-            timestamp=""
-            unreadCount={0}
+            timestamp={formatInboxTime(item.timestamp)}
+            unreadCount={item.unreadCount}
             onPress={() => router.push(`/chat/${item.msgId}`)}
+            onMarkRead={() =>
+              markAsRead.mutate(item.msgId, {
+                onError: (error) => setDialog({
+                  title: "Unable to mark as read",
+                  message: error instanceof Error ? error.message : "Please try again.",
+                  actions: [{ label: "OK", onPress: () => {} }],
+                }),
+              })
+            }
+            onDelete={() => handleDeleteConversation(item.msgId)}
           />
         )}
         contentContainerStyle={styles.listContent}
@@ -118,8 +175,25 @@ export function MessageScreen() {
       </View>
 
       {renderContent()}
+      <MessageDialog
+        visible={dialog !== null}
+        title={dialog?.title ?? ""}
+        message={dialog?.message}
+        actions={dialog?.actions ?? []}
+        onDismiss={() => setDialog(null)}
+      />
     </View>
   );
+}
+
+function formatInboxTime(value?: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const now = new Date();
+  return date.toDateString() === now.toDateString()
+    ? date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+    : date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
 const styles = StyleSheet.create((theme) => ({

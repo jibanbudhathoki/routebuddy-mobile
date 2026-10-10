@@ -1,18 +1,21 @@
 import React, { useRef } from 'react';
 import { View, Text, TouchableOpacity, Image, Animated } from 'react-native';
+import type { ImageSourcePropType } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Swipeable } from 'react-native-gesture-handler';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export interface MessageListItemProps {
   id: string;
-  avatarUrl: string | any; // local require or remote string
+  avatarUrl: string | ImageSourcePropType | null;
   name: string;
   tripInfo: string;
   messagePreview: string;
   timestamp: string;
   unreadCount?: number;
   onPress?: () => void;
+  onMarkRead?: () => void;
+  onDelete?: () => void;
 }
 
 export function MessageListItem({
@@ -23,26 +26,34 @@ export function MessageListItem({
   timestamp,
   unreadCount,
   onPress,
+  onMarkRead,
+  onDelete,
 }: MessageListItemProps) {
   const { theme } = useUnistyles();
 
   const swipeableRef = useRef<Swipeable>(null);
 
-  const renderRightActions = (progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
+  const renderRightActions = (_progress: Animated.AnimatedInterpolation<number>, _dragX: Animated.AnimatedInterpolation<number>) => {
     return (
       <View style={styles.rightActionsContainer}>
         <TouchableOpacity 
           style={[styles.actionButton, styles.readAction]} 
-          onPress={() => { swipeableRef.current?.close(); }}
+          onPress={() => {
+            swipeableRef.current?.close();
+            onMarkRead?.();
+          }}
         >
-          <MaterialCommunityIcons name="email-open-outline" size={24} color="#FFF" />
+          <MaterialCommunityIcons name="email-open-outline" size={24} color={theme.colors.onPrimary} />
           <Text style={styles.actionText}>Read</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.actionButton, styles.deleteAction]}
-          onPress={() => { swipeableRef.current?.close(); }}
+          onPress={() => {
+            swipeableRef.current?.close();
+            onDelete?.();
+          }}
         >
-          <MaterialCommunityIcons name="trash-can-outline" size={24} color="#FFF" />
+          <MaterialCommunityIcons name="trash-can-outline" size={24} color={theme.colors.onPrimary} />
           <Text style={styles.actionText}>Delete</Text>
         </TouchableOpacity>
       </View>
@@ -181,13 +192,13 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'center',
   },
   readAction: {
-    backgroundColor: theme.colors.google || '#4285F4',
+  backgroundColor: theme.colors.primary,
   },
   deleteAction: {
     backgroundColor: theme.colors.error,
   },
   actionText: {
-    color: '#FFF',
+    color: theme.colors.onPrimary,
     fontSize: 12,
     marginTop: 4,
     fontWeight: '600',

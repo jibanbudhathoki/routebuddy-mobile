@@ -1,913 +1,307 @@
-import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  TextInput,
-  KeyboardAvoidingView,
-  Alert,
-  Animated,
-  Platform,
-} from "react-native";
-import { useState, useRef } from "react";
-import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { KeyboardAvoidingView, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { Swipeable, FlatList } from "react-native-gesture-handler";
+import { StyleSheet } from "react-native-unistyles";
+
+import { getAuthSession } from "../../auth/services/authStorage";
 import {
-  useMessages,
-  useConversations,
+  useConversationMessages,
+  useDeleteConversation,
+  useDeleteMessages,
+  useListMessages,
+  useMarkConversationAsRead,
+  useReactToMessage,
+  useSendConversationMessage,
 } from "../hooks/useMessages";
+import { MessageDialog, type MessageDialogAction } from "../components/MessageDialog";
+import { ChatComposer } from "../components/ChatComposer";
+import { ChatMessagesPanel } from "../components/ChatMessagesPanel";
+import { ChatDetailHeader } from "../components/ChatDetailHeader";
+import type { InboxMessage, Message } from "../types/message.types";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 export function ChatDetailScreen() {
-  const { theme } = useUnistyles();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
-
-  const { data: conversations } = useConversations();
-  const conversation = conversations?.find((c) => c.uid === id);
-
-  const { data: apiMessages } = useMessages(id || "");
+  const { id: routeId } = useLocalSearchParams<{ id?: string }>();
+  const conversationId = typeof routeId === "string" ? routeId : "";
+  const {
+    data: messages = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useConversationMessages(conversationId);
+  const { data: inbox = [] } = useListMessages();
+  const sendMessage = useSendConversationMessage(conversationId);
+  const markAsRead = useMarkConversationAsRead();
+  const deleteConversation = useDeleteConversation();
+  const deleteMessages = useDeleteMessages(conversationId);
+  const reactToMessage = useReactToMessage(conversationId);
+  const markConversationRead = markAsRead.mutate;
 
   const [messageText, setMessageText] = useState("");
+  const [currentUserUid, setCurrentUserUid] = useState("");
+  const [sendError, setSendError] = useState("");
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([]);
+  const longPressedMessageId = useRef<string | null>(null);
+  const [dialog, setDialog] = useState<{
+    title: string;
+    message?: string;
+    actions: MessageDialogAction[];
+  } | null>(null);
 
-  const chatData = conversation
-    ? {
-        name: `Participant ${conversation.participants.filter((p) => p !== "me")[0] || "Unknown"}`,
-        tripTitle: conversation.tripId
-          ? `Trip ${conversation.tripId.substring(0, 5)}...`
-          : "Direct Message",
-        logo: "https://cdn-icons-png.flaticon.com/512/615/615075.png",
-        price: "$0.00",
-        origin: "-",
-        dest: "-",
-        date: new Date(conversation.createdAt).toLocaleDateString(),
-        time: "TBD",
-        items: "-",
-      }
-    : {
-        name: "Loading...",
-        tripTitle: "...",
-        logo: "",
-        price: "",
-        origin: "",
-        dest: "",
-        date: "",
-        time: "",
-        items: "",
-      };
+  useFocusEffect(
+    useCallback(() => {
+      if (!conversationId) return;
+      markConversationRead(conversationId, {
+        onError: (failure) =>
+          setSendError(
+            failure instanceof Error
+              ? failure.message
+              : "Unable to mark conversation as read.",
+          ),
+      });
+    }, [conversationId, markConversationRead]),
+  );
 
-  const messages = (apiMessages || []).map((m) => ({
-    id: m.uid,
-    type: m.type === "text" ? "text" : "system",
-    isMe: m.senderUid === "me", // Assuming "me" is current user's UID for now
-    text: m.content,
-    timestamp: new Date(m.createdAt).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    avatarUrl: "",
-    isRead: false,
-    reactions: m.reactions,
-  }));
+  useEffect(() => {
+    let isActive = true;
+    getAuthSession()
+      .then((session) => {
+        if (isActive) setCurrentUserUid(session?.user.id ?? "");
+      })
+      .catch((failure: unknown) => {
+        if (isActive) {
+          setSendError(
+            failure instanceof Error
+              ? failure.message
+              : "Could not identify the current user.",
+          );
+        }
+      });
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
-  const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
-  const [replyingTo, setReplyingTo] = useState<any>(null);
+  const conversation = inbox.find(
+    (item) => item.msgId === conversationId,
+  ) as InboxMessage | undefined;
+  const otherParticipant = messages.find(
+    (message) =>
+      message.senderId &&
+      message.senderId !== "me" &&
+      message.senderId !== currentUserUid,
+  )?.sender;
+  const currentParticipant = messages.find(
+    (message) =>
+      message.senderId === "me" || message.senderId === currentUserUid,
+  )?.sender;
+  const participantName =
+    otherParticipant?.displayName ?? conversation?.recipientName ?? "Conversation";
+  const contextTitle = formatContextTitle(conversation?.contextType);
+  const participantAvatar =
+    otherParticipant?.photoUrl ?? currentParticipant?.photoUrl ?? null;
 
-  const toggleSelection = (msgId: string) => {
-    if (selectedMessages.includes(msgId)) {
-      setSelectedMessages((prev) => prev.filter((i) => i !== msgId));
-    } else {
-      setSelectedMessages((prev) => [...prev, msgId]);
+  const handleSendMessage = async () => {
+    const content = messageText.trim();
+    if (!content || !conversationId || sendMessage.isPending) return;
+
+    setSendError("");
+    try {
+      await sendMessage.mutateAsync({
+        content,
+        type: "text",
+        replyToUid: replyTo?.id,
+      });
+      setMessageText("");
+      setReplyTo(null);
+    } catch (failure) {
+      setSendError(
+        failure instanceof Error
+          ? failure.message
+          : "Unable to send your message. Please try again.",
+      );
     }
   };
 
-  const handleLongPress = (item: any) => {
-    if (item.type !== "date") {
-      toggleSelection(item.id);
-    }
+  const showActionError = (failure: Error) => {
+    setSendError(
+      failure.message || "The message action failed. Please try again.",
+    );
   };
 
-  const handlePress = (item: any) => {
-    if (selectedMessages.length > 0 && item.type !== "date") {
-      toggleSelection(item.id);
-    }
+  const toggleMessageSelection = (messageId: string) => {
+    setSelectedMessageIds((current) =>
+      current.includes(messageId)
+        ? current.filter((id) => id !== messageId)
+        : [...current, messageId],
+    );
   };
 
-  const clearSelection = () => setSelectedMessages([]);
+  const showConversationOptions = () => {
+    setDialog({
+      title: "Conversation options",
+      actions: [
+      {
+        label: "Delete conversation",
+        destructive: true,
+        onPress: () => {
+          setDialog({
+            title: "Delete conversation?",
+            message: "This will hide the conversation from your inbox.",
+            actions: [
+              { label: "Cancel", onPress: () => {} },
+              {
+                label: "Delete",
+                destructive: true,
+                onPress: () =>
+                  deleteConversation.mutate(conversationId, {
+                    onSuccess: () => router.back(),
+                    onError: showActionError,
+                  }),
+              },
+            ],
+          });
+        },
+      },
+      { label: "Cancel", onPress: () => {} },
+      ],
+    });
+  };
 
-  const handleDeleteSelected = () => {
-    Alert.alert(
-      "Delete messages?",
-      `Are you sure you want to delete ${selectedMessages.length} message(s)?`,
-      [
-        { text: "Cancel", style: "cancel" },
+  const confirmDeleteMessages = () => {
+    if (selectedMessageIds.length === 0) return;
+    const messageIds = [...selectedMessageIds];
+    setDialog({
+      title: `Delete ${messageIds.length} message${messageIds.length === 1 ? "" : "s"}?`,
+      message: "Deleted messages will be removed from this conversation.",
+      actions: [
+        { label: "Cancel", onPress: () => {} },
         {
-          text: "Delete",
-          style: "destructive",
+          label: "Delete",
+          destructive: true,
           onPress: () => {
-            // logic to delete messages goes here
-            clearSelection();
+            deleteMessages.mutate(messageIds, {
+              onSuccess: () => setSelectedMessageIds([]),
+              onError: showActionError,
+            });
           },
         },
       ],
-    );
+    });
   };
 
-  const renderHeader = () => (
-    <View style={styles.tripCardContainer}>
-      <View style={styles.tripCard}>
-        <Image
-          source={{ uri: chatData.logo }}
-          style={styles.tripLogo}
-          resizeMode="contain"
-        />
-        <View style={styles.tripCardContent}>
-          <View style={styles.tripCardHeader}>
-            <Text style={styles.tripTitle}>{chatData.tripTitle}</Text>
-            <View style={styles.tripPriceContainer}>
-              <Text style={styles.tripPriceLabel}>Order Total</Text>
-              <Text style={styles.tripPrice}>{chatData.price}</Text>
-            </View>
-          </View>
-
-          <View style={styles.tripRouteRow}>
-            <Text style={styles.tripRouteText}>{chatData.origin}</Text>
-            <MaterialCommunityIcons
-              name="arrow-right"
-              size={14}
-              color={theme.colors.muted}
-              style={{ marginHorizontal: 4 }}
-            />
-            <Text style={styles.tripRouteText}>{chatData.dest}</Text>
-          </View>
-
-          <View style={styles.tripMetaRow}>
-            <MaterialCommunityIcons
-              name="calendar-blank-outline"
-              size={14}
-              color={theme.colors.muted}
-            />
-            <Text style={styles.tripMetaText}>{chatData.date}</Text>
-          </View>
-          <View style={[styles.tripMetaRow, { marginTop: 4 }]}>
-            <MaterialCommunityIcons
-              name="clock-outline"
-              size={14}
-              color={theme.colors.muted}
-            />
-            <Text style={styles.tripMetaText}>{chatData.time}</Text>
-            <Text style={styles.tripMetaDivider}>•</Text>
-            <Text style={styles.tripItemsCount}>{chatData.items}</Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-
-  const MessageItem = ({ item }: { item: any }) => {
-    const isSelected = selectedMessages.includes(item.id);
-    const isSelectionMode = selectedMessages.length > 0;
-    const swipeableRef = useRef<any>(null);
-
-    if (item.type === "date") {
-      return (
-        <View style={styles.dateContainer}>
-          <View style={styles.dateBadge}>
-            <Text style={styles.dateText}>{item.text}</Text>
-          </View>
-        </View>
-      );
+  const handleMessagePress = (message: Message) => {
+    if (longPressedMessageId.current === message.id) {
+      longPressedMessageId.current = null;
+      return;
     }
-
-    const renderLeftActions = (progress: any, dragX: any) => {
-      const scale = dragX.interpolate({
-        inputRange: [0, 50],
-        outputRange: [0, 1],
-        extrapolate: "clamp",
-      });
-
-      return (
-        <View style={styles.whatsappReplyActionContainer}>
-          <Animated.View
-            style={[
-              styles.whatsappReplyIconWrapper,
-              { transform: [{ scale }] },
-            ]}
-          >
-            <MaterialCommunityIcons
-              name="reply"
-              size={20}
-              color={theme.colors.text}
-            />
-          </Animated.View>
-        </View>
-      );
-    };
-
-    const onSwipeableOpen = () => {
-      setReplyingTo(item);
-      swipeableRef.current?.close();
-    };
-
-    const handleReaction = (emoji: string) => {
-      // In a real app, save the reaction to state or backend here
-      clearSelection();
-    };
-
-    const isReacting =
-      selectedMessages.length === 1 && selectedMessages[0] === item.id;
-
-    const renderReactionBar = (isMe: boolean = false) => {
-      if (!isReacting) return null;
-      return (
-        <View
-          style={[
-            styles.reactionBar,
-            isMe ? styles.reactionBarRight : styles.reactionBarLeft,
-          ]}
-        >
-          {["❤️", "😂", "😮", "😢", "🙏", "👍"].map((emoji) => (
-            <TouchableOpacity
-              key={emoji}
-              onPress={() => handleReaction(emoji)}
-              style={styles.reactionBtn}
-            >
-              <Text style={styles.reactionEmoji}>{emoji}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      );
-    };
-
-    if (item.type === "system") {
-      return (
-        <Swipeable
-          ref={swipeableRef}
-          renderLeftActions={renderLeftActions}
-          onSwipeableLeftOpen={onSwipeableOpen}
-          enabled={!isSelectionMode}
-        >
-          <TouchableOpacity
-            onLongPress={() => handleLongPress(item)}
-            onPress={() => handlePress(item)}
-            activeOpacity={0.8}
-            style={[
-              styles.messageRowLeft,
-              isSelected && styles.selectedMessageRow,
-            ]}
-          >
-            {item.avatarUrl ? (
-              <Image
-                source={{ uri: item.avatarUrl }}
-                style={styles.chatAvatar}
-              />
-            ) : (
-              <View style={[styles.chatAvatar, styles.chatAvatarFallback]}>
-                <MaterialCommunityIcons
-                  name="account"
-                  size={20}
-                  color={theme.colors.surface}
-                />
-              </View>
-            )}
-            <View style={{ alignItems: "flex-start", flex: 1 }}>
-              {renderReactionBar()}
-              <View style={styles.systemMessageBubble}>
-                <View style={styles.systemMessageHeader}>
-                  <MaterialCommunityIcons
-                    name={item.icon}
-                    size={20}
-                    color={theme.colors.text}
-                  />
-                  <Text style={styles.systemMessageTitle}>{item.title}</Text>
-                </View>
-                <Text style={styles.systemMessageText}>{item.text}</Text>
-              </View>
-              <Text style={styles.systemMessageTime}>{item.timestamp}</Text>
-            </View>
-          </TouchableOpacity>
-        </Swipeable>
-      );
+    if (selectedMessageIds.length > 0) {
+      toggleMessageSelection(message.id);
+      return;
     }
+    if (message.type === "system" || message.senderId === null) return;
 
-    if (item.isMe) {
-      return (
-        <Swipeable
-          ref={swipeableRef}
-          renderLeftActions={renderLeftActions}
-          onSwipeableLeftOpen={onSwipeableOpen}
-          enabled={!isSelectionMode}
-        >
-          <TouchableOpacity
-            onLongPress={() => handleLongPress(item)}
-            onPress={() => handlePress(item)}
-            activeOpacity={0.8}
-            style={[
-              styles.messageRowRight,
-              isSelected && styles.selectedMessageRow,
-            ]}
-          >
-            <View style={{ alignItems: "flex-end", flex: 1 }}>
-              {renderReactionBar(true)}
-              <View style={styles.myMessageBubble}>
-                <Text style={styles.myMessageText}>{item.text}</Text>
-              </View>
-              <View style={styles.myMessageFooter}>
-                <Text style={styles.myMessageTime}>{item.timestamp}</Text>
-                {item.isRead && (
-                  <MaterialCommunityIcons
-                    name="check-all"
-                    size={14}
-                    color="#6FA8FF"
-                    style={{ marginLeft: 4 }}
-                  />
-                )}
-              </View>
-            </View>
-          </TouchableOpacity>
-        </Swipeable>
-      );
-    }
-
-    return (
-      <Swipeable
-        ref={swipeableRef}
-        renderLeftActions={renderLeftActions}
-        onSwipeableLeftOpen={onSwipeableOpen}
-        enabled={!isSelectionMode}
-      >
-        <TouchableOpacity
-          onLongPress={() => handleLongPress(item)}
-          onPress={() => handlePress(item)}
-          activeOpacity={0.8}
-          style={[
-            styles.messageRowLeft,
-            isSelected && styles.selectedMessageRow,
-          ]}
-        >
-          {item.avatarUrl ? (
-            <Image source={{ uri: item.avatarUrl }} style={styles.chatAvatar} />
-          ) : (
-            <View style={[styles.chatAvatar, styles.chatAvatarFallback]}>
-              <Text style={styles.chatAvatarFallbackText}>
-                {chatData.name ? chatData.name.charAt(0).toUpperCase() : "?"}
-              </Text>
-            </View>
-          )}
-          <View style={{ alignItems: "flex-start", flex: 1 }}>
-            {renderReactionBar()}
-            <View style={styles.theirMessageBubble}>
-              <Text style={styles.theirMessageText}>{item.text}</Text>
-            </View>
-            <Text style={styles.theirMessageTime}>{item.timestamp}</Text>
-          </View>
-        </TouchableOpacity>
-      </Swipeable>
-    );
+    setDialog({
+      title: "Message actions",
+      actions: [
+        { label: "Reply", onPress: () => setReplyTo(message) },
+        ...["👍", "❤️", "😂", "😮"].map((emoji) => ({
+          label: emoji,
+          onPress: () =>
+            reactToMessage.mutate(
+              { messageUid: message.id, emoji },
+              { onError: showActionError },
+            ),
+        })),
+        { label: "Select", onPress: () => setSelectedMessageIds([message.id]) },
+      ],
+    });
   };
 
-  const renderMessage = ({ item }: { item: any }) => (
-    <MessageItem item={item} />
-  );
+  const handleMessageLongPress = (message: Message) => {
+    if (message.type === "system" || message.senderId === null) return;
+    longPressedMessageId.current = message.id;
+    toggleMessageSelection(message.id);
+  };
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { paddingTop: getTopSafeAreaInset(insets.top) }]}
+      style={[
+        styles.screen,
+        { paddingTop: getTopSafeAreaInset(insets.top) },
+      ]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={styles.header}>
-        {selectedMessages.length > 0 ? (
-          <View style={styles.selectionHeader}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={clearSelection}
-            >
-              <MaterialCommunityIcons
-                name="arrow-left"
-                size={24}
-                color={theme.colors.text}
-              />
-            </TouchableOpacity>
-            <Text style={styles.selectionCount}>{selectedMessages.length}</Text>
-            <View style={{ flex: 1 }} />
-            <TouchableOpacity
-              style={styles.optionsButton}
-              onPress={handleDeleteSelected}
-            >
-              <MaterialCommunityIcons
-                name="trash-can-outline"
-                size={24}
-                color={theme.colors.text}
-              />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.normalHeader}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <MaterialCommunityIcons
-                name="arrow-left"
-                size={24}
-                color={theme.colors.primary}
-              />
-            </TouchableOpacity>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerTitle}>{chatData.name}</Text>
-              <Text style={styles.headerSubtitle}>{chatData.tripTitle}</Text>
-            </View>
-            <TouchableOpacity style={styles.optionsButton}>
-              <MaterialCommunityIcons
-                name="dots-horizontal"
-                size={24}
-                color={theme.colors.primary}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
-      <FlatList
-        data={messages}
-        keyExtractor={(item) => item.id}
-        renderItem={renderMessage}
-        ListHeaderComponent={renderHeader}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        extraData={selectedMessages}
+      <ChatDetailHeader
+        participantName={participantName}
+        contextTitle={contextTitle}
+        selectedCount={selectedMessageIds.length}
+        isDeleting={deleteMessages.isPending}
+        onBack={() => router.back()}
+        onCancelSelection={() => setSelectedMessageIds([])}
+        onDeleteSelected={confirmDeleteMessages}
+        onOptions={showConversationOptions}
       />
 
-      <View style={styles.bottomAreaContainer}>
-        {replyingTo && (
-          <View style={styles.replyingToContainer}>
-            <View style={styles.replyingToLeftBar} />
-            <View style={styles.replyingToContent}>
-              <Text style={styles.replyingToName}>
-                {replyingTo.isMe ? "You" : chatData.name}
-              </Text>
-              <Text style={styles.replyingToText} numberOfLines={1}>
-                {replyingTo.text}
-              </Text>
-            </View>
-            <TouchableOpacity onPress={() => setReplyingTo(null)}>
-              <MaterialCommunityIcons
-                name="close"
-                size={20}
-                color={theme.colors.muted}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
+      <ChatMessagesPanel
+        messages={messages}
+        conversationId={conversation?.msgId ?? conversationId}
+        contextTitle={contextTitle}
+        currentUserUid={currentUserUid}
+        participantName={participantName}
+        participantAvatar={participantAvatar}
+        currentUserAvatar={currentParticipant?.photoUrl ?? null}
+        selectedMessageIds={selectedMessageIds}
+        isLoading={isLoading}
+        isError={isError}
+        error={error}
+        onRetry={() => refetch()}
+        onMessagePress={handleMessagePress}
+        onMessageLongPress={handleMessageLongPress}
+      />
 
-        <View
-          style={[
-            styles.inputContainer,
-            { paddingBottom: Math.max(insets.bottom, 12) },
-          ]}
-        >
-          <TouchableOpacity style={styles.attachButton}>
-            <MaterialCommunityIcons
-              name="plus"
-              size={24}
-              color={theme.colors.primary}
-            />
-          </TouchableOpacity>
-          <View style={styles.textInputWrapper}>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Type a message..."
-              placeholderTextColor={theme.colors.muted}
-              multiline
-            />
-            <TouchableOpacity style={styles.cameraButton}>
-              <MaterialCommunityIcons
-                name="camera-outline"
-                size={24}
-                color={theme.colors.muted}
-              />
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity style={styles.sendButton}>
-            <MaterialCommunityIcons
-              name="send"
-              size={20}
-              color={theme.colors.surface}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <ChatComposer
+        messageText={messageText}
+        onMessageTextChange={setMessageText}
+        onSend={handleSendMessage}
+        isSending={sendMessage.isPending}
+        enabled={Boolean(conversationId)}
+        error={sendError}
+        replyTo={replyTo}
+        onCancelReply={() => setReplyTo(null)}
+        bottomPadding={Math.max(insets.bottom, 8)}
+      />
+      <MessageDialog
+        visible={dialog !== null}
+        title={dialog?.title ?? ""}
+        message={dialog?.message}
+        actions={dialog?.actions ?? []}
+        onDismiss={() => setDialog(null)}
+      />
     </KeyboardAvoidingView>
   );
 }
 
+function formatContextTitle(context?: string) {
+  if (!context) return "Trip conversation";
+  const normalized = context.toLowerCase();
+  if (normalized.includes("request")) return "Request conversation";
+  if (normalized.includes("trip")) return "Trip conversation";
+  return `${capitalize(context)} conversation`;
+}
+
+function capitalize(value: string) {
+  return value ? `${value[0].toUpperCase()}${value.slice(1)}` : value;
+}
+
 const styles = StyleSheet.create((theme) => ({
-  container: {
-    flex: 1,
+  screen: {
     backgroundColor: theme.colors.background,
-  },
-  header: {
-    backgroundColor: theme.colors.surface,
-  },
-  normalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-  },
-  selectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-    backgroundColor: theme.colors.primary + "1A", // light primary tint
-  },
-  selectionCount: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginLeft: 16,
-  },
-  backButton: {
-    padding: theme.spacing.xs,
-    marginLeft: -theme.spacing.xs,
-  },
-  headerTitleContainer: {
     flex: 1,
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: theme.colors.text,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: theme.colors.muted,
-    marginTop: 2,
-  },
-  optionsButton: {
-    padding: theme.spacing.xs,
-    marginRight: -theme.spacing.xs,
-  },
-  listContent: {
-    paddingHorizontal: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
-  },
-  tripCardContainer: {
-    paddingVertical: theme.spacing.md,
-  },
-  tripCard: {
-    flexDirection: "row",
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
-    padding: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  tripLogo: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    backgroundColor: theme.colors.primary,
-  },
-  tripCardContent: {
-    flex: 1,
-    marginLeft: theme.spacing.md,
-  },
-  tripCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  tripTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: theme.colors.text,
-    flex: 1,
-  },
-  tripPriceContainer: {
-    alignItems: "flex-end",
-  },
-  tripPriceLabel: {
-    fontSize: 12,
-    color: theme.colors.muted,
-  },
-  tripPrice: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: theme.colors.text,
-  },
-  tripRouteRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 4,
-  },
-  tripRouteText: {
-    fontSize: 13,
-    color: theme.colors.text,
-    fontWeight: "500",
-  },
-  tripMetaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-    flexWrap: "wrap",
-    gap: 4,
-  },
-  tripMetaItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  tripMetaText: {
-    fontSize: 12,
-    color: theme.colors.muted,
-    marginLeft: 4,
-  },
-  tripMetaDivider: {
-    fontSize: 12,
-    color: theme.colors.border,
-    marginHorizontal: 2,
-  },
-  tripItemsCount: {
-    fontSize: 12,
-    color: theme.colors.muted,
-  },
-  dateContainer: {
-    alignItems: "center",
-    marginVertical: theme.spacing.md,
-  },
-  dateBadge: {
-    backgroundColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  dateText: {
-    fontSize: 12,
-    color: theme.colors.text,
-    fontWeight: "600",
-  },
-  messageRowLeft: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-  },
-  messageRowRight: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-  },
-  selectedMessageRow: {
-    backgroundColor: theme.colors.primary + "1A", // subtle highlight
-    zIndex: 100,
-    elevation: 100,
-  },
-  chatAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: theme.spacing.sm,
-  },
-  chatAvatarFallback: {
-    backgroundColor: theme.colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  chatAvatarFallbackText: {
-    color: theme.colors.surface,
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  theirMessageBubble: {
-    backgroundColor: theme.colors.surface,
-    padding: theme.spacing.md,
-    borderRadius: 16,
-    borderBottomLeftRadius: 4,
-    maxWidth: "100%",
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  theirMessageText: {
-    fontSize: 15,
-    color: theme.colors.text,
-    lineHeight: 22,
-  },
-  theirMessageTime: {
-    fontSize: 11,
-    color: theme.colors.muted,
-    marginTop: 4,
-  },
-  myMessageBubble: {
-    backgroundColor: theme.colors.primary,
-    padding: theme.spacing.md,
-    borderRadius: 16,
-    borderBottomRightRadius: 4,
-    maxWidth: "100%",
-  },
-  myMessageText: {
-    fontSize: 15,
-    color: theme.colors.onPrimary,
-    lineHeight: 22,
-  },
-  myMessageFooter: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    marginTop: 4,
-  },
-  myMessageTime: {
-    fontSize: 11,
-    color: theme.colors.muted,
-  },
-  systemMessageBubble: {
-    backgroundColor: theme.colors.surface,
-    padding: theme.spacing.md,
-    borderRadius: 16,
-    borderBottomLeftRadius: 4,
-    maxWidth: "75%",
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  systemMessageHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  systemMessageTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: theme.colors.text,
-    marginLeft: 6,
-  },
-  systemMessageText: {
-    fontSize: 15,
-    color: theme.colors.text,
-    lineHeight: 22,
-  },
-  systemMessageTime: {
-    fontSize: 11,
-    color: theme.colors.muted,
-    marginTop: 4,
-  },
-  bottomAreaContainer: {
-    backgroundColor: theme.colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-  },
-  reactionBar: {
-    flexDirection: "row",
-    backgroundColor: theme.colors.surface,
-    borderRadius: 24,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    marginBottom: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
-    zIndex: 10,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  reactionBarLeft: {
-    alignSelf: "flex-start",
-  },
-  reactionBarRight: {
-    alignSelf: "flex-end",
-  },
-  reactionBtn: {
-    paddingHorizontal: 8,
-  },
-  reactionEmoji: {
-    fontSize: 24,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.md,
-    paddingTop: theme.spacing.sm,
-    backgroundColor: theme.colors.surface,
-  },
-  replyingToContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-    marginHorizontal: theme.spacing.md,
-    marginTop: theme.spacing.sm,
-    padding: theme.spacing.sm,
-    borderRadius: 8,
-  },
-  replyingToLeftBar: {
-    width: 4,
-    backgroundColor: theme.colors.primary,
-    height: "100%",
-    borderRadius: 2,
-    marginRight: 8,
-  },
-  replyingToContent: {
-    flex: 1,
-  },
-  replyingToName: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: theme.colors.primary,
-    marginBottom: 2,
-  },
-  replyingToText: {
-    fontSize: 13,
-    color: theme.colors.text,
-    opacity: 0.8,
-  },
-  attachButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: theme.spacing.sm,
-  },
-  textInputWrapper: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 24,
-    paddingHorizontal: theme.spacing.md,
-    minHeight: 48,
-    marginRight: theme.spacing.sm,
-  },
-  textInput: {
-    flex: 1,
-    fontSize: 15,
-    color: theme.colors.text,
-    paddingVertical: 12,
-    maxHeight: 100,
-  },
-  cameraButton: {
-    padding: theme.spacing.xs,
-  },
-  sendButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: theme.colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  whatsappReplyActionContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: 60,
-  },
-  whatsappReplyIconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: theme.colors.surface,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 2,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  replyAction: {
-    backgroundColor: theme.colors.google || "#4285F4",
-    justifyContent: "center",
-    alignItems: "center",
-    width: 60,
-    height: "100%",
-    borderRadius: 8,
-    marginBottom: theme.spacing.md,
-  },
-  deleteAction: {
-    backgroundColor: theme.colors.error,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 60,
-    height: "100%",
-    borderRadius: 8,
-    marginBottom: theme.spacing.md,
   },
 }));
