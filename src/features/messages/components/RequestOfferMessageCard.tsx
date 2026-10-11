@@ -34,30 +34,28 @@ export function RequestOfferMessageCard({
   const isPending = offer.status.toLowerCase() === "pending";
 
   return (
-    <Pressable
-      onPress={onPress}
-      onLongPress={onLongPress}
-      style={[styles.card, selected && styles.selectedCard]}
-    >
-      <View style={styles.heading}>
-        <MaterialCommunityIcons
-          name="package-variant"
-          size={18}
-          color={theme.colors.primary}
-        />
-        <Text style={styles.title}>Delivery offer</Text>
-        <Text style={styles.status}>{offer.status}</Text>
-      </View>
-      <View style={styles.proposedTime}>
-        <Text style={styles.label}>Proposed delivery by</Text>
-        <Text style={styles.value}>{proposedDate}</Text>
-      </View>
-      <View style={styles.messageBlock}>
-        <Text style={styles.label}>Driver’s message</Text>
-        <Text style={styles.message}>
-          {offer.message.trim() || "No message provided."}
-        </Text>
-      </View>
+    <View style={[styles.card, selected && styles.selectedCard]}>
+      <Pressable onPress={onPress} onLongPress={onLongPress}>
+        <View style={styles.heading}>
+          <MaterialCommunityIcons
+            name="package-variant"
+            size={18}
+            color={theme.colors.primary}
+          />
+          <Text style={styles.title}>Delivery offer</Text>
+          <Text style={styles.status}>{offer.status}</Text>
+        </View>
+        <View style={styles.proposedTime}>
+          <Text style={styles.label}>Proposed delivery by</Text>
+          <Text style={styles.value}>{proposedDate}</Text>
+        </View>
+        <View style={styles.messageBlock}>
+          <Text style={styles.label}>Driver’s message</Text>
+          <Text style={styles.message}>
+            {offer.message.trim() || "No message provided."}
+          </Text>
+        </View>
+      </Pressable>
       {showActions && isPending ? (
         <>
           <View style={styles.actions}>
@@ -106,7 +104,7 @@ export function RequestOfferMessageCard({
           </Text>
         </>
       ) : null}
-    </Pressable>
+    </View>
   );
 }
 
