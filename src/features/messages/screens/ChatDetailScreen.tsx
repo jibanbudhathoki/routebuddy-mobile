@@ -285,13 +285,21 @@ export function ChatDetailScreen({
         isAcceptingOffer={isAcceptingOffer}
         onAcceptOffer={(offerUid) => {
           if (!onAcceptOffer) return;
-          void onAcceptOffer(offerUid).catch((failure: unknown) => {
-            setSendError(
-              failure instanceof Error
-                ? failure.message
-                : "Unable to accept this offer. Please try again.",
-            );
-          });
+          void onAcceptOffer(offerUid)
+            .then(() => {
+              setDialog({
+                title: "Offer accepted",
+                message: "The request has been assigned to this driver.",
+                actions: [{ label: "OK", onPress: () => {} }],
+              });
+            })
+            .catch((failure: unknown) => {
+              setSendError(
+                failure instanceof Error
+                  ? failure.message
+                  : "Unable to accept this offer. Please try again.",
+              );
+            });
         }}
         selectedMessageIds={selectedMessageIds}
         isLoading={isLoading}

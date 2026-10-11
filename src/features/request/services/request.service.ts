@@ -93,6 +93,10 @@ export const requestService = {
     requestUid: string,
     offerUid: string,
   ): Promise<RequestDetailsResponse> => {
+    if (!requestUid.trim() || !offerUid.trim()) {
+      throw new Error("A request ID and offer ID are required to accept an offer.");
+    }
+
     const response = await apiRequest<{
       success: boolean;
       message: string;
