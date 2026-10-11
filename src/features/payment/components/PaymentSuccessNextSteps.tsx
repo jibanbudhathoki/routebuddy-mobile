@@ -4,57 +4,99 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 interface PaymentSuccessNextStepsProps {
   onGoHome: () => void;
+  isRequestPublished?: boolean;
 }
 
 export function PaymentSuccessNextSteps({
   onGoHome,
+  isRequestPublished = false,
 }: PaymentSuccessNextStepsProps) {
   const { theme } = useUnistyles();
 
   return (
     <>
-      <View style={styles.securityBanner}>
-        <View style={styles.securityIconContainer}>
-          <MaterialCommunityIcons
-            name="lock-outline"
-            size={24}
-            color={theme.colors.surface}
-          />
+      {isRequestPublished ? (
+        <View style={styles.securityBanner}>
+          <View style={styles.securityIconContainer}>
+            <MaterialCommunityIcons
+              name="account-group-outline"
+              size={24}
+              color={theme.colors.surface}
+            />
+          </View>
+          <View style={styles.securityContent}>
+            <Text style={styles.securityTitle}>Your request is open</Text>
+            <Text style={styles.securityText}>
+              Review offers from drivers and choose the one that works best for you.
+            </Text>
+          </View>
         </View>
-        <View style={styles.securityContent}>
-          <Text style={styles.securityTitle}>Your payment is secure</Text>
-          <Text style={styles.securityText}>
-            You'll funds are held in escrow and will only be released once
-            delivery is confirmed by both parties.
-          </Text>
+      ) : (
+        <View style={styles.securityBanner}>
+          <View style={styles.securityIconContainer}>
+            <MaterialCommunityIcons
+              name="lock-outline"
+              size={24}
+              color={theme.colors.surface}
+            />
+          </View>
+          <View style={styles.securityContent}>
+            <Text style={styles.securityTitle}>Your payment is secure</Text>
+            <Text style={styles.securityText}>
+              Your funds are held in escrow and will only be released once
+              delivery is confirmed by both parties.
+            </Text>
+          </View>
         </View>
-      </View>
+      )}
 
       <Text style={styles.sectionTitle}>What happens next?</Text>
       <View style={styles.timeline}>
         <TimelineItem
-          icon="cart-outline"
-          title="Shopper shops your order"
-          description="You'll be notified when your shopper starts shopping."
+          icon={isRequestPublished ? "account-search-outline" : "cart-outline"}
+          title={
+            isRequestPublished
+              ? "Drivers review your request"
+              : "Shopper shops your order"
+          }
+          description={
+            isRequestPublished
+              ? "Drivers can send you offers with their delivery details."
+              : "You'll be notified when your shopper starts shopping."
+          }
           isLast={false}
         />
         <TimelineItem
-          icon="truck-outline"
-          title="Order is on the way"
-          description="Track progress and communicate with your shopper in chat."
+          icon={isRequestPublished ? "email-outline" : "truck-outline"}
+          title={isRequestPublished ? "Choose an offer" : "Order is on the way"}
+          description={
+            isRequestPublished
+              ? "Compare offers and accept the one that fits your needs."
+              : "Track progress and communicate with your shopper in chat."
+          }
           isLast={false}
         />
         <TimelineItem
-          icon="package-variant-closed-check"
-          title="Order is delivered"
-          description="Confirm delivery and your payment will be released to your shopper."
+          icon={
+            isRequestPublished
+              ? "message-text-outline"
+              : "package-variant-closed-check"
+          }
+          title={isRequestPublished ? "Stay in touch" : "Order is delivered"}
+          description={
+            isRequestPublished
+              ? "Message your selected driver to coordinate delivery."
+              : "Confirm delivery and your payment will be released to your shopper."
+          }
           isLast
         />
       </View>
 
-      <TouchableOpacity style={styles.primaryButton}>
-        <Text style={styles.primaryButtonText}>View Order Details</Text>
-      </TouchableOpacity>
+      {!isRequestPublished ? (
+        <TouchableOpacity style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>View Order Details</Text>
+        </TouchableOpacity>
+      ) : null}
       <TouchableOpacity style={styles.secondaryButton} onPress={onGoHome}>
         <Text style={styles.secondaryButtonText}>Go to Home</Text>
       </TouchableOpacity>
@@ -66,7 +108,9 @@ export function PaymentSuccessNextSteps({
           color={theme.colors.primary}
         />
         <Text style={styles.footerText}>
-          A receipt has been sent to your email.
+          {isRequestPublished
+            ? "You'll be notified when drivers send offers."
+            : "A receipt has been sent to your email."}
         </Text>
       </View>
     </>
@@ -79,7 +123,13 @@ function TimelineItem({
   description,
   isLast,
 }: {
-  icon: "cart-outline" | "truck-outline" | "package-variant-closed-check";
+  icon:
+    | "cart-outline"
+    | "truck-outline"
+    | "package-variant-closed-check"
+    | "account-search-outline"
+    | "email-outline"
+    | "message-text-outline";
   title: string;
   description: string;
   isLast: boolean;

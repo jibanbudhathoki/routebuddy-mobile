@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
-import type { Message } from "../types/message.types";
+import type { ChatRequestOffer, Message } from "../types/message.types";
 import { ChatMessageRow } from "./ChatMessageRow";
 import { ConversationSummaryCard } from "./ConversationSummaryCard";
 
@@ -19,6 +19,11 @@ interface ChatMessagesPanelProps {
   participantName: string;
   participantAvatar: string | null;
   currentUserAvatar: string | null;
+  requestUid?: string;
+  requesterUid?: string;
+  requestOffers: ChatRequestOffer[];
+  isAcceptingOffer: boolean;
+  onAcceptOffer: (offerUid: string) => void;
   selectedMessageIds: string[];
   isLoading: boolean;
   isError: boolean;
@@ -36,6 +41,11 @@ export function ChatMessagesPanel({
   participantName,
   participantAvatar,
   currentUserAvatar,
+  requestUid,
+  requesterUid,
+  requestOffers,
+  isAcceptingOffer,
+  onAcceptOffer,
   selectedMessageIds,
   isLoading,
   isError,
@@ -60,6 +70,11 @@ export function ChatMessagesPanel({
     const replyMessage = message.replyToUid
       ? messages.find((candidate) => candidate.id === message.replyToUid)
       : undefined;
+    const requestOffer = findRequestOffer(
+      message,
+      requestUid,
+      requestOffers,
+    );
 
     return (
       <ChatMessageRow
@@ -70,6 +85,12 @@ export function ChatMessagesPanel({
         participantAvatar={participantAvatar}
         currentUserAvatar={currentUserAvatar}
         selected={selectedMessageIds.includes(message.id)}
+        requestOffer={requestOffer}
+        showRequestOfferActions={Boolean(
+          currentUserUid && requesterUid && currentUserUid === requesterUid,
+        )}
+        isAcceptingOffer={isAcceptingOffer}
+        onAcceptOffer={onAcceptOffer}
         onPress={() => onMessagePress(message)}
         onLongPress={() => onMessageLongPress(message)}
       />
@@ -114,6 +135,37 @@ export function ChatMessagesPanel({
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
     />
+  );
+}
+
+function findRequestOffer(
+  message: Message,
+  requestUid: string | undefined,
+  offers: ChatRequestOffer[],
+) {
+  if (offers.length === 0 || message.type !== "text") return;
+  if (
+    message.requestOffer &&
+    (!requestUid || message.requestOffer.requestUid === requestUid)
+  ) {
+    const referencedOffer = offers.find(
+      (offer) => offer.uid === message.requestOffer?.offerUid,
+    );
+    if (referencedOffer) return referencedOffer;
+  }
+
+  const messageText = message.text.trimStart().toLowerCase();
+  const isOfferNotice =
+    messageText.startsWith("delivery offer") ||
+    messageText.includes("proposed delivery by:") ||
+    messageText.includes("accept this offer");
+  if (!isOfferNotice) {
+    return;
+  }
+  return offers.find(
+    (offer) =>
+      offer.driverUid === message.senderId &&
+      offer.status.toLowerCase() === "pending",
   );
 }
 

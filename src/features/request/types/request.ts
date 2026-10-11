@@ -17,6 +17,31 @@ export interface CreateRequestPayload {
   items: RequestItem[];
 }
 
+export interface CreateOpenRequestApiPayload {
+  stores: string[];
+  items: Array<{
+    item: string;
+    description: string;
+    estimatePrice: number;
+  }>;
+  deliveryAddress: string;
+  deliveryCityUid: string;
+  neededBy: string;
+  latestDeliveryBy: string;
+  notes: string;
+}
+
+export interface CreateOpenRequestResponse {
+  success: boolean;
+  message: string;
+  data: {
+    postId: string;
+    status: "pending" | "open";
+    totalItems: number;
+    totalCost: string;
+  };
+}
+
 export interface CreateTripOrderPayload {
   tripUid: string;
   stores: string[];
@@ -153,7 +178,8 @@ export interface RequestDetailsResponse {
   requester: {
     uid: string;
     photoUrl?: string | null;
-    name: string;
+    name?: string;
+    fName?: string;
   };
   deliveryLocation: AddressLocation;
   driver: {
@@ -162,7 +188,43 @@ export interface RequestDetailsResponse {
     name: string;
   } | null;
   trip: unknown | null;
-  offers: unknown[];
+  offers: RequestOffer[];
   origin: string;
   destination: string;
+}
+
+export interface RequestOffer {
+  uid: string;
+  driver: {
+    uid: string;
+    name?: string;
+    fName?: string;
+    photoUrl?: string | null;
+    photoKey?: string | null;
+    rating?: number | null;
+  };
+  message: string;
+  proposedLatestBy: string;
+  status: string;
+  createdAt?: string;
+}
+
+export interface SubmitRequestOfferPayload {
+  proposedLatestBy: string;
+  message?: string;
+}
+
+export interface SubmitRequestOfferResponse {
+  success: boolean;
+  message: string;
+  data: SubmittedRequestOffer;
+}
+
+export interface SubmittedRequestOffer {
+  uid: string;
+  message?: string;
+  proposedLatestBy?: string;
+  status?: string;
+  createdAt?: string;
+  driver?: RequestOffer["driver"];
 }

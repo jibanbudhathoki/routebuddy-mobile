@@ -22,8 +22,8 @@ export default function AddAddressModal() {
         line2: data.aptSuiteUnit,
         cityUid: data.cityUid,
         provinceUid: data.provinceUid,
+        countryUid: data.countryUid,
         postalCode: data.postalCode,
-        countryUid: "country_b5a5c0a2-dfe1-4850-b946-da93c6ffe9aa", // Default to Nepal
         notes: data.notes,
       });
       router.back();

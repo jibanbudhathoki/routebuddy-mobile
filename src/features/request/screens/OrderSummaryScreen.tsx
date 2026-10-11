@@ -14,46 +14,65 @@ import { useCities } from "../../../shared/city/hooks/useCities";
 import { useStores } from "../../../shared/store/hooks/useStores";
 import { calculateEstimate } from "../../../shared/utils/pricing";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
+import { useToast } from "../../../shared/components/ToastProvider";
+import { validateOpenRequest } from "../validations/openRequest";
 
 export function OrderSummaryScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useUnistyles();
+  const { showToast } = useToast();
   const { requestData, updateRequestData } = useRequestCreation();
   const { createRequest, isLoading: isCreatingRequest } = useCreateRequest();
   const items = requestData.items || [];
   const estimate = calculateEstimate(items);
 
   const handleContinue = async () => {
+    const validation = validateOpenRequest({
+      stores: requestData.stores ?? [],
+      items: (requestData.items ?? []).map((item) => ({
+        item: item.name,
+        description: item.description ?? "",
+        estimatePrice:
+          typeof item.estimatedPrice === "string" &&
+          item.estimatedPrice.trim()
+          ? Number(item.estimatedPrice)
+          : Number.NaN,
+      })),
+      deliveryAddress: requestData.deliveryAddress ?? "",
+      deliveryCityUid: requestData.deliveryCityUid ?? "",
+      neededBy: requestData.dayNeeded ?? "",
+      latestDeliveryBy: requestData.latestDeliveryTime ?? "",
+      notes: requestData.itemsInstructions ?? "",
+    });
+    if (!validation.isValid) {
+      showToast(validation.error);
+      return;
+    }
+
     try {
-      const payload = {
-        stores: requestData.stores || [],
-        items: (requestData.items || []).map((item) => ({
-          item: item.name,
-          description: item.description,
-          estimatePrice: parseFloat(item.estimatedPrice) || 0,
-        })),
-        deliveryAddress: requestData.deliveryAddress || "",
-        deliveryCityUid: requestData.deliveryCityUid || "",
-        neededBy: requestData.dayNeeded || new Date().toISOString(),
-        latestDeliveryBy:
-          requestData.latestDeliveryTime || new Date().toISOString(),
-        notes: requestData.itemsInstructions || "",
-      };
-      const response: any = await createRequest(payload);
+      const response = await createRequest(validation.data);
 
       if (response?.data?.status === "pending") {
         router.push({
           pathname: "/(modals)/request/checkout",
-          params: { postId: response.data.postId },
+          params: { postId: response.data.postId, clearRequestDraft: "true" },
         });
-      } else if (response?.success || response?.data?.status === "open") {
-        router.push("/(modals)/request/payment-success");
+      } else if (response.data.status === "open") {
+        router.push({
+          pathname: "/(modals)/request/payment-success",
+          params: {
+            resultType: "request-published",
+            clearRequestDraft: "true",
+          },
+        });
       } else {
-        throw new Error(response?.message || "Failed to create request");
+        showToast(response.message || "Failed to create request.");
       }
     } catch (error) {
-      console.error("Failed to create request:", error);
+      showToast(
+        error instanceof Error ? error.message : "Failed to create request.",
+      );
     }
   };
 
@@ -72,13 +91,12 @@ export function OrderSummaryScreen() {
   const storeNameParts = storeName.split(" ");
   const storeLogoText = storeNameParts[0]?.toUpperCase() || "STORE";
   const storeLogoSubText = storeNameParts.slice(1).join(" ").toUpperCase();
-  const originCity = cities.find(
-    (city) => city.uid === selectedStore?.cityUid,
-  );
+  const originCity = selectedStore?.city;
   const destinationCity = cities.find(
     (city) => city.uid === requestData.deliveryCityUid,
   );
-  const routeText = `${originCity?.name || "Origin"}, ${originCity?.provinceCode || ""}  →  ${destinationCity?.name || "Destination"}, ${destinationCity?.provinceCode || ""}`;
+  const originProvince = selectedStore?.province?.name;
+  const routeText = `${originCity?.name || "Origin"}${originProvince ? `, ${originProvince}` : ""}  →  ${destinationCity?.name || "Destination"}`;
 
   return (
     <View

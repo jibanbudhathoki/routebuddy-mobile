@@ -20,6 +20,8 @@ export const apiEndpoints = {
     openOrcloseOrder: "/v1/trips/:uid/orders",
   },
   stores: "/v1/stores",
+  countries: "/v1/countries",
+  provinces: "/v1/provinces",
   cities: "/v1/cities",
   payments: {
     payment: "/v1/payments",
@@ -30,6 +32,8 @@ export const apiEndpoints = {
     listMyRequests: "/v1/requests/me",
     requestDetails: "/v1/requests/:uid",
     listAllRequests: "/v1/requests",
+    submitOffer: "/v1/requests/:uid/offers",
+    acceptOffer: "/v1/requests/:uid/offers/:offerUid/accept",
   },
   messages: {
     listMessages: "/v1/messages/listMessages",

@@ -2,7 +2,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
-import type { Message } from "../types/message.types";
+import type { ChatRequestOffer, Message } from "../types/message.types";
+import { RequestOfferMessageCard } from "./RequestOfferMessageCard";
 import { SystemChatNotice } from "./SystemChatNotice";
 
 interface ChatMessageRowProps {
@@ -13,6 +14,10 @@ interface ChatMessageRowProps {
   participantAvatar: string | null;
   currentUserAvatar: string | null;
   selected: boolean;
+  requestOffer?: ChatRequestOffer;
+  showRequestOfferActions: boolean;
+  isAcceptingOffer: boolean;
+  onAcceptOffer: (offerUid: string) => void;
   onPress: () => void;
   onLongPress: () => void;
 }
@@ -25,6 +30,10 @@ export function ChatMessageRow({
   participantAvatar,
   currentUserAvatar,
   selected,
+  requestOffer,
+  showRequestOfferActions,
+  isAcceptingOffer,
+  onAcceptOffer,
   onPress,
   onLongPress,
 }: ChatMessageRowProps) {
@@ -61,38 +70,50 @@ export function ChatMessageRow({
           isMine ? styles.messageColumnMine : styles.messageColumnOther,
         ]}
       >
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={onPress}
-          onLongPress={onLongPress}
-          accessibilityRole="button"
-          accessibilityLabel={selected ? "Deselect message" : "Select message"}
-          style={[
-            styles.bubble,
-            isMine ? styles.outgoingBubble : styles.incomingBubble,
-            selected && styles.selectedBubble,
-          ]}
-        >
-          {replyMessage ? (
-            <View style={styles.messageReplyQuote}>
-              <Text style={styles.messageReplyName} numberOfLines={1}>
-                {replyMessage.sender?.displayName ?? "Message"}
-              </Text>
-              <Text style={styles.messageReplyText} numberOfLines={1}>
-                {replyMessage.text}
-              </Text>
-            </View>
-          ) : null}
-          <Text style={styles.messageText}>{messageText}</Text>
-          {selected ? (
-            <MaterialCommunityIcons
-              name="check-circle"
-              size={15}
-              color={theme.colors.primary}
-              style={styles.selectedMark}
-            />
-          ) : null}
-        </TouchableOpacity>
+        {requestOffer ? (
+          <RequestOfferMessageCard
+            offer={requestOffer}
+            showActions={showRequestOfferActions}
+            isAccepting={isAcceptingOffer}
+            selected={selected}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            onAccept={() => onAcceptOffer(requestOffer.uid)}
+          />
+        ) : (
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            accessibilityRole="button"
+            accessibilityLabel={selected ? "Deselect message" : "Select message"}
+            style={[
+              styles.bubble,
+              isMine ? styles.outgoingBubble : styles.incomingBubble,
+              selected && styles.selectedBubble,
+            ]}
+          >
+            {replyMessage ? (
+              <View style={styles.messageReplyQuote}>
+                <Text style={styles.messageReplyName} numberOfLines={1}>
+                  {replyMessage.sender?.displayName ?? "Message"}
+                </Text>
+                <Text style={styles.messageReplyText} numberOfLines={1}>
+                  {replyMessage.text}
+                </Text>
+              </View>
+            ) : null}
+            <Text style={styles.messageText}>{messageText}</Text>
+            {selected ? (
+              <MaterialCommunityIcons
+                name="check-circle"
+                size={15}
+                color={theme.colors.primary}
+                style={styles.selectedMark}
+              />
+            ) : null}
+          </TouchableOpacity>
+        )}
         {reactions.length ? (
           <View style={styles.reactionsRow}>
             {reactions.map(({ emoji, count }) => (

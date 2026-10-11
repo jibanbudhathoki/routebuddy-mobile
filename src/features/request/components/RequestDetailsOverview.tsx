@@ -12,7 +12,8 @@ export function RequestDetailsOverview({
 }) {
   const { theme } = useUnistyles();
   const store = request.stores?.[0];
-  const requesterName = request.requester?.name || "Requester";
+  const requesterName =
+    request.requester?.name ?? request.requester?.fName ?? "Requester";
 
   return (
     <View style={styles.card}>

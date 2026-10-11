@@ -116,7 +116,15 @@ export function MessageScreen() {
             messagePreview={item.latestMsg || "No messages yet"}
             timestamp={formatInboxTime(item.timestamp)}
             unreadCount={item.unreadCount}
-            onPress={() => router.push(`/chat/${item.msgId}`)}
+            onPress={() =>
+              router.push({
+                pathname: "/chat/[id]",
+                params: {
+                  id: item.msgId,
+                  ...(item.requestId ? { requestUid: item.requestId } : {}),
+                },
+              })
+            }
             onMarkRead={() =>
               markAsRead.mutate(item.msgId, {
                 onError: (error) => setDialog({

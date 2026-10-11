@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 interface PaymentSuccessOrderSummaryProps {
+  isRequestPublished?: boolean;
   storeName: string;
   storeLogoText: string;
   storeLogoSubText: string;
@@ -17,6 +18,7 @@ interface PaymentSuccessOrderSummaryProps {
 }
 
 export function PaymentSuccessOrderSummary({
+  isRequestPublished = false,
   storeName,
   storeLogoText,
   storeLogoSubText,
@@ -84,7 +86,9 @@ export function PaymentSuccessOrderSummary({
       <SummaryRow label="Estimated Taxes (5%)" value={taxes} showInfo />
       <View style={styles.summaryDivider} />
       <View style={styles.totalRow}>
-        <Text style={styles.totalLabel}>Total Paid</Text>
+        <Text style={styles.totalLabel}>
+          {isRequestPublished ? "Estimated Total" : "Total Paid"}
+        </Text>
         <View style={styles.totalValueContainer}>
           <Text style={styles.totalSymbol}>$</Text>
           <Text style={styles.totalValue}>{total.toFixed(2)}</Text>

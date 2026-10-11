@@ -14,6 +14,7 @@ import {
   SendMessageData,
 } from "../types/message.types";
 import { apiEndpoints } from "../../../constant/url";
+import { parseRequestOfferMessage } from "../utils/requestOfferMessage";
 
 export const messageService = {
   listMessages: async (): Promise<InboxMessage[]> => {
@@ -31,16 +32,18 @@ export const messageService = {
       if (!msgId) {
         throw new Error("A conversation in the response did not include an ID.");
       }
+      const latestMsg = item.latestMsg ?? item.lastMessage?.content ?? "";
       return {
         msgId,
         recipientName: item.recipientName ?? "Conversation",
-        latestMsg: item.latestMsg ?? item.lastMessage?.content ?? "",
+        latestMsg: parseRequestOfferMessage(latestMsg).visibleMessage,
         contextType:
           item.contextType ??
           (item.requestId ? "request" : item.tripId ? "trip" : "direct"),
         avatarUrl: item.avatarUrl ?? null,
         timestamp: item.timestamp ?? item.lastMessage?.createdAt ?? item.createdAt,
         unreadCount: item.unreadCount ?? 0,
+        requestId: item.requestId ?? item.requestUid ?? null,
       };
     });
   },
@@ -184,12 +187,17 @@ function normalizeMessage(
     throw new Error("The message response did not include a message ID.");
   }
 
+  const parsedOfferMessage = parseRequestOfferMessage(
+    message.text ?? message.content ?? "",
+  );
+
   return {
     id,
     conversationUid:
       message.conversationUid ?? message.conversationId ?? conversationUid,
     senderId: message.senderId ?? message.senderUid ?? null,
-    text: message.text ?? message.content ?? "",
+    text: parsedOfferMessage.visibleMessage,
+    requestOffer: parsedOfferMessage.requestOffer,
     createdAt: message.createdAt,
     type: message.type,
     mediaUrl: message.mediaUrl ?? null,
