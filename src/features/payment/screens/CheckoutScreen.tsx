@@ -19,11 +19,15 @@ import { useStores } from "../../../shared/store/hooks/useStores";
 import { calculateEstimate } from "../../../shared/utils/pricing";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { useStripe } from "@stripe/stripe-react-native";
+import { useToast } from "../../../shared/components/ToastProvider";
 
 export function CheckoutScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { postId } = useLocalSearchParams<{ postId: string }>();
+  const { postId, clearRequestDraft } = useLocalSearchParams<{
+    postId: string;
+    clearRequestDraft?: string;
+  }>();
   const { theme } = useUnistyles();
   const { requestData } = useRequestCreation();
   const [nameOnCard, setNameOnCard] = useState("");
@@ -31,6 +35,7 @@ export function CheckoutScreen() {
   const [isFormValid, setIsFormValid] = useState(false);
   const { initiateCheckout, isInitializing, error: paymentError } = usePayment();
   const { confirmPayment } = useStripe();
+  const { showToast } = useToast();
 
   const items = requestData.items || [];
   const { subtotal, serviceFee, taxes, total } = calculateEstimate(items);
@@ -60,8 +65,8 @@ export function CheckoutScreen() {
     try {
       if (!postId) throw new Error("No post ID provided for checkout");
 
-      const checkoutResponse: any = await initiateCheckout(postId);
-      if (checkoutResponse?.data?.clientSecret) {
+      const checkoutResponse = await initiateCheckout(postId);
+      if (checkoutResponse.data.clientSecret) {
         const { error: stripeError } = await confirmPayment(
           checkoutResponse.data.clientSecret,
           {
@@ -78,13 +83,19 @@ export function CheckoutScreen() {
 
         router.push({
           pathname: "/(modals)/request/payment-success",
-          params: { orderUid: postId },
+          params: {
+            orderUid: postId,
+            clearRequestDraft:
+              clearRequestDraft === "true" ? "true" : undefined,
+          },
         });
       } else {
         throw new Error("Unable to retrieve payment client secret.");
       }
     } catch (error) {
-      console.error("Payment Error:", error);
+      showToast(
+        error instanceof Error ? error.message : "Unable to complete payment.",
+      );
     }
   };
 

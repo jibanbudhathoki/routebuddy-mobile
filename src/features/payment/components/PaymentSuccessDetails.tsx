@@ -3,6 +3,7 @@ import { PaymentSuccessNextSteps } from "./PaymentSuccessNextSteps";
 import { PaymentSuccessOrderSummary } from "./PaymentSuccessOrderSummary";
 
 interface PaymentSuccessDetailsProps {
+  isRequestPublished?: boolean;
   storeName: string;
   storeLogoText: string;
   storeLogoSubText: string;
@@ -25,11 +26,13 @@ export function PaymentSuccessDetails(props: PaymentSuccessDetailsProps) {
     <>
       <PaymentSuccessHeader
         total={props.total}
+        isRequestPublished={props.isRequestPublished}
         conversationError={props.conversationError}
         isCreatingConversation={props.isCreatingConversation}
         onRetryConversation={props.onRetryConversation}
       />
       <PaymentSuccessOrderSummary
+        isRequestPublished={props.isRequestPublished}
         storeName={props.storeName}
         storeLogoText={props.storeLogoText}
         storeLogoSubText={props.storeLogoSubText}
@@ -42,7 +45,10 @@ export function PaymentSuccessDetails(props: PaymentSuccessDetailsProps) {
         taxes={props.taxes}
         total={props.total}
       />
-      <PaymentSuccessNextSteps onGoHome={props.onGoHome} />
+      <PaymentSuccessNextSteps
+        isRequestPublished={props.isRequestPublished}
+        onGoHome={props.onGoHome}
+      />
     </>
   );
 }

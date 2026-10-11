@@ -9,26 +9,28 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
-import { City } from "../city/types/city";
+import { LocationOption } from "../location/types/location";
 import { getTopSafeAreaInset } from "../utils/safeArea";
 
-interface AddressCitySelectionModalProps {
+interface AddressLocationSelectionModalProps {
   visible: boolean;
   topInset: number;
-  cities: City[];
+  title: string;
+  options: LocationOption[];
   isLoading: boolean;
   onClose: () => void;
-  onSelect: (city: City) => void;
+  onSelect: (option: LocationOption) => void;
 }
 
-export function AddressCitySelectionModal({
+export function AddressLocationSelectionModal({
   visible,
   topInset,
-  cities,
+  title,
+  options,
   isLoading,
   onClose,
   onSelect,
-}: AddressCitySelectionModalProps) {
+}: AddressLocationSelectionModalProps) {
   const { theme } = useUnistyles();
 
   return (
@@ -44,7 +46,7 @@ export function AddressCitySelectionModal({
         ]}
       >
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Select City</Text>
+          <Text style={styles.headerTitle}>{title}</Text>
           <TouchableOpacity style={styles.headerButton} onPress={onClose}>
             <MaterialCommunityIcons
               name="close"
@@ -61,22 +63,26 @@ export function AddressCitySelectionModal({
           />
         ) : (
           <FlatList
-            data={cities}
-            keyExtractor={(city) => city.uid}
-            contentContainerStyle={{ padding: theme.spacing.md }}
+            data={options}
+            keyExtractor={(option) => option.uid}
+            contentContainerStyle={[
+              styles.optionsContent,
+              options.length === 0 && styles.emptyContent,
+            ]}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>
+                No {title.toLowerCase().replace("select ", "").toLowerCase()} options are available.
+              </Text>
+            }
             renderItem={({ item }) => (
               <TouchableOpacity
-                style={styles.cityItem}
+                style={styles.optionItem}
                 onPress={() => onSelect(item)}
               >
-                <Text style={styles.cityNameText}>{item.name}</Text>
-                {item.province && (
-                  <Text style={styles.provinceNameText}>
-                    {typeof item.province === "string"
-                      ? item.province
-                      : item.province.name}
-                  </Text>
-                )}
+                <Text style={styles.optionNameText}>{item.name}</Text>
+                {item.subtitle ? (
+                  <Text style={styles.optionSubtitleText}>{item.subtitle}</Text>
+                ) : null}
               </TouchableOpacity>
             )}
           />
@@ -106,18 +112,30 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "bold",
     color: theme.colors.text,
   },
-  cityItem: {
+  optionsContent: {
+    padding: theme.spacing.md,
+  },
+  emptyContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
+  emptyText: {
+    color: theme.colors.muted,
+    fontSize: 16,
+    textAlign: "center",
+  },
+  optionItem: {
     paddingVertical: theme.spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },
-  cityNameText: {
+  optionNameText: {
     fontSize: 16,
     color: theme.colors.text,
     fontWeight: "bold",
     marginBottom: 4,
   },
-  provinceNameText: {
+  optionSubtitleText: {
     fontSize: 14,
     color: theme.colors.muted,
   },

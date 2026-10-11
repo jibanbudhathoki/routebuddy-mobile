@@ -22,6 +22,18 @@ export interface Message {
     displayName: string;
     photoUrl: string | null;
   } | null;
+  requestOffer?: {
+    requestUid: string;
+    offerUid: string;
+  };
+}
+
+export interface ChatRequestOffer {
+  uid: string;
+  driverUid: string;
+  message: string;
+  proposedLatestBy: string;
+  status: string;
 }
 
 export interface MessageListResponse {
@@ -115,6 +127,7 @@ export interface InboxMessage {
   avatarUrl?: string | null;
   timestamp?: string;
   unreadCount?: number;
+  requestId?: string | null;
 }
 
 export interface InboxMessageResponse {
@@ -128,6 +141,7 @@ export interface InboxMessageResponse {
   unreadCount?: number;
   tripId?: string | null;
   requestId?: string | null;
+  requestUid?: string | null;
   lastMessage?: {
     content?: string;
     senderUid?: string;

@@ -1,7 +1,13 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  BackHandler,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
@@ -19,11 +25,18 @@ export function PaymentSuccessScreen() {
   const { orderUid: routeOrderUid } =
     useLocalSearchParams<{ orderUid?: string }>();
   const orderUid = typeof routeOrderUid === "string" ? routeOrderUid : "";
+  const { resultType, clearRequestDraft } = useLocalSearchParams<{
+    resultType?: string;
+    clearRequestDraft?: string;
+  }>();
+  const isRequestPublished = resultType === "request-published";
+  const shouldClearRequestDraft = clearRequestDraft === "true";
   const { theme } = useUnistyles();
   const {
     requestData,
     tripOrderConversation,
     setTripOrderConversation,
+    resetRequestData,
   } = useRequestCreation();
   const {
     mutateAsync: createOrderConversation,
@@ -114,6 +127,23 @@ export function PaymentSuccessScreen() {
     void startDriverConversation();
   };
 
+  const handleGoHome = useCallback(() => {
+    if (shouldClearRequestDraft) resetRequestData();
+    router.dismissAll();
+  }, [resetRequestData, router, shouldClearRequestDraft]);
+
+  useEffect(() => {
+    if (!shouldClearRequestDraft) return;
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        handleGoHome();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [handleGoHome, shouldClearRequestDraft]);
+
   return (
     <View
       style={[
@@ -130,7 +160,7 @@ export function PaymentSuccessScreen() {
           accessibilityRole="button"
           accessibilityLabel="Close payment confirmation"
           style={styles.headerButton}
-          onPress={() => router.dismissAll()}
+          onPress={handleGoHome}
         >
           <MaterialCommunityIcons
             name="close"
@@ -145,6 +175,7 @@ export function PaymentSuccessScreen() {
         showsVerticalScrollIndicator={false}
       >
         <PaymentSuccessDetails
+          isRequestPublished={isRequestPublished}
           storeName={storeName}
           storeLogoText={storeLogoText}
           storeLogoSubText={storeLogoSubText}
@@ -159,7 +190,7 @@ export function PaymentSuccessScreen() {
           conversationError={conversationError}
           isCreatingConversation={isCreatingConversation}
           onRetryConversation={retryDriverConversation}
-          onGoHome={() => router.dismissAll()}
+          onGoHome={handleGoHome}
         />
       </ScrollView>
     </View>

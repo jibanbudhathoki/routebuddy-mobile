@@ -132,6 +132,7 @@ export function AddRequestItemModal({
                   placeholderTextColor={theme.colors.muted}
                   value={description}
                   onChangeText={setDescription}
+                  maxLength={500}
                   returnKeyType="next"
                 />
               </View>

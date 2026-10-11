@@ -1,20 +1,50 @@
 import React from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet as RNStyleSheet } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
+import { FormInput } from "../../../shared/components/FormInput";
 import { ListItem } from "../../../shared/components/ListItem";
 import { useRequestCreation } from "../context/RequestCreationContext";
+import { useToast } from "../../../shared/components/ToastProvider";
+import { validateOpenRequest } from "../validations/openRequest";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
 export function PostRequestScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useUnistyles();
-  const { requestData } = useRequestCreation();
+  const { requestData, updateRequestData } = useRequestCreation();
+  const { showToast } = useToast();
+
+  const handleContinue = () => {
+    const payload = {
+      stores: requestData.stores ?? [],
+      items: (requestData.items ?? []).map((item) => ({
+        item: item.name,
+        description: item.description ?? "",
+        estimatePrice:
+          typeof item.estimatedPrice === "string" &&
+          item.estimatedPrice.trim()
+          ? Number(item.estimatedPrice)
+          : Number.NaN,
+      })),
+      deliveryAddress: requestData.deliveryAddress ?? "",
+      deliveryCityUid: requestData.deliveryCityUid ?? "",
+      neededBy: requestData.dayNeeded ?? "",
+      latestDeliveryBy: requestData.latestDeliveryTime ?? "",
+      notes: requestData.itemsInstructions ?? "",
+    };
+    const validation = validateOpenRequest(payload);
+    if (!validation.isValid) {
+      showToast(validation.error);
+      return;
+    }
+    router.push("/(modals)/request/order-summary");
+  };
 
   return (
     <View style={[styles.container, { paddingTop: getTopSafeAreaInset(insets.top) }]}>
@@ -48,6 +78,16 @@ export function PostRequestScreen() {
               : "Select the store(s) you want items from"
           }
           onPress={() => router.push("/(modals)/request/select-store")}
+        />
+
+        <FormInput
+          label="Special instructions (optional)"
+          placeholder="Add any details the driver should know"
+          value={requestData.itemsInstructions ?? ""}
+          onChangeText={(itemsInstructions) => updateRequestData({ itemsInstructions })}
+          maxLength={500}
+          multiline
+          accessibilityLabel="Special instructions"
         />
 
         <ListItem
@@ -94,7 +134,7 @@ export function PostRequestScreen() {
         <ListItem
           icon="calendar-clock-outline"
           title="Needed By (Latest Delivery)"
-          subtitle={requestData.latestDeliveryTime ? "Date selected" : "Default is 9:00 PM"}
+          subtitle={requestData.latestDeliveryTime ? "Date selected" : "Select the latest delivery date"}
           rightText={
             requestData.latestDeliveryTime
               ? new Date(requestData.latestDeliveryTime).toLocaleDateString()
@@ -126,7 +166,7 @@ export function PostRequestScreen() {
       <View style={styles.footer}>
         <PrimaryButton 
           title="Continue" 
-          onPress={() => router.push("/(modals)/request/order-summary")} 
+          onPress={handleContinue}
         />
       </View>
     </View>
@@ -204,7 +244,7 @@ const styles = StyleSheet.create((theme) => ({
     marginRight: theme.spacing.sm,
   },
   badgeContainer: {
-    backgroundColor: "#E6F5F3",
+    backgroundColor: theme.colors.primarySoft,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -212,7 +252,7 @@ const styles = StyleSheet.create((theme) => ({
   badgeText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#0B2447",
+    color: theme.colors.primary,
   },
   infoBanner: {
     flexDirection: "row",

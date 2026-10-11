@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,12 +11,14 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
-import { useCities } from "../city/hooks/useCities";
-import { City } from "../city/types/city";
+import { cityService } from "../city/services/city.service";
 import { getTopSafeAreaInset } from "../utils/safeArea";
-import { AddressCitySelectionModal } from "./AddressCitySelectionModal";
+import { AddressLocationSelectionModal } from "./AddressLocationSelectionModal";
 import { AddressFormFields } from "./AddressFormFields";
 import { PrimaryButton } from "./PrimaryButton";
+import { useToast } from "./ToastProvider";
+import { locationService } from "../location/services/location.service";
+import type { LocationOption } from "../location/types/location";
 
 export interface AddressFormData {
   label: string;
@@ -26,6 +28,9 @@ export interface AddressFormData {
   cityName: string;
   cityUid: string;
   provinceUid: string;
+  provinceName: string;
+  countryUid: string;
+  countryName: string;
   postalCode: string;
   notes: string;
 }
@@ -43,39 +48,179 @@ const EMPTY_ADDRESS: AddressFormData = {
   cityName: "",
   cityUid: "",
   provinceUid: "",
+  provinceName: "",
+  countryUid: "",
+  countryName: "",
   postalCode: "",
   notes: "",
 };
 
 function useAddressForm() {
   const [formData, setFormData] = useState<AddressFormData>(EMPTY_ADDRESS);
-  const [isCityModalVisible, setCityModalVisible] = useState(false);
-  const { cities, isLoading: isLoadingCities } = useCities();
+  const [selectionType, setSelectionType] = useState<
+    "country" | "province" | "city" | null
+  >(null);
+  const [countries, setCountries] = useState<LocationOption[]>([]);
+  const [provinces, setProvinces] = useState<LocationOption[]>([]);
+  const [cities, setCities] = useState<LocationOption[]>([]);
+  const [isLoadingCountries, setIsLoadingCountries] = useState(true);
+  const [isLoadingProvinces, setIsLoadingProvinces] = useState(false);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    let isActive = true;
+    locationService
+      .getCountries()
+      .then((items) => {
+        if (isActive) {
+          setCountries(items.map(({ uid, name, code }) => ({
+            uid,
+            name,
+            subtitle: code,
+          })));
+        }
+      })
+      .catch((error: unknown) => {
+        if (isActive) {
+          showToast(
+            error instanceof Error
+              ? error.message
+              : "Unable to load countries.",
+          );
+        }
+      })
+      .finally(() => {
+        if (isActive) setIsLoadingCountries(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [showToast]);
+
+  useEffect(() => {
+    if (!formData.countryUid) {
+      setProvinces([]);
+      return;
+    }
+
+    let isActive = true;
+    setIsLoadingProvinces(true);
+    locationService
+      .getProvinces(formData.countryUid)
+      .then((items) => {
+        if (isActive) {
+          setProvinces(items.map(({ uid, name, code }) => ({
+            uid,
+            name,
+            subtitle: code,
+          })));
+        }
+      })
+      .catch((error: unknown) => {
+        if (isActive) {
+          showToast(
+            error instanceof Error
+              ? error.message
+              : "Unable to load provinces.",
+          );
+        }
+      })
+      .finally(() => {
+        if (isActive) setIsLoadingProvinces(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [formData.countryUid, showToast]);
+
+  useEffect(() => {
+    if (!formData.provinceUid) {
+      setCities([]);
+      return;
+    }
+
+    let isActive = true;
+    setIsLoadingCities(true);
+    cityService
+      .getCities({ provinceUid: formData.provinceUid, page: 1, limit: 100 })
+      .then((response) => {
+        if (!Array.isArray(response.data)) {
+          throw new Error("The cities response did not include a valid list.");
+        }
+        if (isActive) {
+          setCities(response.data.map(({ uid, name }) => ({ uid, name })));
+        }
+      })
+      .catch((error: unknown) => {
+        if (isActive) {
+          showToast(
+            error instanceof Error ? error.message : "Unable to load cities.",
+          );
+        }
+      })
+      .finally(() => {
+        if (isActive) setIsLoadingCities(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [formData.provinceUid, showToast]);
 
   const updateField = (field: keyof AddressFormData, value: string) => {
     setFormData((previous) => ({ ...previous, [field]: value }));
   };
 
-  const selectCity = (city: City) => {
-    setFormData((previous) => ({
-      ...previous,
-      cityName: city.name,
-      cityUid: city.uid,
-      provinceUid:
-        typeof city.province === "object" ? city.province?.uid || "" : "",
-    }));
-    setCityModalVisible(false);
+  const selectLocation = (option: LocationOption) => {
+    if (selectionType === "country") {
+      setFormData((previous) => ({
+        ...previous,
+        countryUid: option.uid,
+        countryName: option.name,
+        provinceUid: "",
+        provinceName: "",
+        cityUid: "",
+        cityName: "",
+      }));
+    } else if (selectionType === "province") {
+      setFormData((previous) => ({
+        ...previous,
+        provinceUid: option.uid,
+        provinceName: option.name,
+        cityUid: "",
+        cityName: "",
+      }));
+    } else if (selectionType === "city") {
+      setFormData((previous) => ({
+        ...previous,
+        cityUid: option.uid,
+        cityName: option.name,
+      }));
+    }
+    setSelectionType(null);
   };
 
   return {
     formData,
     updateField,
     cities,
+    countries,
+    provinces,
+    selectionType,
+    setSelectionType,
+    isLoadingCountries,
+    isLoadingProvinces,
     isLoadingCities,
-    isCityModalVisible,
-    openCityModal: () => setCityModalVisible(true),
-    closeCityModal: () => setCityModalVisible(false),
-    selectCity,
+    isLoadingOptions:
+      selectionType === "country"
+        ? isLoadingCountries
+        : selectionType === "province"
+          ? isLoadingProvinces
+          : isLoadingCities,
+    selectLocation,
   };
 }
 
@@ -135,11 +280,19 @@ function AddressFormFooter({
 }) {
   const { theme } = useUnistyles();
   const isSaveDisabled =
-    !formData.label ||
-    !formData.fullName ||
-    !formData.address ||
-    !formData.postalCode ||
+    !formData.label.trim() ||
+    !formData.fullName.trim() ||
+    !formData.address.trim() ||
+    !formData.postalCode.trim() ||
     !formData.cityUid ||
+    !formData.provinceUid ||
+    !formData.countryUid ||
+    formData.label.trim().length > 50 ||
+    formData.fullName.trim().length > 100 ||
+    formData.address.trim().length > 200 ||
+    formData.aptSuiteUnit.trim().length > 100 ||
+    formData.postalCode.trim().length < 3 ||
+    formData.postalCode.trim().length > 20 ||
     isLoading;
 
   return (
@@ -169,11 +322,15 @@ export function AddressFormScreen({
     formData,
     updateField,
     cities,
+    countries,
+    provinces,
+    selectionType,
+    setSelectionType,
+    isLoadingCountries,
+    isLoadingProvinces,
     isLoadingCities,
-    isCityModalVisible,
-    openCityModal,
-    closeCityModal,
-    selectCity,
+    isLoadingOptions,
+    selectLocation,
   } = useAddressForm();
 
   return (
@@ -193,7 +350,19 @@ export function AddressFormScreen({
         <AddressFormFields
           formData={formData}
           updateField={updateField}
-          onOpenCityPicker={openCityModal}
+          onSelectCountry={() =>
+            !isLoadingCountries && setSelectionType("country")
+          }
+          onSelectProvince={() =>
+            formData.countryUid &&
+            !isLoadingProvinces &&
+            setSelectionType("province")
+          }
+          onSelectCity={() =>
+            formData.provinceUid &&
+            !isLoadingCities &&
+            setSelectionType("city")
+          }
         />
       </ScrollView>
       <AddressFormFooter
@@ -202,13 +371,26 @@ export function AddressFormScreen({
         isLoading={isLoading}
         onSave={() => onSave(formData)}
       />
-      <AddressCitySelectionModal
-        visible={isCityModalVisible}
+      <AddressLocationSelectionModal
+        visible={selectionType !== null}
         topInset={insets.top}
-        cities={cities}
-        isLoading={isLoadingCities}
-        onClose={closeCityModal}
-        onSelect={selectCity}
+        title={
+          selectionType === "country"
+            ? "Select Country"
+            : selectionType === "province"
+              ? "Select Province"
+              : "Select City"
+        }
+        options={
+          selectionType === "country"
+            ? countries
+            : selectionType === "province"
+              ? provinces
+              : cities
+        }
+        isLoading={isLoadingOptions}
+        onClose={() => setSelectionType(null)}
+        onSelect={selectLocation}
       />
     </KeyboardAvoidingView>
   );

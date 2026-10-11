@@ -18,10 +18,28 @@ import { MessageDialog, type MessageDialogAction } from "../components/MessageDi
 import { ChatComposer } from "../components/ChatComposer";
 import { ChatMessagesPanel } from "../components/ChatMessagesPanel";
 import { ChatDetailHeader } from "../components/ChatDetailHeader";
-import type { InboxMessage, Message } from "../types/message.types";
+import type {
+  ChatRequestOffer,
+  InboxMessage,
+  Message,
+} from "../types/message.types";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 
-export function ChatDetailScreen() {
+interface ChatDetailScreenProps {
+  requestUid?: string;
+  requesterUid?: string;
+  requestOffers?: ChatRequestOffer[];
+  isAcceptingOffer?: boolean;
+  onAcceptOffer?: (offerUid: string) => Promise<void>;
+}
+
+export function ChatDetailScreen({
+  requestUid,
+  requesterUid,
+  requestOffers = [],
+  isAcceptingOffer = false,
+  onAcceptOffer,
+}: ChatDetailScreenProps = {}) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id: routeId, recipientName: routeRecipientName } =
@@ -109,6 +127,7 @@ export function ChatDetailScreen() {
   const contextTitle = formatContextTitle(conversation?.contextType);
   const participantAvatar =
     otherParticipant?.photoUrl ?? currentParticipant?.photoUrl ?? null;
+  const effectiveRequestUid = requestUid || conversation?.requestId || "";
 
   const handleSendMessage = async () => {
     const content = messageText.trim();
@@ -260,6 +279,20 @@ export function ChatDetailScreen() {
         participantName={participantName}
         participantAvatar={participantAvatar}
         currentUserAvatar={currentParticipant?.photoUrl ?? null}
+        requestUid={effectiveRequestUid}
+        requesterUid={requesterUid}
+        requestOffers={requestOffers}
+        isAcceptingOffer={isAcceptingOffer}
+        onAcceptOffer={(offerUid) => {
+          if (!onAcceptOffer) return;
+          void onAcceptOffer(offerUid).catch((failure: unknown) => {
+            setSendError(
+              failure instanceof Error
+                ? failure.message
+                : "Unable to accept this offer. Please try again.",
+            );
+          });
+        }}
         selectedMessageIds={selectedMessageIds}
         isLoading={isLoading}
         isError={isError}

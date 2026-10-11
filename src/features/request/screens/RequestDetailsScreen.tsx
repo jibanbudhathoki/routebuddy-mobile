@@ -8,8 +8,10 @@ import { Button } from "../../../shared/components/Button";
 import { useToast } from "../../../shared/components/ToastProvider";
 import { RequestDetailsOverview } from "../components/RequestDetailsOverview";
 import { RequestDetailsSummary } from "../components/RequestDetailsSummary";
+import { RequestOffersList } from "../components/RequestOffersList";
 import { RequestShoppingList } from "../components/RequestShoppingList";
 import { RequestStatusTimeline } from "../components/RequestStatusTimeline";
+import { useAcceptRequestOffer } from "../hooks/useRequestOffers";
 import { useRequestDetails } from "../hooks/useRequestDetails";
 
 export function RequestDetailsScreen() {
@@ -19,6 +21,7 @@ export function RequestDetailsScreen() {
   const { showToast } = useToast();
   const requestUid = typeof uid === "string" ? uid : "";
   const { data: request, error, isLoading, refetch } = useRequestDetails(requestUid);
+  const acceptOffer = useAcceptRequestOffer(requestUid);
 
   return (
     <AppScreen>
@@ -70,6 +73,24 @@ export function RequestDetailsScreen() {
           ) : (
             <View style={styles.sections}>
               <RequestDetailsOverview request={request} />
+              <RequestOffersList
+                offers={request.offers ?? []}
+                requestStatus={request.status}
+                acceptingOfferUid={
+                  acceptOffer.isPending ? acceptOffer.variables : undefined
+                }
+                onAccept={(offerUid) =>
+                  acceptOffer.mutate(offerUid, {
+                    onSuccess: () => showToast("Offer accepted."),
+                    onError: (failure) =>
+                      showToast(
+                        failure instanceof Error
+                          ? failure.message
+                          : "Unable to accept this offer.",
+                      ),
+                  })
+                }
+              />
               <RequestStatusTimeline request={request} />
               <RequestShoppingList request={request} />
               <RequestDetailsSummary request={request} />

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { requestService, CreateOpenRequestApiPayload } from "../services/request.service";
+import { requestService } from "../services/request.service";
+import type { CreateOpenRequestApiPayload } from "../types/request";
 
 export function useCreateRequest() {
   const [isLoading, setIsLoading] = useState(false);
@@ -11,10 +12,11 @@ export function useCreateRequest() {
     try {
       const response = await requestService.createOpenRequest(payload);
       return response;
-    } catch (err: any) {
-      const message = err?.message || "Failed to create request.";
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to create request.";
       setError(message);
-      throw new Error(message);
+      throw err instanceof Error ? err : new Error(message);
     } finally {
       setIsLoading(false);
     }
