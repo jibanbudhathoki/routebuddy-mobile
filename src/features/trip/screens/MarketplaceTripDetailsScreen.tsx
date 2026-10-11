@@ -9,6 +9,7 @@ import { MarketplaceTripDetailsHeader } from "../components/MarketplaceTripDetai
 import { MarketplaceTripInformation } from "../components/MarketplaceTripInformation";
 import { MarketplaceTripOverview } from "../components/MarketplaceTripOverview";
 import { MarketplaceTripRouteCard } from "../components/MarketplaceTripRouteCard";
+import { useCreateConversation } from "../../messages/hooks/useMessages";
 import { useTripDetails } from "../hooks/useTripDetails";
 
 export function MarketplaceTripDetailsScreen() {
@@ -16,6 +17,7 @@ export function MarketplaceTripDetailsScreen() {
   const { uid } = useLocalSearchParams<{ uid?: string }>();
   const { theme } = useUnistyles();
   const { showToast } = useToast();
+  const createConversation = useCreateConversation();
   const tripUid = typeof uid === "string" ? uid : "";
   const { data: trip, error, isLoading, refetch } = useTripDetails(tripUid);
 
@@ -61,14 +63,43 @@ export function MarketplaceTripDetailsScreen() {
                 params: { tripUid: trip.uid },
               })
             }
-            onMessageDriver={() =>
-              showToast("Driver messaging is not available yet.")
-            }
+            onMessageDriver={() => void handleMessageDriver()}
+            isMessagingDriver={createConversation.isPending}
           />
         ) : null}
       </View>
     </AppScreen>
   );
+
+  async function handleMessageDriver() {
+    if (createConversation.isPending) {
+      return;
+    }
+    if (!trip?.driver.uid) {
+      showToast("Driver details are unavailable for this trip.");
+      return;
+    }
+
+    try {
+      const conversation = await createConversation.mutateAsync({
+        tripId: trip.uid,
+        userId: trip.driver.uid,
+      });
+      router.push({
+        pathname: "/chat/[id]",
+        params: {
+          id: conversation.id,
+          recipientName: trip.driver.name,
+        },
+      });
+    } catch (failure) {
+      showToast(
+        failure instanceof Error
+          ? failure.message
+          : "Unable to start a conversation with the driver.",
+      );
+    }
+  }
 }
 
 function TripDetailsState({

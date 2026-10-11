@@ -24,7 +24,8 @@ import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 export function ChatDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { id: routeId } = useLocalSearchParams<{ id?: string }>();
+  const { id: routeId, recipientName: routeRecipientName } =
+    useLocalSearchParams<{ id?: string; recipientName?: string }>();
   const conversationId = typeof routeId === "string" ? routeId : "";
   const {
     data: messages = [],
@@ -101,7 +102,10 @@ export function ChatDetailScreen() {
       message.senderId === "me" || message.senderId === currentUserUid,
   )?.sender;
   const participantName =
-    otherParticipant?.displayName ?? conversation?.recipientName ?? "Conversation";
+    otherParticipant?.displayName ??
+    conversation?.recipientName ??
+    routeRecipientName ??
+    "Conversation";
   const contextTitle = formatContextTitle(conversation?.contextType);
   const participantAvatar =
     otherParticipant?.photoUrl ?? currentParticipant?.photoUrl ?? null;

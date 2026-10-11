@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { messageService } from "../services/messageService";
-import type { SendMessageData } from "../types/message.types";
+import type {
+  CreateConversationData,
+  SendMessageData,
+} from "../types/message.types";
 
 export const messageKeys = {
   all: ["messages"] as const,
@@ -13,6 +16,20 @@ export const useListMessages = () => {
   return useQuery({
     queryKey: messageKeys.conversations(),
     queryFn: messageService.listMessages,
+  });
+};
+
+export const useCreateConversation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateConversationData) =>
+      messageService.createConversation(data),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: messageKeys.conversations(),
+      });
+    },
   });
 };
 
