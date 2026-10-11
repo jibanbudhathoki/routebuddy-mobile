@@ -10,7 +10,6 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "enableSceneSupport": true,
       "bundleIdentifier": "routebuddyapp",
       "googleServicesFile": "./GoogleService-Info.plist"
     },
