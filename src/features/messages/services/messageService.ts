@@ -44,6 +44,7 @@ export const messageService = {
         timestamp: item.timestamp ?? item.lastMessage?.createdAt ?? item.createdAt,
         unreadCount: item.unreadCount ?? 0,
         requestId: item.requestId ?? item.requestUid ?? null,
+        tripId: item.tripId ?? null,
       };
     });
   },
@@ -198,6 +199,8 @@ function normalizeMessage(
     senderId: message.senderId ?? message.senderUid ?? null,
     text: parsedOfferMessage.visibleMessage,
     requestOffer: parsedOfferMessage.requestOffer,
+    tripOrderUid: parsedOfferMessage.tripOrderUid,
+    tripOrderDriverUid: parsedOfferMessage.tripOrderDriverUid,
     createdAt: message.createdAt,
     type: message.type,
     mediaUrl: message.mediaUrl ?? null,

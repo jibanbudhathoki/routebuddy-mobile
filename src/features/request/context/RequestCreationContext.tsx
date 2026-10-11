@@ -21,6 +21,19 @@ export interface TripOrderConversationData {
   driverUid: string;
   items: RequestItem[];
   total: string;
+  itemSubtotal: string;
+  serviceFee: string;
+  driverFee: string;
+  platformFee: string;
+  tax: string;
+  notes: string;
+  neededBy: string;
+  latestDeliveryBy: string;
+  storeNames: string[];
+  origin: string;
+  destination: string;
+  deliveryCity: string;
+  deliveryProvince: string;
 }
 
 const RequestCreationContext = createContext<RequestCreationContextType | undefined>(

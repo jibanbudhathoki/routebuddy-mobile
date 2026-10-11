@@ -26,6 +26,8 @@ export interface Message {
     requestUid: string;
     offerUid: string;
   };
+  tripOrderUid?: string;
+  tripOrderDriverUid?: string;
 }
 
 export interface ChatRequestOffer {
@@ -34,6 +36,12 @@ export interface ChatRequestOffer {
   message: string;
   proposedLatestBy: string;
   status: string;
+}
+
+export interface ChatTripOrder {
+  uid: string;
+  status: string;
+  driverUid: string;
 }
 
 export interface MessageListResponse {
@@ -128,6 +136,7 @@ export interface InboxMessage {
   timestamp?: string;
   unreadCount?: number;
   requestId?: string | null;
+  tripId?: string | null;
 }
 
 export interface InboxMessageResponse {

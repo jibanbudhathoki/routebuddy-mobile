@@ -2,9 +2,14 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
-import type { ChatRequestOffer, Message } from "../types/message.types";
+import type {
+  ChatRequestOffer,
+  ChatTripOrder,
+  Message,
+} from "../types/message.types";
 import { RequestOfferMessageCard } from "./RequestOfferMessageCard";
 import { SystemChatNotice } from "./SystemChatNotice";
+import { TripOrderMessageCard } from "./TripOrderMessageCard";
 
 interface ChatMessageRowProps {
   message: Message;
@@ -15,9 +20,13 @@ interface ChatMessageRowProps {
   currentUserAvatar: string | null;
   selected: boolean;
   requestOffer?: ChatRequestOffer;
+  tripOrder?: ChatTripOrder;
   showRequestOfferActions: boolean;
+  showTripOrderActions: boolean;
   isAcceptingOffer: boolean;
+  isAcceptingOrder: boolean;
   onAcceptOffer: (offerUid: string) => void;
+  onAcceptOrder: (orderUid: string) => void;
   onPress: () => void;
   onLongPress: () => void;
 }
@@ -31,9 +40,13 @@ export function ChatMessageRow({
   currentUserAvatar,
   selected,
   requestOffer,
+  tripOrder,
   showRequestOfferActions,
+  showTripOrderActions,
   isAcceptingOffer,
+  isAcceptingOrder,
   onAcceptOffer,
+  onAcceptOrder,
   onPress,
   onLongPress,
 }: ChatMessageRowProps) {
@@ -70,7 +83,18 @@ export function ChatMessageRow({
           isMine ? styles.messageColumnMine : styles.messageColumnOther,
         ]}
       >
-        {requestOffer ? (
+        {tripOrder ? (
+          <TripOrderMessageCard
+            order={tripOrder}
+            message={messageText}
+            showActions={showTripOrderActions}
+            isAccepting={isAcceptingOrder}
+            selected={selected}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            onAccept={() => onAcceptOrder(tripOrder.uid)}
+          />
+        ) : requestOffer ? (
           <RequestOfferMessageCard
             offer={requestOffer}
             showActions={showRequestOfferActions}

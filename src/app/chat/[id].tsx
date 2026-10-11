@@ -5,8 +5,12 @@ import {
   useConversationMessages,
   useListMessages,
 } from "../../features/messages/hooks/useMessages";
-import { useAcceptRequestOffer } from "../../features/request/hooks/useRequestOffers";
+import {
+  useAcceptRequestOffer,
+  useAcceptTripOrder,
+} from "../../features/request/hooks/useRequestOffers";
 import { useRequestDetails } from "../../features/request/hooks/useRequestDetails";
+import { useTripDetails } from "../../features/trip/hooks/useTripDetails";
 
 export default function ChatScreen() {
   const { id, requestUid: routeRequestUid } = useLocalSearchParams<{
@@ -19,13 +23,33 @@ export default function ChatScreen() {
   const conversation = conversations.find(
     (item) => item.msgId === conversationId,
   );
+  const { data: trip } = useTripDetails(conversation?.tripId ?? "");
   const requestUid =
     (typeof routeRequestUid === "string" ? routeRequestUid : "") ||
     conversation?.requestId ||
     messages.find((message) => message.requestOffer)?.requestOffer?.requestUid ||
+    messages.find((message) => message.tripOrderUid)?.tripOrderUid ||
     "";
   const { data: request } = useRequestDetails(requestUid);
   const acceptOffer = useAcceptRequestOffer(requestUid);
+  const acceptTripOrder = useAcceptTripOrder();
+  const tripOrderMessage = messages.find((message) => message.tripOrderUid);
+  const tripOrderUid =
+    tripOrderMessage?.tripOrderUid ??
+    (request?.kind === "order" ? request.uid : "");
+  const tripOrderDriverUid =
+    tripOrderMessage?.tripOrderDriverUid ??
+    request?.driver?.uid ??
+    trip?.driver.uid ??
+    "";
+  const tripOrder =
+    tripOrderUid
+      ? {
+          uid: tripOrderUid,
+          status: request?.status ?? "pending",
+          driverUid: tripOrderDriverUid,
+        }
+      : undefined;
 
   return (
     <ChatDetailScreen
@@ -40,9 +64,15 @@ export default function ChatScreen() {
           status: offer.status,
         })) ?? []
       }
+      tripOrder={tripOrder}
+      orderDriverUid={tripOrderDriverUid}
       isAcceptingOffer={acceptOffer.isPending}
+      isAcceptingOrder={acceptTripOrder.isPending}
       onAcceptOffer={async (offerUid) => {
         await acceptOffer.mutateAsync(offerUid);
+      }}
+      onAcceptOrder={async (orderUid) => {
+        await acceptTripOrder.mutateAsync(orderUid);
       }}
     />
   );

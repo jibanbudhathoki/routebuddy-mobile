@@ -117,6 +117,34 @@ export const requestService = {
 
     return response.data;
   },
+  acceptTripOrder: async (
+    orderUid: string,
+  ): Promise<RequestDetailsResponse> => {
+    if (!orderUid.trim()) {
+      throw new Error("An order ID is required to accept this order.");
+    }
+
+    const response = await apiRequest<{
+      success: boolean;
+      message: string;
+      data: RequestDetailsResponse;
+    }>(
+      apiEndpoints.requests.acceptTripOrder.replace(
+        ":uid",
+        encodeURIComponent(orderUid),
+      ),
+      { method: "POST" },
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || "Unable to accept this order.");
+    }
+    if (!response.data) {
+      throw new Error("The accept-order response did not include order details.");
+    }
+
+    return response.data;
+  },
 };
 
 export const listMyRequests = async (): Promise<
