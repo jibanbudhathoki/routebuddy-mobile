@@ -20,6 +20,7 @@ import { ChatMessagesPanel } from "../components/ChatMessagesPanel";
 import { ChatDetailHeader } from "../components/ChatDetailHeader";
 import type {
   ChatRequestOffer,
+  ChatTripOrder,
   InboxMessage,
   Message,
 } from "../types/message.types";
@@ -29,16 +30,24 @@ interface ChatDetailScreenProps {
   requestUid?: string;
   requesterUid?: string;
   requestOffers?: ChatRequestOffer[];
+  tripOrder?: ChatTripOrder;
+  orderDriverUid?: string;
   isAcceptingOffer?: boolean;
+  isAcceptingOrder?: boolean;
   onAcceptOffer?: (offerUid: string) => Promise<void>;
+  onAcceptOrder?: (orderUid: string) => Promise<void>;
 }
 
 export function ChatDetailScreen({
   requestUid,
   requesterUid,
   requestOffers = [],
+  tripOrder,
+  orderDriverUid,
   isAcceptingOffer = false,
+  isAcceptingOrder = false,
   onAcceptOffer,
+  onAcceptOrder,
 }: ChatDetailScreenProps = {}) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -281,8 +290,11 @@ export function ChatDetailScreen({
         currentUserAvatar={currentParticipant?.photoUrl ?? null}
         requestUid={effectiveRequestUid}
         requesterUid={requesterUid}
+        orderDriverUid={orderDriverUid}
         requestOffers={requestOffers}
+        tripOrder={tripOrder}
         isAcceptingOffer={isAcceptingOffer}
+        isAcceptingOrder={isAcceptingOrder}
         onAcceptOffer={(offerUid) => {
           if (!onAcceptOffer) return;
           void onAcceptOffer(offerUid)
@@ -298,6 +310,24 @@ export function ChatDetailScreen({
                 failure instanceof Error
                   ? failure.message
                   : "Unable to accept this offer. Please try again.",
+              );
+            });
+        }}
+        onAcceptOrder={(orderUid) => {
+          if (!onAcceptOrder) return;
+          void onAcceptOrder(orderUid)
+            .then(() => {
+              setDialog({
+                title: "Order accepted",
+                message: "The order is now assigned to you.",
+                actions: [{ label: "OK", onPress: () => {} }],
+              });
+            })
+            .catch((failure: unknown) => {
+              setSendError(
+                failure instanceof Error
+                  ? failure.message
+                  : "Unable to accept this order. Please try again.",
               );
             });
         }}

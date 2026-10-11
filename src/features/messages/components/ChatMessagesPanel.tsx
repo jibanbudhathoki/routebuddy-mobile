@@ -3,7 +3,11 @@ import { useMemo } from "react";
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
-import type { ChatRequestOffer, Message } from "../types/message.types";
+import type {
+  ChatRequestOffer,
+  ChatTripOrder,
+  Message,
+} from "../types/message.types";
 import { ChatMessageRow } from "./ChatMessageRow";
 import { ConversationSummaryCard } from "./ConversationSummaryCard";
 
@@ -21,9 +25,13 @@ interface ChatMessagesPanelProps {
   currentUserAvatar: string | null;
   requestUid?: string;
   requesterUid?: string;
+  orderDriverUid?: string;
   requestOffers: ChatRequestOffer[];
+  tripOrder?: ChatTripOrder;
   isAcceptingOffer: boolean;
+  isAcceptingOrder: boolean;
   onAcceptOffer: (offerUid: string) => void;
+  onAcceptOrder: (orderUid: string) => void;
   selectedMessageIds: string[];
   isLoading: boolean;
   isError: boolean;
@@ -43,9 +51,13 @@ export function ChatMessagesPanel({
   currentUserAvatar,
   requestUid,
   requesterUid,
+  orderDriverUid,
   requestOffers,
+  tripOrder,
   isAcceptingOffer,
+  isAcceptingOrder,
   onAcceptOffer,
+  onAcceptOrder,
   selectedMessageIds,
   isLoading,
   isError,
@@ -75,6 +87,16 @@ export function ChatMessagesPanel({
       requestUid,
       requestOffers,
     );
+    const matchedTripOrder =
+      message.tripOrderUid
+        ? tripOrder?.uid === message.tripOrderUid
+          ? tripOrder
+          : {
+              uid: message.tripOrderUid,
+              status: "pending",
+              driverUid: message.tripOrderDriverUid ?? "",
+            }
+        : undefined;
 
     return (
       <ChatMessageRow
@@ -86,11 +108,21 @@ export function ChatMessagesPanel({
         currentUserAvatar={currentUserAvatar}
         selected={selectedMessageIds.includes(message.id)}
         requestOffer={requestOffer}
+        tripOrder={matchedTripOrder}
         showRequestOfferActions={Boolean(
           currentUserUid && requesterUid && currentUserUid === requesterUid,
         )}
+        showTripOrderActions={
+          Boolean(
+            currentUserUid &&
+              orderDriverUid &&
+              currentUserUid === orderDriverUid,
+          )
+        }
         isAcceptingOffer={isAcceptingOffer}
+        isAcceptingOrder={isAcceptingOrder}
         onAcceptOffer={onAcceptOffer}
+        onAcceptOrder={onAcceptOrder}
         onPress={() => onMessagePress(message)}
         onLongPress={() => onMessageLongPress(message)}
       />

@@ -28,3 +28,14 @@ export function useAcceptRequestOffer(requestUid: string) {
     },
   });
 }
+
+export function useAcceptTripOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (orderUid: string) => requestService.acceptTripOrder(orderUid),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["requests"] });
+    },
+  });
+}
