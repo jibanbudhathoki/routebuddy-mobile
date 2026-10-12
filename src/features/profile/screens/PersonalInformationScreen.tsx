@@ -2,8 +2,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
   Text,
   TouchableOpacity,
   View,
@@ -76,10 +74,7 @@ export function PersonalInformationScreen() {
 
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoid}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      <View style={styles.keyboardAvoid}>
         <View style={styles.header}>
           <TouchableOpacity
             accessibilityRole="button"
@@ -119,7 +114,7 @@ export function PersonalInformationScreen() {
             disabled={isLoading || isSaving}
           />
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }

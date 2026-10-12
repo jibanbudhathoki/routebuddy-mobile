@@ -1,8 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -43,121 +41,117 @@ export function ResetPasswordScreen({
 
   return (
     <AppScreen>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <ScrollView
         style={styles.screen}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+        <Pressable
+          accessibilityLabel="Back to code verification"
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={onBack}
+          style={styles.backButton}
         >
-          <Pressable
-            accessibilityLabel="Back to code verification"
-            accessibilityRole="button"
-            hitSlop={12}
-            onPress={onBack}
-            style={styles.backButton}
-          >
+          <MaterialCommunityIcons
+            name="arrow-left"
+            size={26}
+            color={styles.icon.color}
+          />
+        </Pressable>
+
+        <View style={styles.card}>
+          <View style={styles.lockIconCircle}>
             <MaterialCommunityIcons
-              name="arrow-left"
-              size={26}
+              name="lock-reset"
+              size={38}
               color={styles.icon.color}
             />
-          </Pressable>
+          </View>
+          <Text style={styles.title}>Create a new password</Text>
+          <Text style={styles.description}>
+            Choose a new password for {email}.
+          </Text>
 
-          <View style={styles.card}>
-            <View style={styles.lockIconCircle}>
-              <MaterialCommunityIcons
-                name="lock-reset"
-                size={38}
-                color={styles.icon.color}
-              />
-            </View>
-            <Text style={styles.title}>Create a new password</Text>
-            <Text style={styles.description}>
-              Choose a new password for {email}.
-            </Text>
+          <View style={styles.fields}>
+            <TextField
+              label="New password"
+              autoCapitalize="none"
+              autoComplete="new-password"
+              placeholder="Enter new password"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={(value) => {
+                setPassword(value);
+                clearFieldError('password');
+              }}
+              error={errors.password}
+              rightElement={
+                <Pressable
+                  accessibilityLabel={
+                    showPassword ? 'Hide password' : 'Show password'
+                  }
+                  accessibilityRole="button"
+                  onPress={() => setShowPassword((visible) => !visible)}
+                  style={styles.passwordToggle}
+                >
+                  <MaterialCommunityIcons
+                    name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                    size={22}
+                    color={styles.icon.color}
+                  />
+                </Pressable>
+              }
+            />
 
-            <View style={styles.fields}>
-              <TextField
-                label="New password"
-                autoCapitalize="none"
-                autoComplete="new-password"
-                placeholder="Enter new password"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={(value) => {
-                  setPassword(value);
-                  clearFieldError('password');
-                }}
-                error={errors.password}
-                rightElement={
-                  <Pressable
-                    accessibilityLabel={
-                      showPassword ? 'Hide password' : 'Show password'
+            <TextField
+              label="Confirm new password"
+              autoCapitalize="none"
+              autoComplete="new-password"
+              placeholder="Confirm new password"
+              secureTextEntry={!showConfirmPassword}
+              value={confirmPassword}
+              onChangeText={(value) => {
+                setConfirmPassword(value);
+                clearFieldError('confirmPassword');
+              }}
+              error={errors.confirmPassword}
+              rightElement={
+                <Pressable
+                  accessibilityLabel={
+                    showConfirmPassword ? 'Hide password' : 'Show password'
+                  }
+                  accessibilityRole="button"
+                  onPress={() =>
+                    setShowConfirmPassword((visible) => !visible)
+                  }
+                  style={styles.passwordToggle}
+                >
+                  <MaterialCommunityIcons
+                    name={
+                      showConfirmPassword
+                        ? 'eye-outline'
+                        : 'eye-off-outline'
                     }
-                    accessibilityRole="button"
-                    onPress={() => setShowPassword((visible) => !visible)}
-                    style={styles.passwordToggle}
-                  >
-                    <MaterialCommunityIcons
-                      name={showPassword ? 'eye-outline' : 'eye-off-outline'}
-                      size={22}
-                      color={styles.icon.color}
-                    />
-                  </Pressable>
-                }
-              />
-
-              <TextField
-                label="Confirm new password"
-                autoCapitalize="none"
-                autoComplete="new-password"
-                placeholder="Confirm new password"
-                secureTextEntry={!showConfirmPassword}
-                value={confirmPassword}
-                onChangeText={(value) => {
-                  setConfirmPassword(value);
-                  clearFieldError('confirmPassword');
-                }}
-                error={errors.confirmPassword}
-                rightElement={
-                  <Pressable
-                    accessibilityLabel={
-                      showConfirmPassword ? 'Hide password' : 'Show password'
-                    }
-                    accessibilityRole="button"
-                    onPress={() =>
-                      setShowConfirmPassword((visible) => !visible)
-                    }
-                    style={styles.passwordToggle}
-                  >
-                    <MaterialCommunityIcons
-                      name={
-                        showConfirmPassword
-                          ? 'eye-outline'
-                          : 'eye-off-outline'
-                      }
-                      size={22}
-                      color={styles.icon.color}
-                    />
-                  </Pressable>
-                }
-              />
-            </View>
-
-            <Button
-              title="Reset password"
-              accessibilityLabel="Reset password"
-              loading={isSubmitting}
-              disabled={!password || !confirmPassword}
-              onPress={handleResetPassword}
-              style={styles.submitButton}
+                    size={22}
+                    color={styles.icon.color}
+                  />
+                </Pressable>
+              }
             />
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+
+          <Button
+            title="Reset password"
+            accessibilityLabel="Reset password"
+            loading={isSubmitting}
+            disabled={!password || !confirmPassword}
+            onPress={handleResetPassword}
+            style={styles.submitButton}
+          />
+        </View>
+      </ScrollView>
     </AppScreen>
   );
 }

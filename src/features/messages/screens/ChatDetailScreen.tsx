@@ -1,6 +1,6 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform } from "react-native";
+import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { getAuthSession } from "../../auth/services/authStorage";
@@ -157,12 +157,11 @@ export function ChatDetailScreen({
   };
 
   return (
-    <KeyboardAvoidingView
+    <View
       style={[
         styles.screen,
         { paddingTop: getTopSafeAreaInset(insets.top) },
       ]}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ChatDetailHeader
         participantName={participantName}
@@ -263,7 +262,7 @@ export function ChatDetailScreen({
         actions={dialog?.actions ?? []}
         onDismiss={interactions.dismissDialog}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -334,10 +332,7 @@ export function AddressFormScreen({
   } = useAddressForm();
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <View style={styles.container}>
       <AddressFormHeader
         topInset={insets.top}
         onClose={() => router.back()}
@@ -392,7 +387,7 @@ export function AddressFormScreen({
         onClose={() => setSelectionType(null)}
         onSelect={selectLocation}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
