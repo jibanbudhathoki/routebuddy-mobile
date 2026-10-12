@@ -33,12 +33,16 @@ interface ChatMessagesPanelProps {
   onAcceptOffer: (offerUid: string) => void;
   onAcceptOrder: (orderUid: string) => void;
   selectedMessageIds: string[];
+  selectionMode: boolean;
   isLoading: boolean;
   isError: boolean;
   error?: Error | null;
   onRetry: () => void;
   onMessagePress: (message: Message) => void;
   onMessageLongPress: (message: Message) => void;
+  onMessageDoubleTap: (message: Message) => void;
+  onMessageSwipeReply: (message: Message) => void;
+  onInteractionAreaTouch: () => void;
 }
 
 export function ChatMessagesPanel({
@@ -59,12 +63,16 @@ export function ChatMessagesPanel({
   onAcceptOffer,
   onAcceptOrder,
   selectedMessageIds,
+  selectionMode,
   isLoading,
   isError,
   error,
   onRetry,
   onMessagePress,
   onMessageLongPress,
+  onMessageDoubleTap,
+  onMessageSwipeReply,
+  onInteractionAreaTouch,
 }: ChatMessagesPanelProps) {
   const { theme } = useUnistyles();
   const items = useMemo(() => buildChatItems(messages), [messages]);
@@ -107,6 +115,7 @@ export function ChatMessagesPanel({
         participantAvatar={participantAvatar}
         currentUserAvatar={currentUserAvatar}
         selected={selectedMessageIds.includes(message.id)}
+        selectionMode={selectionMode}
         requestOffer={requestOffer}
         tripOrder={matchedTripOrder}
         showRequestOfferActions={Boolean(
@@ -125,6 +134,8 @@ export function ChatMessagesPanel({
         onAcceptOrder={onAcceptOrder}
         onPress={() => onMessagePress(message)}
         onLongPress={() => onMessageLongPress(message)}
+        onDoubleTap={() => onMessageDoubleTap(message)}
+        onSwipeReply={() => onMessageSwipeReply(message)}
       />
     );
   };
@@ -166,6 +177,7 @@ export function ChatMessagesPanel({
       }
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
+      onTouchStart={onInteractionAreaTouch}
     />
   );
 }
