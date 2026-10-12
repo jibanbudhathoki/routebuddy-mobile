@@ -37,6 +37,8 @@ export const apiEndpoints = {
     submitOffer: "/v1/requests/:uid/offers",
     acceptOffer: "/v1/requests/:uid/offers/:offerUid/accept",
     acceptTripOrder: "/v1/requests/:uid/accept",
+    cancelRequest: "/v1/requests/:uid/cancel",
+    deleteRequest: "/v1/requests/:uid",
   },
   messages: {
     listMessages: "/v1/messages/listMessages",

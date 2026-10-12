@@ -42,6 +42,17 @@ export interface CreateOpenRequestResponse {
   };
 }
 
+export interface CancelRequestResponse {
+  success: boolean;
+  message: string;
+  data: RequestDetailsResponse;
+}
+
+export interface DeleteRequestResponse {
+  success?: boolean;
+  message: string;
+}
+
 export interface CreateTripOrderPayload {
   tripUid: string;
   stores: string[];

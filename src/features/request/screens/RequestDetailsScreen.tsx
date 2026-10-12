@@ -1,27 +1,41 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { useState } from "react";
+import { useUnistyles } from "react-native-unistyles";
 
 import { AppScreen } from "../../../shared/components/AppScreen";
 import { Button } from "../../../shared/components/Button";
+import { ConfirmationDialog } from "../../../shared/components/ConfirmationDialog";
 import { useToast } from "../../../shared/components/ToastProvider";
+import { styles } from "../components/requestDetailsScreen.styles";
 import { RequestDetailsOverview } from "../components/RequestDetailsOverview";
+import { RequestOptionsSheet } from "../components/RequestOptionsSheet";
 import { RequestDetailsSummary } from "../components/RequestDetailsSummary";
 import { RequestOffersList } from "../components/RequestOffersList";
 import { RequestShoppingList } from "../components/RequestShoppingList";
 import { RequestStatusTimeline } from "../components/RequestStatusTimeline";
 import { useAcceptRequestOffer } from "../hooks/useRequestOffers";
+import {
+  useCancelRequest,
+  useDeleteRequest,
+} from "../hooks/useRequestActions";
 import { useRequestDetails } from "../hooks/useRequestDetails";
+
+type RequestConfirmation = "cancel" | "delete" | null;
 
 export function RequestDetailsScreen() {
   const router = useRouter();
   const { uid } = useLocalSearchParams<{ uid?: string }>();
   const { theme } = useUnistyles();
   const { showToast } = useToast();
+  const [showOptions, setShowOptions] = useState(false);
+  const [confirmation, setConfirmation] = useState<RequestConfirmation>(null);
   const requestUid = typeof uid === "string" ? uid : "";
   const { data: request, error, isLoading, refetch } = useRequestDetails(requestUid);
   const acceptOffer = useAcceptRequestOffer(requestUid);
+  const cancelRequest = useCancelRequest(requestUid);
+  const deleteRequest = useDeleteRequest(requestUid);
 
   return (
     <AppScreen>
@@ -40,7 +54,20 @@ export function RequestDetailsScreen() {
             />
           </Pressable>
           <Text style={styles.headerTitle}>Request Details</Text>
-          <View style={styles.headerAction} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Request options"
+            accessibilityState={{ disabled: !request }}
+            disabled={!request}
+            onPress={() => setShowOptions(true)}
+            style={styles.headerAction}
+          >
+            <MaterialCommunityIcons
+              name="dots-horizontal"
+              size={22}
+              color={theme.colors.text}
+            />
+          </Pressable>
         </View>
 
         <ScrollView
@@ -113,75 +140,78 @@ export function RequestDetailsScreen() {
           </View>
         ) : null}
       </View>
+      <RequestOptionsSheet
+        visible={showOptions}
+        isCancelling={cancelRequest.isPending}
+        isDeleting={deleteRequest.isPending}
+        canCancel={
+          request
+            ? ["pending", "open"].includes(request.status.toLowerCase())
+            : false
+        }
+        onClose={() => setShowOptions(false)}
+        onCancelRequest={() => {
+          setShowOptions(false);
+          setConfirmation("cancel");
+        }}
+        onDeleteRequest={() => {
+          setShowOptions(false);
+          setConfirmation("delete");
+        }}
+      />
+      <ConfirmationDialog
+        visible={confirmation !== null}
+        title={confirmation === "cancel" ? "Cancel this request?" : "Delete this request?"}
+        message={
+          confirmation === "cancel"
+            ? "This request can only be cancelled before a driver accepts it."
+            : "This will hide and cancel the request. This action cannot be undone."
+        }
+        icon={confirmation === "cancel" ? "cancel" : "delete-outline"}
+        confirmLabel={
+          confirmation === "cancel" ? "Cancel Request" : "Delete Request"
+        }
+        cancelLabel="Keep Request"
+        isLoading={cancelRequest.isPending || deleteRequest.isPending}
+        destructive
+        onCancel={() => setConfirmation(null)}
+        onConfirm={performConfirmation}
+      />
     </AppScreen>
   );
-}
 
-const styles = StyleSheet.create((theme) => ({
-  screen: {
-    flex: 1,
-  },
-  header: {
-    alignItems: "center",
-    flexDirection: "row",
-    height: 48,
-    justifyContent: "space-between",
-  },
-  headerAction: {
-    alignItems: "center",
-    height: 40,
-    justifyContent: "center",
-    width: 40,
-  },
-  headerTitle: {
-    color: theme.colors.text,
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  content: {
-    gap: theme.spacing.sm,
-    paddingBottom: theme.spacing.md,
-    paddingTop: theme.spacing.xs,
-  },
-  sections: {
-    gap: theme.spacing.sm,
-  },
-  stateCard: {
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.lg,
-  },
-  stateTitle: {
-    color: theme.colors.text,
-    fontSize: 14,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  stateText: {
-    color: theme.colors.muted,
-    fontSize: 11,
-    textAlign: "center",
-  },
-  retryButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.sm,
-    marginTop: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  retryButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  footer: {
-    borderTopColor: theme.colors.border,
-    borderTopWidth: 1,
-    paddingBottom: theme.spacing.xs,
-    paddingTop: theme.spacing.sm,
-  },
-}));
+  function performConfirmation() {
+    if (confirmation === "cancel") {
+      cancelRequest.mutate(undefined, {
+        onSuccess: (response) => {
+          setConfirmation(null);
+          showToast(response.message || "Request cancelled.", {
+            variant: "success",
+          });
+        },
+        onError: (failure) =>
+          showToast(
+            failure instanceof Error
+              ? failure.message
+              : "Unable to cancel this request.",
+          ),
+      });
+    } else if (confirmation === "delete") {
+      deleteRequest.mutate(undefined, {
+        onSuccess: (response) => {
+          setConfirmation(null);
+          showToast(response.message || "Request deleted.", {
+            variant: "success",
+          });
+          router.back();
+        },
+        onError: (failure) =>
+          showToast(
+            failure instanceof Error
+              ? failure.message
+              : "Unable to delete this request.",
+          ),
+      });
+    }
+  }
+}
