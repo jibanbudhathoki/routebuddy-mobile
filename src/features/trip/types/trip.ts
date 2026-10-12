@@ -11,7 +11,19 @@ export interface CreateTripRequest {
   deliveryLatestBy: string;
   capacity: number;
   price?: number;
-  notes: string;
+  notes: string | null;
+}
+
+export interface UpdateTripPayload {
+  originCityUid?: string;
+  destinationCityUid?: string;
+  stores?: string[];
+  departureAt?: string;
+  orderCutoffAt?: string;
+  deliveryLatestBy?: string;
+  capacity?: number;
+  price?: number;
+  notes?: string | null;
 }
 
 export interface ListMyTripsResponse {
@@ -67,6 +79,12 @@ export interface ToggleTripOrdersPayload {
 }
 
 export interface ToggleTripOrdersResponse {
+  success: boolean;
+  message: string;
+  data: TripDetailsResponse;
+}
+
+export interface UpdateTripResponse {
   success: boolean;
   message: string;
   data: TripDetailsResponse;

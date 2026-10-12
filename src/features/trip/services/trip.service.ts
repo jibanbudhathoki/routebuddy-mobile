@@ -8,6 +8,8 @@ import type {
   ListAllTripsResponse,
   ToggleTripOrdersPayload,
   ToggleTripOrdersResponse,
+  UpdateTripPayload,
+  UpdateTripResponse,
 } from "../types/trip";
 
 export const tripService = {
@@ -51,6 +53,34 @@ export const tripService = {
     }
     if (!response.data?.uid) {
       throw new Error("The order availability response did not include trip data.");
+    }
+
+    return response;
+  },
+  async updateTrip(
+    uid: string,
+    payload: UpdateTripPayload,
+  ): Promise<UpdateTripResponse> {
+    if (!uid.trim()) {
+      throw new Error("A trip ID is required to update this trip.");
+    }
+    if (Object.keys(payload).length === 0) {
+      throw new Error("Provide at least one trip field to update.");
+    }
+
+    const response = await apiRequest<UpdateTripResponse>(
+      apiEndpoints.trips.editMyTrip.replace(":uid", encodeURIComponent(uid)),
+      {
+        method: "PATCH",
+        body: payload,
+      },
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || "Unable to update this trip.");
+    }
+    if (!response.data?.uid) {
+      throw new Error("The update-trip response did not include trip data.");
     }
 
     return response;

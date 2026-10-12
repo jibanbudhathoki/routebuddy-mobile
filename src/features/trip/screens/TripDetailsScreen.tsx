@@ -149,11 +149,18 @@ export function TripDetailsScreen() {
       return;
     }
 
+    if (action === "edit") {
+      router.push({
+        pathname: "/edit-trip",
+        params: { uid: trip.uid },
+      });
+      return;
+    }
+
     const messages: Record<
-      Exclude<TripOptionAction, "share" | "delete">,
+      Exclude<TripOptionAction, "share" | "delete" | "edit">,
       string
     > = {
-      edit: "Editing trips is not available yet.",
       "close-orders": "Use the switch to update new order availability.",
       cancel: "Trip cancellation is not available yet.",
     };
