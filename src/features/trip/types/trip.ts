@@ -41,7 +41,7 @@ export interface TripDetailsResponse {
   deliveryLatestBy: string;
   capacity: number;
   availableSeats: number;
-  price: string;
+  price: string | null;
   notes: string;
   status: string;
   createdAt: string;
@@ -60,6 +60,16 @@ export interface TripDetailsResponse {
   };
   origin: string;
   destination: string;
+}
+
+export interface ToggleTripOrdersPayload {
+  closed: boolean;
+}
+
+export interface ToggleTripOrdersResponse {
+  success: boolean;
+  message: string;
+  data: TripDetailsResponse;
 }
 
 export interface ListAllTripsResponse {

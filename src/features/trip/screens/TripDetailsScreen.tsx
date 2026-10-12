@@ -15,6 +15,7 @@ import {
 } from "../components/TripOptionsSheet";
 import { useDeleteTrip } from "../hooks/useDeleteTrip";
 import { useTripDetails } from "../hooks/useTripDetails";
+import { useToggleTripOrders } from "../hooks/useToggleTripOrders";
 
 export function TripDetailsScreen() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export function TripDetailsScreen() {
   const { showToast } = useToast();
   const tripUid = typeof uid === "string" ? uid : "";
   const deleteTripMutation = useDeleteTrip();
+  const toggleTripOrders = useToggleTripOrders();
   const { data: trip, error, isLoading, refetch } = useTripDetails(tripUid);
 
   return (
@@ -113,7 +115,9 @@ export function TripDetailsScreen() {
       <TripOptionsSheet
         visible={showOptions}
         acceptsNewOrders={trip?.status.toLowerCase() === "open"}
+        isUpdatingOrderAvailability={toggleTripOrders.isPending}
         onClose={() => setShowOptions(false)}
+        onToggleOrderAvailability={toggleOrderAvailability}
         onSelect={handleTripOption}
       />
       <DeleteTripConfirmationModal
@@ -150,10 +154,36 @@ export function TripDetailsScreen() {
       string
     > = {
       edit: "Editing trips is not available yet.",
-      "close-orders": "Trip order settings are not saved yet.",
+      "close-orders": "Use the switch to update new order availability.",
       cancel: "Trip cancellation is not available yet.",
     };
     showToast(messages[action]);
+  }
+
+  function toggleOrderAvailability(closed: boolean) {
+    if (!tripUid || toggleTripOrders.isPending) return;
+
+    toggleTripOrders.mutate(
+      { uid: tripUid, closed },
+      {
+        onSuccess: (response) => {
+          showToast(
+            response.message ||
+              (closed
+                ? "New orders are closed for this trip."
+                : "This trip is open for new orders."),
+            { variant: "success" },
+          );
+        },
+        onError: (toggleError) => {
+          showToast(
+            toggleError instanceof Error
+              ? toggleError.message
+              : "Unable to update order availability.",
+          );
+        },
+      },
+    );
   }
 
   function confirmDeleteTrip() {

@@ -6,6 +6,8 @@ import type {
   ListMyTripsResponse,
   TripDetailsResponse,
   ListAllTripsResponse,
+  ToggleTripOrdersPayload,
+  ToggleTripOrdersResponse,
 } from "../types/trip";
 
 export const tripService = {
@@ -24,6 +26,34 @@ export const tripService = {
     }
 
     return response.data;
+  },
+  async toggleTripOrders(
+    uid: string,
+    payload: ToggleTripOrdersPayload,
+  ): Promise<ToggleTripOrdersResponse> {
+    if (!uid.trim()) {
+      throw new Error("A trip ID is required to update order availability.");
+    }
+
+    const response = await apiRequest<ToggleTripOrdersResponse>(
+      apiEndpoints.trips.openOrcloseOrder.replace(
+        ":uid",
+        encodeURIComponent(uid),
+      ),
+      {
+        method: "PATCH",
+        body: payload,
+      },
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || "Unable to update trip orders.");
+    }
+    if (!response.data?.uid) {
+      throw new Error("The order availability response did not include trip data.");
+    }
+
+    return response;
   },
 };
 
