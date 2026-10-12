@@ -6,6 +6,7 @@ import type {
   ListMyTripsResponse,
   TripDetailsResponse,
   ListAllTripsResponse,
+  TripOrder,
   ToggleTripOrdersPayload,
   ToggleTripOrdersResponse,
   UpdateTripPayload,
@@ -14,6 +15,7 @@ import type {
   UpdateTripStatusResponse,
 } from "../types/trip";
 import { updateTripStatusSchema } from "../validations/updateTripStatus";
+import { listTripOrdersResponseSchema } from "../validations/tripOrders";
 
 export const tripService = {
   async createTrip(data: CreateTripRequest) {
@@ -122,6 +124,42 @@ export const tripService = {
     }
 
     return response;
+  },
+  async listOrdersForTrip(uid: string): Promise<TripOrder[]> {
+    if (!uid.trim()) {
+      throw new Error("A trip ID is required to load its orders.");
+    }
+
+    const response = await apiRequest<unknown>(
+      apiEndpoints.trips.listOrderForTrip.replace(
+        ":uid",
+        encodeURIComponent(uid),
+      ),
+      { method: "GET" },
+    );
+    if (
+      typeof response === "object" &&
+      response !== null &&
+      "success" in response &&
+      response.success === false
+    ) {
+      const message =
+        "message" in response && typeof response.message === "string"
+          ? response.message
+          : "Unable to load trip orders.";
+      throw new Error(message);
+    }
+    const parsedResponse = listTripOrdersResponseSchema.safeParse(response);
+    if (!parsedResponse.success) {
+      throw new Error(
+        parsedResponse.error.issues[0]?.message ??
+          "The trip orders response was invalid.",
+      );
+    }
+    if (!parsedResponse.data.success) {
+      throw new Error(parsedResponse.data.message || "Unable to load trip orders.");
+    }
+    return parsedResponse.data.data;
   },
 };
 
