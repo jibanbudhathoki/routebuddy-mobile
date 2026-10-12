@@ -1,12 +1,14 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
+  Animated,
   Modal,
+  PanResponder,
   Pressable,
   Switch,
   Text,
   View,
 } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
@@ -20,7 +22,9 @@ export type TripOptionAction =
 interface TripOptionsSheetProps {
   visible: boolean;
   acceptsNewOrders: boolean;
+  isUpdatingOrderAvailability: boolean;
   onClose: () => void;
+  onToggleOrderAvailability: (closed: boolean) => void;
   onSelect: (action: TripOptionAction) => void;
 }
 
@@ -65,22 +69,52 @@ const options: Array<{
 export function TripOptionsSheet({
   visible,
   acceptsNewOrders,
+  isUpdatingOrderAvailability,
   onClose,
+  onToggleOrderAvailability,
   onSelect,
 }: TripOptionsSheetProps) {
   const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
-  const [isClosedToNewOrders, setIsClosedToNewOrders] = useState(
-    !acceptsNewOrders,
-  );
   const [isCloseOrdersExpanded, setIsCloseOrdersExpanded] = useState(false);
+  const dragOffset = useRef(new Animated.Value(0)).current;
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_event, gestureState) =>
+        gestureState.dy > 5 &&
+        Math.abs(gestureState.dy) > Math.abs(gestureState.dx),
+      onPanResponderMove: (_event, gestureState) => {
+        dragOffset.setValue(Math.max(0, gestureState.dy));
+      },
+      onPanResponderRelease: (_event, gestureState) => {
+        if (gestureState.dy > 90 || gestureState.vy > 0.8) {
+          dragOffset.setValue(0);
+          onCloseRef.current();
+          return;
+        }
+
+        Animated.spring(dragOffset, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      },
+      onPanResponderTerminate: () => {
+        Animated.spring(dragOffset, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      },
+    }),
+  ).current;
 
   useEffect(() => {
     if (visible) {
-      setIsClosedToNewOrders(!acceptsNewOrders);
       setIsCloseOrdersExpanded(false);
+      dragOffset.setValue(0);
     }
-  }, [acceptsNewOrders, visible]);
+  }, [dragOffset, visible]);
 
   return (
     <Modal
@@ -96,16 +130,22 @@ export function TripOptionsSheet({
           onPress={onClose}
           style={styles.backdrop}
         />
-        <View
+        <Animated.View
           style={[
             styles.sheet,
             {
               marginTop: insets.top + theme.spacing.lg,
               paddingBottom: Math.max(insets.bottom, theme.spacing.lg),
+              transform: [{ translateY: dragOffset }],
             },
           ]}
         >
-            <View style={styles.grabber} />
+            <Animated.View
+              {...panResponder.panHandlers}
+              style={styles.grabberArea}
+            >
+              <View style={styles.grabber} />
+            </Animated.View>
             <View style={styles.header}>
               <View style={styles.headerSpacer} />
               <Text style={styles.title}>Trip Options</Text>
@@ -144,10 +184,15 @@ export function TripOptionsSheet({
                   <View style={styles.toggleHeader}>
                     <Text style={styles.optionTitle}>Close to New Orders</Text>
                     <Switch
-                      accessibilityLabel="Close trip to new orders"
+                      accessibilityLabel={
+                        acceptsNewOrders
+                          ? "Close trip to new orders"
+                          : "Reopen trip to new orders"
+                      }
                       accessibilityHint="Turn on to stop accepting new requests for this trip."
-                      value={isClosedToNewOrders}
-                      onValueChange={setIsClosedToNewOrders}
+                      disabled={isUpdatingOrderAvailability}
+                      value={!acceptsNewOrders}
+                      onValueChange={onToggleOrderAvailability}
                       trackColor={{
                         false: theme.colors.border,
                         true: theme.colors.primary,
@@ -188,7 +233,7 @@ export function TripOptionsSheet({
                 destructive
               />
             </View>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -262,7 +307,6 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
     borderTopLeftRadius: theme.radius.lg,
     borderTopRightRadius: theme.radius.lg,
-    flex: 1,
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.sm,
   },
@@ -273,6 +317,11 @@ const styles = StyleSheet.create((theme) => ({
     height: 4,
     marginBottom: theme.spacing.sm,
     width: 40,
+  },
+  grabberArea: {
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 24,
   },
   header: {
     alignItems: "center",
