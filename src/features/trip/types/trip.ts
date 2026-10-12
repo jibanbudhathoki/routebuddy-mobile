@@ -74,6 +74,35 @@ export interface TripDetailsResponse {
   destination: string;
 }
 
+export interface TripOrder {
+  uid: string;
+  neededBy: string;
+  latestDeliveryBy: string;
+  status: string;
+  totalCost: string;
+  deliveryCity: string;
+  origin: string;
+  destination: string;
+  stores: string[];
+  requester: {
+    name: string;
+    photoUrl: string | null;
+  };
+  driver: {
+    name: string;
+    photoUrl: string | null;
+  } | null;
+}
+
+export interface ListTripOrdersResponse {
+  success: boolean;
+  message: string;
+  data: TripOrder[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface ToggleTripOrdersPayload {
   closed: boolean;
 }

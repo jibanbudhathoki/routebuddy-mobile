@@ -23,9 +23,10 @@ import {
 } from "../components/TripOptionsSheet";
 import { useDeleteTrip } from "../hooks/useDeleteTrip";
 import { useTripDetails } from "../hooks/useTripDetails";
+import { useTripOrders } from "../hooks/useTripOrders";
 import { useToggleTripOrders } from "../hooks/useToggleTripOrders";
 import { useUpdateTripStatus } from "../hooks/useUpdateTripStatus";
-import type { TripStatus } from "../types/trip";
+import type { TripOrder, TripStatus } from "../types/trip";
 
 export function TripDetailsScreen() {
   const router = useRouter();
@@ -39,6 +40,12 @@ export function TripDetailsScreen() {
   const toggleTripOrders = useToggleTripOrders();
   const updateTripStatus = useUpdateTripStatus();
   const { data: trip, error, isLoading, refetch } = useTripDetails(tripUid);
+  const {
+    data: orders = [],
+    error: ordersError,
+    isLoading: isLoadingOrders,
+    refetch: refetchOrders,
+  } = useTripOrders(tripUid);
 
   return (
     <AppScreen>
@@ -104,7 +111,14 @@ export function TripDetailsScreen() {
               </View>
             </View>
           ) : (
-            <TripDetailsContent trip={trip} />
+            <TripDetailsContent
+              trip={trip}
+              orders={orders}
+              isLoadingOrders={isLoadingOrders}
+              ordersError={ordersError}
+              onRetryOrders={() => void refetchOrders()}
+              onSelectOrder={openOrderDetails}
+            />
           )}
         </ScrollView>
 
@@ -184,6 +198,13 @@ export function TripDetailsScreen() {
       "close-orders": "Use the switch to update new order availability.",
     };
     showToast(messages[action]);
+  }
+
+  function openOrderDetails(order: TripOrder) {
+    router.push({
+      pathname: "/trip-order/[uid]",
+      params: { uid: order.uid, tripUid },
+    });
   }
 
   function toggleOrderAvailability(closed: boolean) {
