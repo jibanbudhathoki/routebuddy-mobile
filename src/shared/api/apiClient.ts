@@ -16,7 +16,7 @@ export class ApiError extends Error {
 
 type ApiRequestOptions = Omit<AxiosRequestConfig, 'baseURL' | 'data' | 'headers' | 'timeout' | 'url'> & {
   body?: unknown;
-  headers?: Record<string, string>;
+  headers?: Record<string, string | boolean | null>;
   timeoutMs?: number;
 };
 
@@ -140,12 +140,14 @@ export async function apiRequest<T>(
 
   try {
     const { body, headers, timeoutMs, ...requestOptions } = options;
+    const requestHeaders = { ...(headers || {}) };
+    if (typeof FormData !== 'undefined' && body instanceof FormData) {
+      requestHeaders['Content-Type'] = false;
+    }
     const response = await apiClient.request<T>({
       ...requestOptions,
       data: body,
-      headers: {
-        ...(headers || {}),
-      },
+      headers: requestHeaders,
       method: requestOptions.method ?? 'GET',
       timeout: timeoutMs ?? defaultTimeoutMs,
       url: path,

@@ -27,6 +27,7 @@ interface ChatMessagesPanelProps {
   conversationId: string;
   contextTitle: string;
   currentUserUid: string;
+  otherParticipantUid: string;
   participantName: string;
   participantAvatar: string | null;
   currentUserAvatar: string | null;
@@ -57,6 +58,7 @@ export function ChatMessagesPanel({
   conversationId,
   contextTitle,
   currentUserUid,
+  otherParticipantUid,
   participantName,
   participantAvatar,
   currentUserAvatar,
@@ -120,6 +122,7 @@ export function ChatMessagesPanel({
         message={message}
         replyMessage={replyMessage}
         currentUserUid={currentUserUid}
+        otherParticipantUid={otherParticipantUid}
         participantName={participantName}
         participantAvatar={participantAvatar}
         currentUserAvatar={currentUserAvatar}

@@ -2242,13 +2242,18 @@ expo-application@~57.0.3:
   resolved "https://registry.npmjs.org/expo-application/-/expo-application-57.0.3.tgz"
   integrity sha512-t/CxeLio0NjY9/cOak1tQp62/hAUjzJxmhR4rVUR7K5bb9YoEtfl1ZekTn+Iuh+dYOMYzF0l72ODMSmY3CR1NA==
 
-expo-asset@~57.0.19:
+expo-asset@*, expo-asset@~57.0.19:
   version "57.0.19"
   resolved "https://registry.npmjs.org/expo-asset/-/expo-asset-57.0.19.tgz"
   integrity sha512-y9ymKidyPBDUFXljbvo7LNgivQvMhEJEoEXi6aLRugUxRDUvAKoZsy+KB5UXSjLMS7l7JNDwYKk5thovI0MLog==
   dependencies:
     "@expo/image-utils" "^0.11.6"
     expo-constants "~57.0.21"
+
+expo-audio@~57.0.5:
+  version "57.0.5"
+  resolved "https://registry.npmjs.org/expo-audio/-/expo-audio-57.0.5.tgz"
+  integrity sha512-39fX5JC5zDvELB4/eDJPj2XAYRN0W9+K2DfDWm5N3aC5WZ7HRrhupWtT6hbH09NlfYpsRSqYOwEZnocFM42ynQ==
 
 expo-constants@^57.0.21, expo-constants@~57.0.19, expo-constants@~57.0.21:
   version "57.0.21"
@@ -2289,6 +2294,11 @@ expo-dev-menu@~57.0.18:
   dependencies:
     expo-dev-menu-interface "~57.0.0"
 
+expo-document-picker@~57.0.3:
+  version "57.0.3"
+  resolved "https://registry.npmjs.org/expo-document-picker/-/expo-document-picker-57.0.3.tgz"
+  integrity sha512-XlxdZ0zzv44JRD8O15DISgIO8FTaZ581oc4kQp6MJoR7vdahjcY+2qCuDt5k1J8/lc0YR+bXon/v81norciuxw==
+
 expo-file-system@~57.0.7:
   version "57.0.7"
   resolved "https://registry.npmjs.org/expo-file-system/-/expo-file-system-57.0.7.tgz"
@@ -2305,6 +2315,18 @@ expo-glass-effect@^57.0.4:
   version "57.0.4"
   resolved "https://registry.npmjs.org/expo-glass-effect/-/expo-glass-effect-57.0.4.tgz"
   integrity sha512-/AG2Kljbqfgxu+GchI2YFIbxiF9cPsIpCy4iNDzlRiZk9rvR6BwRfB6gfQVu3V2ExaoGf2h5IsEnqVI5MYNBAg==
+
+expo-image-loader@~57.0.1:
+  version "57.0.1"
+  resolved "https://registry.npmjs.org/expo-image-loader/-/expo-image-loader-57.0.1.tgz"
+  integrity sha512-uhrZKLT/cTl2mXyR28kPpVkS5O+PK9N1QA/07IFM4f5T4g0lTW1JHT3NEWwEEsGFldPmVX4j7LwUVVZxE+woug==
+
+expo-image-picker@~57.0.20:
+  version "57.0.20"
+  resolved "https://registry.npmjs.org/expo-image-picker/-/expo-image-picker-57.0.20.tgz"
+  integrity sha512-plgcGuMZMWqDchjXQW6S/WepYLB5KqfbZOzwC6xe0+j5IhY4ipvVuRZcXeP/0NgKgU0Jiu/XoTK4Bi8crtZ+sQ==
+  dependencies:
+    expo-image-loader "~57.0.1"
 
 expo-image@~57.0.5:
   version "57.0.5"

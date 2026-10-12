@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useState } from "react";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import type { Message } from "../types/message.types";
+import { ChatAttachmentMenu } from "./ChatAttachmentMenu";
 
 interface ChatComposerProps {
   messageText: string;
@@ -20,6 +22,13 @@ interface ChatComposerProps {
   replyTo: Message | null;
   onCancelReply: () => void;
   bottomPadding: number;
+  onPickImage: () => void;
+  onTakePhoto: () => void;
+  onPickAudioFile: () => void;
+  onVoiceMessage: () => void;
+  isRecording: boolean;
+  isMediaBusy: boolean;
+  recordingDuration: number;
 }
 
 export function ChatComposer({
@@ -32,15 +41,36 @@ export function ChatComposer({
   replyTo,
   onCancelReply,
   bottomPadding,
+  onPickImage,
+  onTakePhoto,
+  onPickAudioFile,
+  onVoiceMessage,
+  isRecording,
+  isMediaBusy,
+  recordingDuration,
 }: ChatComposerProps) {
   const { theme } = useUnistyles();
+  const [isAttachmentMenuVisible, setAttachmentMenuVisible] = useState(false);
   const canSend = Boolean(messageText.trim()) && !isSending && enabled;
+  const composerBusy = isSending || isMediaBusy;
 
   return (
     <View style={[styles.container, { paddingBottom: bottomPadding }]}>
+      <ChatAttachmentMenu
+        visible={isAttachmentMenuVisible}
+        onClose={() => setAttachmentMenuVisible(false)}
+        onPickImage={onPickImage}
+        onTakePhoto={onTakePhoto}
+        onPickAudio={onPickAudioFile}
+      />
       {error ? (
         <Text accessibilityRole="alert" style={styles.error}>
           {error}
+        </Text>
+      ) : null}
+      {isRecording ? (
+        <Text style={styles.recordingStatus}>
+          Recording voice message · {formatRecordingDuration(recordingDuration)}
         </Text>
       ) : null}
       {replyTo ? (
@@ -71,6 +101,8 @@ export function ChatComposer({
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Attachments"
+          disabled={!enabled || composerBusy || isRecording}
+          onPress={() => setAttachmentMenuVisible(true)}
           style={styles.addButton}
         >
           <MaterialCommunityIcons
@@ -83,37 +115,51 @@ export function ChatComposer({
           <TextInput
             accessibilityLabel="Type a message"
             style={styles.input}
-            placeholder="Type a message..."
+            placeholder={
+              isRecording ? "Recording voice message..." : "Type a message..."
+            }
             placeholderTextColor={theme.colors.muted}
             multiline
             value={messageText}
             onChangeText={onMessageTextChange}
-            editable={enabled && !isSending}
+            editable={enabled && !composerBusy && !isRecording}
           />
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel="Take a photo"
-            style={styles.cameraButton}
-          >
-            <MaterialCommunityIcons
-              name="camera-outline"
-              size={21}
-              color={theme.colors.muted}
-            />
-          </TouchableOpacity>
         </View>
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel="Send message"
-          style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
-          onPress={onSend}
-          disabled={!canSend}
+          accessibilityLabel={
+            messageText.trim()
+              ? "Send message"
+              : isRecording
+                ? "Stop and send voice message"
+                : "Record voice message"
+          }
+          style={[
+            styles.sendButton,
+            isRecording && styles.recordingButton,
+            !canSend && !isRecording && styles.sendButtonDisabled,
+          ]}
+          onPress={() => {
+            if (messageText.trim()) onSend();
+            else onVoiceMessage();
+          }}
+          disabled={
+            !enabled ||
+            (composerBusy && !isRecording) ||
+            (messageText.trim() ? !canSend : false)
+          }
         >
-          {isSending ? (
+          {composerBusy && !isRecording ? (
             <ActivityIndicator color={theme.colors.onPrimary} size="small" />
           ) : (
             <MaterialCommunityIcons
-              name="send"
+              name={
+                messageText.trim()
+                  ? "send"
+                  : isRecording
+                    ? "stop"
+                    : "microphone"
+              }
               size={19}
               color={theme.colors.onPrimary}
             />
@@ -135,6 +181,12 @@ const styles = StyleSheet.create((theme) => ({
   error: {
     color: theme.colors.error,
     fontSize: 11,
+    marginBottom: theme.spacing.xs,
+  },
+  recordingStatus: {
+    color: theme.colors.error,
+    fontSize: 12,
+    fontWeight: "600",
     marginBottom: theme.spacing.xs,
   },
   replyPreview: {
@@ -202,12 +254,6 @@ const styles = StyleSheet.create((theme) => ({
     maxHeight: 82,
     paddingVertical: theme.spacing.xs,
   },
-  cameraButton: {
-    alignItems: "center",
-    height: 32,
-    justifyContent: "center",
-    width: 32,
-  },
   sendButton: {
     alignItems: "center",
     backgroundColor: theme.colors.primary,
@@ -219,4 +265,11 @@ const styles = StyleSheet.create((theme) => ({
   sendButtonDisabled: {
     opacity: 0.55,
   },
+  recordingButton: {
+    backgroundColor: theme.colors.error,
+  },
 }));
+
+function formatRecordingDuration(seconds: number) {
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}

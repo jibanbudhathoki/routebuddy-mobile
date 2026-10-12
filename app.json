@@ -22,7 +22,10 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "routebuddy.app",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -41,7 +44,22 @@
         }
       ],
       "@react-native-google-signin/google-signin",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow RouteBuddy to record voice messages.",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow RouteBuddy to access your photos so you can share them in chats.",
+          "cameraPermission": "Allow RouteBuddy to take photos for chats.",
+          "microphonePermission": "Allow RouteBuddy to record voice messages."
+        }
+      ]
     ],
     "extra": {
       "router": {},

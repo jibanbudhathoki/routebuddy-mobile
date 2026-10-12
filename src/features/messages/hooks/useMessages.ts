@@ -1,9 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { messageService } from "../services/messageService";
+import { chatMediaService } from "../services/chatMediaService";
 import type {
   CreateConversationData,
   SendMessageData,
 } from "../types/message.types";
+import type { ChatMediaFile } from "../types/chatMedia.types";
+import type { InboxMessage } from "../types/message.types";
+import { formatMessagePreview } from "../utils/messagePreview";
 
 export const messageKeys = {
   all: ["messages"] as const,
@@ -13,9 +17,46 @@ export const messageKeys = {
 };
 
 export const useListMessages = () => {
+  const queryClient = useQueryClient();
   return useQuery({
     queryKey: messageKeys.conversations(),
-    queryFn: messageService.listMessages,
+    queryFn: async () => {
+      const fetchedConversations = await messageService.listMessages();
+      const cachedConversations = queryClient.getQueryData<InboxMessage[]>(
+        messageKeys.conversations(),
+      );
+      if (!cachedConversations) return fetchedConversations;
+
+      const cachedById = new Map(
+        cachedConversations.map((conversation) => [
+          conversation.msgId,
+          conversation,
+        ]),
+      );
+      return fetchedConversations.map((conversation) => {
+        const cached = cachedById.get(conversation.msgId);
+        if (!cached?.latestMsgIsOwn || conversation.latestMsgIsOwn) {
+          return conversation;
+        }
+
+        const cachedTime = Date.parse(cached.timestamp ?? "");
+        const fetchedTime = Date.parse(conversation.timestamp ?? "");
+        if (
+          Number.isFinite(cachedTime) &&
+          Number.isFinite(fetchedTime) &&
+          fetchedTime > cachedTime
+        ) {
+          return conversation;
+        }
+
+        return {
+          ...conversation,
+          latestMsg: cached.latestMsg,
+          latestMsgIsOwn: true,
+          timestamp: cached.timestamp ?? conversation.timestamp,
+        };
+      });
+    },
   });
 };
 
@@ -38,6 +79,8 @@ export const useConversationMessages = (conversationId: string) => {
     queryKey: messageKeys.messages(conversationId),
     queryFn: () => messageService.getConversationMessages(conversationId),
     enabled: Boolean(conversationId),
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
   });
 };
 
@@ -62,6 +105,24 @@ export const useSendConversationMessage = (conversationId: string) => {
           );
         },
       );
+      queryClient.setQueryData(
+        messageKeys.conversations(),
+        (conversations: InboxMessage[] | undefined) =>
+          conversations?.map((conversation) =>
+            conversation.msgId === conversationId
+              ? {
+                  ...conversation,
+                  latestMsg: formatMessagePreview(
+                    message.text,
+                    message.type,
+                    true,
+                  ),
+                  latestMsgIsOwn: true,
+                  timestamp: message.createdAt,
+                }
+              : conversation,
+          ),
+      );
       await queryClient.invalidateQueries({
         queryKey: messageKeys.conversations(),
       });
@@ -69,15 +130,34 @@ export const useSendConversationMessage = (conversationId: string) => {
   });
 };
 
+export const useUploadChatMedia = () =>
+  useMutation({
+    mutationFn: (file: ChatMediaFile) => chatMediaService.upload(file),
+  });
+
 export const useMarkConversationAsRead = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: messageService.markConversationAsRead,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: messageKeys.conversations(),
-      });
+    onSuccess: async (_result, conversationId) => {
+      queryClient.setQueryData(
+        messageKeys.conversations(),
+        (conversations: InboxMessage[] | undefined) =>
+          conversations?.map((conversation) =>
+            conversation.msgId === conversationId
+              ? { ...conversation, unreadCount: 0 }
+              : conversation,
+          ),
+      );
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: messageKeys.conversations(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: messageKeys.messages(conversationId),
+        }),
+      ]);
     },
   });
 };

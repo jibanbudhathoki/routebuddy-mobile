@@ -12,12 +12,14 @@ import { RequestOfferMessageCard } from "./RequestOfferMessageCard";
 import { SystemChatNotice } from "./SystemChatNotice";
 import { TripOrderMessageCard } from "./TripOrderMessageCard";
 import { SwipeToReplyMessage } from "./SwipeToReplyMessage";
+import { ChatMessageMedia } from "./ChatMessageMedia";
 import { styles } from "./chatMessageRow.styles";
 
 interface ChatMessageRowProps {
   message: Message;
   replyMessage?: Message;
   currentUserUid: string;
+  otherParticipantUid: string;
   participantName: string;
   participantAvatar: string | null;
   currentUserAvatar: string | null;
@@ -41,6 +43,7 @@ export function ChatMessageRow({
   message,
   replyMessage,
   currentUserUid,
+  otherParticipantUid,
   participantName,
   participantAvatar,
   currentUserAvatar,
@@ -68,12 +71,18 @@ export function ChatMessageRow({
   const isMine =
     message.senderId === "me" ||
     (Boolean(currentUserUid) && message.senderId === currentUserUid);
+  const isReadByRecipient =
+    isMine &&
+    Boolean(otherParticipantUid) &&
+    message.readBy?.includes(otherParticipantUid) === true;
   const messageText =
     message.type === "text"
       ? message.text
-      : message.mediaUrl
-        ? `${capitalize(message.type)}: ${message.mediaUrl}`
-        : `${capitalize(message.type)} message`;
+      : message.type === "image"
+        ? "Photo"
+        : message.type === "voice"
+          ? "Voice message"
+          : `${capitalize(message.type)} message`;
   const reactions = getReactionCounts(message.reactions);
   const avatarUrl = message.sender?.photoUrl ?? participantAvatar;
   const name = message.sender?.displayName ?? participantName;
@@ -143,7 +152,20 @@ export function ChatMessageRow({
                   </Text>
                 </View>
               ) : null}
-              <Text style={styles.messageText}>{messageText}</Text>
+              {message.type === "image" || message.type === "voice" ? (
+                message.mediaUrl ? (
+                  <ChatMessageMedia
+                    type={message.type}
+                    uri={message.mediaUrl}
+                  />
+                ) : (
+                  <Text style={styles.messageText}>
+                    {messageText} unavailable
+                  </Text>
+                )
+              ) : (
+                <Text style={styles.messageText}>{messageText}</Text>
+              )}
               {selected ? (
                 <MaterialCommunityIcons
                   name="check-circle"
@@ -171,9 +193,9 @@ export function ChatMessageRow({
             </Text>
             {isMine ? (
               <MaterialCommunityIcons
-                name="check-all"
+                name={isReadByRecipient ? "check-all" : "check"}
                 size={13}
-                color={theme.colors.primary}
+                color={isReadByRecipient ? theme.colors.primary : theme.colors.muted}
               />
             ) : null}
           </View>

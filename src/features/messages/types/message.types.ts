@@ -131,6 +131,7 @@ export interface InboxMessage {
   msgId: string;
   recipientName: string;
   latestMsg: string;
+  latestMsgIsOwn?: boolean;
   contextType: string;
   avatarUrl?: string | null;
   timestamp?: string;
@@ -144,6 +145,8 @@ export interface InboxMessageResponse {
   uid?: string;
   recipientName?: string;
   latestMsg?: string;
+  latestMsgType?: Message["type"];
+  latestMsgSenderUid?: string;
   contextType?: string;
   avatarUrl?: string | null;
   timestamp?: string;
@@ -153,7 +156,9 @@ export interface InboxMessageResponse {
   requestUid?: string | null;
   lastMessage?: {
     content?: string;
+    type?: Message["type"];
     senderUid?: string;
+    senderId?: string;
     createdAt?: string;
   } | null;
   createdAt?: string;
