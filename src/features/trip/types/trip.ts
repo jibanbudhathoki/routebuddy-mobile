@@ -78,7 +78,27 @@ export interface ToggleTripOrdersPayload {
   closed: boolean;
 }
 
+export const TRIP_STATUSES = [
+  "shopping",
+  "delivering",
+  "delivered",
+  "completed",
+  "cancelled",
+] as const;
+
+export type TripStatus = (typeof TRIP_STATUSES)[number];
+
+export interface UpdateTripStatusPayload {
+  status: TripStatus;
+}
+
 export interface ToggleTripOrdersResponse {
+  success: boolean;
+  message: string;
+  data: TripDetailsResponse;
+}
+
+export interface UpdateTripStatusResponse {
   success: boolean;
   message: string;
   data: TripDetailsResponse;
