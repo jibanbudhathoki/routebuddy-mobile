@@ -8,10 +8,12 @@ import { AppScreen } from "../../../shared/components/AppScreen";
 import { Button } from "../../../shared/components/Button";
 import { ConfirmationDialog } from "../../../shared/components/ConfirmationDialog";
 import { useToast } from "../../../shared/components/ToastProvider";
+import { useCreateConversation } from "../../messages/hooks/useMessages";
 import { styles } from "../components/requestDetailsScreen.styles";
 import { RequestDetailsOverview } from "../components/RequestDetailsOverview";
 import { RequestOptionsSheet } from "../components/RequestOptionsSheet";
 import { RequestDetailsSummary } from "../components/RequestDetailsSummary";
+import { RequestAssignedDriver } from "../components/RequestAssignedDriver";
 import { RequestOffersList } from "../components/RequestOffersList";
 import { RequestShoppingList } from "../components/RequestShoppingList";
 import { RequestStatusTimeline } from "../components/RequestStatusTimeline";
@@ -31,6 +33,7 @@ export function RequestDetailsScreen() {
   const { showToast } = useToast();
   const [showOptions, setShowOptions] = useState(false);
   const [confirmation, setConfirmation] = useState<RequestConfirmation>(null);
+  const createConversation = useCreateConversation();
   const requestUid = typeof uid === "string" ? uid : "";
   const { data: request, error, isLoading, refetch } = useRequestDetails(requestUid);
   const acceptOffer = useAcceptRequestOffer(requestUid);
@@ -100,6 +103,9 @@ export function RequestDetailsScreen() {
           ) : (
             <View style={styles.sections}>
               <RequestDetailsOverview request={request} />
+              {request.status.toLowerCase() === "accepted" && request.driver ? (
+                <RequestAssignedDriver driver={request.driver} />
+              ) : null}
               <RequestOffersList
                 offers={request.offers ?? []}
                 requestStatus={request.status}
@@ -129,13 +135,8 @@ export function RequestDetailsScreen() {
           <View style={styles.footer}>
             <Button
               title="Message Driver"
-              onPress={() =>
-                showToast(
-                  request.driver
-                    ? "Messaging is not available yet."
-                    : "A driver has not been assigned to this request yet.",
-                )
-              }
+              loading={createConversation.isPending}
+              onPress={() => void handleMessageDriver()}
             />
           </View>
         ) : null}
@@ -179,6 +180,35 @@ export function RequestDetailsScreen() {
       />
     </AppScreen>
   );
+
+  async function handleMessageDriver() {
+    if (createConversation.isPending) return;
+    if (!request?.driver?.uid) {
+      showToast("A driver has not been assigned to this request yet.");
+      return;
+    }
+
+    try {
+      const conversation = await createConversation.mutateAsync({
+        requestId: request.uid,
+        userId: request.driver.uid,
+      });
+      router.push({
+        pathname: "/chat/[id]",
+        params: {
+          id: conversation.id,
+          requestUid: request.uid,
+          recipientName: request.driver.name,
+        },
+      });
+    } catch (failure) {
+      showToast(
+        failure instanceof Error
+          ? failure.message
+          : "Unable to start a conversation with the driver.",
+      );
+    }
+  }
 
   function performConfirmation() {
     if (confirmation === "cancel") {
