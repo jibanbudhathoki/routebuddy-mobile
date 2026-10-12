@@ -41,6 +41,7 @@ export const apiEndpoints = {
     deleteRequest: "/v1/requests/:uid",
   },
   messages: {
+    uploadMedia: "/v1/media/upload",
     listMessages: "/v1/messages/listMessages",
     createConversationForTripOrRequest: "/v1/messages/conversations",
     conversationMessages: "/v1/messages/conversations/:id/messages",

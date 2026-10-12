@@ -11,6 +11,7 @@ import {
   useSendConversationMessage,
 } from "../hooks/useMessages";
 import { useChatMessageInteractions } from "../hooks/useChatMessageInteractions";
+import { useChatMedia } from "../hooks/useChatMedia";
 import { MessageDialog } from "../components/MessageDialog";
 import { ChatComposer } from "../components/ChatComposer";
 import { ChatMessagesPanel } from "../components/ChatMessagesPanel";
@@ -63,6 +64,15 @@ export function ChatDetailScreen({
   const sendMessage = useSendConversationMessage(conversationId);
   const markAsRead = useMarkConversationAsRead();
   const interactions = useChatMessageInteractions(conversationId);
+  const media = useChatMedia({
+    conversationId,
+    replyToUid: interactions.replyTo?.id,
+    onSent: () => {
+      interactions.setError("");
+      interactions.setReplyTo(null);
+    },
+    onError: (failure) => interactions.setError(failure.message),
+  });
   const markConversationRead = markAsRead.mutate;
 
   const [messageText, setMessageText] = useState("");
@@ -114,12 +124,15 @@ export function ChatDetailScreen({
   const conversation = inbox.find(
     (item) => item.msgId === conversationId,
   ) as InboxMessage | undefined;
-  const otherParticipant = messages.find(
+  const otherParticipantMessage = messages.find(
     (message) =>
       message.senderId &&
       message.senderId !== "me" &&
       message.senderId !== currentUserUid,
-  )?.sender;
+  );
+  const otherParticipant = otherParticipantMessage?.sender;
+  const otherParticipantUid =
+    otherParticipant?.uid ?? otherParticipantMessage?.senderId ?? "";
   const currentParticipant = messages.find(
     (message) =>
       message.senderId === "me" || message.senderId === currentUserUid,
@@ -185,6 +198,7 @@ export function ChatDetailScreen({
         conversationId={conversation?.msgId ?? conversationId}
         contextTitle={contextTitle}
         currentUserUid={currentUserUid}
+        otherParticipantUid={otherParticipantUid}
         participantName={participantName}
         participantAvatar={participantAvatar}
         currentUserAvatar={currentParticipant?.photoUrl ?? null}
@@ -254,6 +268,13 @@ export function ChatDetailScreen({
         replyTo={replyTo}
         onCancelReply={() => setReplyTo(null)}
         bottomPadding={Math.max(insets.bottom, 8)}
+        onPickImage={media.pickImage}
+        onTakePhoto={media.takePhoto}
+        onPickAudioFile={media.pickAudioFile}
+        onVoiceMessage={media.stopAndSendVoiceRecording}
+        isRecording={media.isRecording}
+        isMediaBusy={media.isUploading}
+        recordingDuration={media.recordingDuration}
       />
       <MessageDialog
         visible={dialog !== null}

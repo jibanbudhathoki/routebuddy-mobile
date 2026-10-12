@@ -14,6 +14,8 @@ import {
   SendMessageData,
 } from "../types/message.types";
 import { apiEndpoints } from "../../../constant/url";
+import { getAuthSession } from "../../auth/services/authStorage";
+import { formatMessagePreview } from "../utils/messagePreview";
 import { parseRequestOfferMessage } from "../utils/requestOfferMessage";
 
 export const messageService = {
@@ -27,16 +29,30 @@ export const messageService = {
     if (!Array.isArray(response.data)) {
       throw new Error("The messages response did not include a conversation list.");
     }
+    const session = await getAuthSession();
     return response.data.map((item) => {
       const msgId = item.msgId ?? item.uid;
       if (!msgId) {
         throw new Error("A conversation in the response did not include an ID.");
       }
       const latestMsg = item.latestMsg ?? item.lastMessage?.content ?? "";
+      const latestMsgType = item.latestMsgType ?? item.lastMessage?.type;
+      const latestMsgSenderUid =
+        item.latestMsgSenderUid ??
+        item.lastMessage?.senderUid ??
+        item.lastMessage?.senderId;
+      const latestMsgIsOwn = Boolean(
+        session?.user.id && latestMsgSenderUid === session.user.id,
+      );
       return {
         msgId,
         recipientName: item.recipientName ?? "Conversation",
-        latestMsg: parseRequestOfferMessage(latestMsg).visibleMessage,
+        latestMsg: formatMessagePreview(
+          latestMsg,
+          latestMsgType,
+          latestMsgIsOwn,
+        ),
+        latestMsgIsOwn,
         contextType:
           item.contextType ??
           (item.requestId ? "request" : item.tripId ? "trip" : "direct"),
@@ -203,7 +219,10 @@ function normalizeMessage(
     tripOrderDriverUid: parsedOfferMessage.tripOrderDriverUid,
     createdAt: message.createdAt,
     type: message.type,
-    mediaUrl: message.mediaUrl ?? null,
+    mediaUrl: resolveMessageMediaUrl(
+      message.type,
+      message.mediaUrl ?? message.content ?? message.text,
+    ),
     replyToUid: message.replyToUid ?? null,
     reactions: message.reactions ?? null,
     readBy: message.readBy ?? [],
@@ -211,6 +230,26 @@ function normalizeMessage(
     updatedAt: message.updatedAt,
     sender: message.sender ?? null,
   };
+}
+
+function resolveMessageMediaUrl(
+  type: Message["type"],
+  value: string | undefined,
+) {
+  if ((type !== "image" && type !== "voice") || !value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+
+  const baseUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, "");
+  if (!baseUrl) return null;
+  const path = value.startsWith("/") ? value : `/${value}`;
+  if (/^\/(?:v\d+\/)?media\//i.test(path)) {
+    return `${baseUrl.replace(/\/v\d+\/?$/i, "")}${path}`;
+  }
+  const key = value
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `${baseUrl.replace(/\/v\d+\/?$/i, "")}/v1/media/${key}`;
 }
 
 function assertActionSuccess(
