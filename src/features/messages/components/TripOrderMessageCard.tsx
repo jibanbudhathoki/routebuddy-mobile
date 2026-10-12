@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
+import { MessageGesturePressable } from "./MessageGesturePressable";
 import type { ChatTripOrder } from "../types/message.types";
 
 interface TripOrderMessageCardProps {
@@ -10,8 +11,10 @@ interface TripOrderMessageCardProps {
   showActions: boolean;
   isAccepting: boolean;
   selected: boolean;
+  selectionMode: boolean;
   onPress: () => void;
   onLongPress: () => void;
+  onDoubleTap: () => void;
   onAccept: () => void;
 }
 
@@ -21,8 +24,10 @@ export function TripOrderMessageCard({
   showActions,
   isAccepting,
   selected,
+  selectionMode,
   onPress,
   onLongPress,
+  onDoubleTap,
   onAccept,
 }: TripOrderMessageCardProps) {
   const { theme } = useUnistyles();
@@ -37,7 +42,13 @@ export function TripOrderMessageCard({
 
   return (
     <View style={[styles.card, selected && styles.selectedCard]}>
-      <Pressable onPress={onPress} onLongPress={onLongPress}>
+      <MessageGesturePressable
+        selectionMode={selectionMode}
+        accessibilityLabel={selected ? "Deselect order message" : "Order message"}
+        onPress={onPress}
+        onLongPress={onLongPress}
+        onDoubleTap={onDoubleTap}
+      >
         <View style={styles.heading}>
           <MaterialCommunityIcons
             name="clipboard-list-outline"
@@ -48,7 +59,7 @@ export function TripOrderMessageCard({
           <Text style={styles.status}>{order.status}</Text>
         </View>
         <Text style={styles.message}>{message}</Text>
-      </Pressable>
+      </MessageGesturePressable>
       {showActions && canRespond ? (
         <>
           <View style={styles.actions}>

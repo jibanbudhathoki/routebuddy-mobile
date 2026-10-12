@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
+import { MessageGesturePressable } from "./MessageGesturePressable";
 import type { ChatRequestOffer } from "../types/message.types";
 
 interface RequestOfferMessageCardProps {
@@ -9,8 +10,10 @@ interface RequestOfferMessageCardProps {
   showActions: boolean;
   isAccepting: boolean;
   selected: boolean;
+  selectionMode: boolean;
   onPress: () => void;
   onLongPress: () => void;
+  onDoubleTap: () => void;
   onAccept: () => void;
 }
 
@@ -19,8 +22,10 @@ export function RequestOfferMessageCard({
   showActions,
   isAccepting,
   selected,
+  selectionMode,
   onPress,
   onLongPress,
+  onDoubleTap,
   onAccept,
 }: RequestOfferMessageCardProps) {
   const { theme } = useUnistyles();
@@ -35,7 +40,13 @@ export function RequestOfferMessageCard({
 
   return (
     <View style={[styles.card, selected && styles.selectedCard]}>
-      <Pressable onPress={onPress} onLongPress={onLongPress}>
+      <MessageGesturePressable
+        selectionMode={selectionMode}
+        accessibilityLabel={selected ? "Deselect offer message" : "Offer message"}
+        onPress={onPress}
+        onLongPress={onLongPress}
+        onDoubleTap={onDoubleTap}
+      >
         <View style={styles.heading}>
           <MaterialCommunityIcons
             name="package-variant"
@@ -55,7 +66,7 @@ export function RequestOfferMessageCard({
             {offer.message.trim() || "No message provided."}
           </Text>
         </View>
-      </Pressable>
+      </MessageGesturePressable>
       {showActions && isPending ? (
         <>
           <View style={styles.actions}>
