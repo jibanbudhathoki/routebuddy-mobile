@@ -5,6 +5,8 @@ import type {
   CreateTripOrderResponse,
   CreateOpenRequestApiPayload,
   CreateOpenRequestResponse,
+  CancelRequestResponse,
+  DeleteRequestResponse,
   ListAllRequestsResponse,
   ListMyRequestsResponse,
   RequestDetailsResponse,
@@ -144,6 +146,50 @@ export const requestService = {
     }
 
     return response.data;
+  },
+  cancelRequest: async (requestUid: string): Promise<CancelRequestResponse> => {
+    if (!requestUid.trim()) {
+      throw new Error("A request ID is required to cancel this request.");
+    }
+
+    const response = await apiRequest<CancelRequestResponse>(
+      apiEndpoints.requests.cancelRequest.replace(
+        ":uid",
+        encodeURIComponent(requestUid),
+      ),
+      { method: "PATCH" },
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || "Unable to cancel this request.");
+    }
+    if (!response.data?.uid) {
+      throw new Error("The cancel response did not include request details.");
+    }
+
+    return response;
+  },
+  deleteRequest: async (requestUid: string): Promise<DeleteRequestResponse> => {
+    if (!requestUid.trim()) {
+      throw new Error("A request ID is required to delete this request.");
+    }
+
+    const response = await apiRequest<DeleteRequestResponse>(
+      apiEndpoints.requests.deleteRequest.replace(
+        ":uid",
+        encodeURIComponent(requestUid),
+      ),
+      { method: "DELETE" },
+    );
+
+    if (response.success === false) {
+      throw new Error(response.message || "Unable to delete this request.");
+    }
+    if (!response.message) {
+      throw new Error("The delete response did not include a confirmation.");
+    }
+
+    return response;
   },
 };
 
