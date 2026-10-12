@@ -90,7 +90,7 @@ export function SendRequestOfferModal({
       <Pressable style={styles.backdrop} onPress={onClose}>
         <View style={styles.scrim} pointerEvents="none" />
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.sheetWrap}
         >
           <Pressable

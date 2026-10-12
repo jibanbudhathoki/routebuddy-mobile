@@ -1,6 +1,12 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useMemo } from "react";
-import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import type {
@@ -8,6 +14,7 @@ import type {
   ChatTripOrder,
   Message,
 } from "../types/message.types";
+import { useChatMessageListScroll } from "../hooks/useChatMessageListScroll";
 import { ChatMessageRow } from "./ChatMessageRow";
 import { ConversationSummaryCard } from "./ConversationSummaryCard";
 
@@ -76,6 +83,8 @@ export function ChatMessagesPanel({
 }: ChatMessagesPanelProps) {
   const { theme } = useUnistyles();
   const items = useMemo(() => buildChatItems(messages), [messages]);
+  const { listRef, onScroll, onLayout, onContentSizeChange } =
+    useChatMessageListScroll<ChatListItem>();
 
   const renderItem = ({ item }: { item: ChatListItem }) => {
     if (item.kind === "date") {
@@ -142,6 +151,8 @@ export function ChatMessagesPanel({
 
   return (
     <FlatList
+      ref={listRef}
+      style={styles.messageList}
       data={items}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
@@ -178,6 +189,10 @@ export function ChatMessagesPanel({
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
       onTouchStart={onInteractionAreaTouch}
+      onScroll={onScroll}
+      onLayout={onLayout}
+      onContentSizeChange={onContentSizeChange}
+      scrollEventThrottle={16}
     />
   );
 }
@@ -251,6 +266,9 @@ function formatDateDivider(date: Date) {
 }
 
 const styles = StyleSheet.create((theme) => ({
+  messageList: {
+    flex: 1,
+  },
   listContent: {
     flexGrow: 1,
     paddingBottom: theme.spacing.md,
