@@ -29,6 +29,7 @@ export default function RootLayout() {
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="request-details" options={{ headerShown: false }} />
+            <Stack.Screen name="edit-trip" options={{ headerShown: false }} />
             {/* Post Trip Flow Modals */}
 
             <Stack.Screen name="(modals)/trip/select-store" options={{ presentation: 'modal' }} />
