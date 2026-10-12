@@ -10,7 +10,10 @@ import type {
   ToggleTripOrdersResponse,
   UpdateTripPayload,
   UpdateTripResponse,
+  UpdateTripStatusPayload,
+  UpdateTripStatusResponse,
 } from "../types/trip";
+import { updateTripStatusSchema } from "../validations/updateTripStatus";
 
 export const tripService = {
   async createTrip(data: CreateTripRequest) {
@@ -81,6 +84,41 @@ export const tripService = {
     }
     if (!response.data?.uid) {
       throw new Error("The update-trip response did not include trip data.");
+    }
+
+    return response;
+  },
+  async updateTripStatus(
+    uid: string,
+    payload: UpdateTripStatusPayload,
+  ): Promise<UpdateTripStatusResponse> {
+    if (!uid.trim()) {
+      throw new Error("A trip ID is required to update its status.");
+    }
+
+    const validation = updateTripStatusSchema.safeParse(payload);
+    if (!validation.success) {
+      throw new Error(
+        validation.error.issues[0]?.message ?? "Choose a valid trip status.",
+      );
+    }
+
+    const response = await apiRequest<UpdateTripStatusResponse>(
+      apiEndpoints.trips.updateTripStatus.replace(
+        ":uid",
+        encodeURIComponent(uid),
+      ),
+      {
+        method: "PATCH",
+        body: validation.data,
+      },
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || "Unable to update trip status.");
+    }
+    if (!response.data?.uid) {
+      throw new Error("The status response did not include trip data.");
     }
 
     return response;
