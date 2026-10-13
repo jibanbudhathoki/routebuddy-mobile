@@ -15,6 +15,7 @@ import { useUpdateRequestStatus } from "../../request/hooks/useUpdateRequestStat
 import { styles } from "../components/tripOrderDetailsScreen.styles";
 import { TripOrderDetailsContent } from "../components/TripOrderDetailsContent";
 import { useRequestDetails } from "../../request/hooks/useRequestDetails";
+import { tripOrderKeys } from "../hooks/useTripOrders";
 
 export function TripOrderDetailsScreen() {
   const router = useRouter();
@@ -111,6 +112,12 @@ export function TripOrderDetailsScreen() {
     try {
       const updatedRequest = await updateStatus.mutateAsync(status);
       setShowOptions(false);
+      const tripUid = updatedRequest.trip?.uid ?? order?.trip?.uid;
+      if (tripUid) {
+        await queryClient.invalidateQueries({
+          queryKey: tripOrderKeys.byTrip(tripUid),
+        });
+      }
 
       if (previousStatus !== status) {
         try {
