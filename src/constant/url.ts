@@ -34,6 +34,7 @@ export const apiEndpoints = {
     requests: "/v1/requests",
     listMyRequests: "/v1/requests/me",
     requestDetails: "/v1/requests/:uid",
+    updateRequestStatus: "/v1/requests/:uid/status",
     listAllRequests: "/v1/requests",
     submitOffer: "/v1/requests/:uid/offers",
     acceptOffer: "/v1/requests/:uid/offers/:offerUid/accept",

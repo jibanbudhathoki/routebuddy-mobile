@@ -10,9 +10,11 @@ import type {
   ListAllRequestsResponse,
   ListMyRequestsResponse,
   RequestDetailsResponse,
+  RequestDeliveryStatus,
   SubmitRequestOfferPayload,
   SubmitRequestOfferResponse,
 } from "../types/request";
+import { updateRequestStatusSchema } from "../validations/updateRequestStatus";
 
 export const requestService = {
   createTripOrder: async (
@@ -143,6 +145,44 @@ export const requestService = {
     }
     if (!response.data) {
       throw new Error("The accept-order response did not include order details.");
+    }
+
+    return response.data;
+  },
+  updateRequestStatus: async (
+    requestUid: string,
+    status: RequestDeliveryStatus,
+  ): Promise<RequestDetailsResponse> => {
+    if (!requestUid.trim()) {
+      throw new Error("A request ID is required to update its status.");
+    }
+    const validation = updateRequestStatusSchema.safeParse({ status });
+    if (!validation.success) {
+      throw new Error(
+        validation.error.issues[0]?.message ?? "Choose a valid request status.",
+      );
+    }
+
+    const response = await apiRequest<{
+      success: boolean;
+      message: string;
+      data: RequestDetailsResponse;
+    }>(
+      apiEndpoints.requests.updateRequestStatus.replace(
+        ":uid",
+        encodeURIComponent(requestUid),
+      ),
+      {
+        method: "PATCH",
+        body: validation.data,
+      },
+    );
+
+    if (!response.success) {
+      throw new Error(response.message || "Unable to update request status.");
+    }
+    if (!response.data?.uid) {
+      throw new Error("The status response did not include request details.");
     }
 
     return response.data;

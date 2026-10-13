@@ -1,9 +1,14 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { useState } from "react";
 import { useUnistyles } from "react-native-unistyles";
 
 import { AppScreen } from "../../../shared/components/AppScreen";
+import { useToast } from "../../../shared/components/ToastProvider";
+import { RequestStatusOptionsSheet } from "../../request/components/RequestStatusOptionsSheet";
+import type { RequestDeliveryStatus } from "../../request/types/request";
+import { useUpdateRequestStatus } from "../../request/hooks/useUpdateRequestStatus";
 import { styles } from "../components/tripOrderDetailsScreen.styles";
 import { TripOrderDetailsContent } from "../components/TripOrderDetailsContent";
 import { useRequestDetails } from "../../request/hooks/useRequestDetails";
@@ -11,8 +16,11 @@ import { useRequestDetails } from "../../request/hooks/useRequestDetails";
 export function TripOrderDetailsScreen() {
   const router = useRouter();
   const { theme } = useUnistyles();
+  const { showToast } = useToast();
+  const [showOptions, setShowOptions] = useState(false);
   const params = useLocalSearchParams<{ uid?: string }>();
   const orderUid = typeof params.uid === "string" ? params.uid : "";
+  const updateStatus = useUpdateRequestStatus(orderUid);
   const {
     data: order,
     error,
@@ -37,7 +45,20 @@ export function TripOrderDetailsScreen() {
             />
           </Pressable>
           <Text style={styles.headerTitle}>Order Details</Text>
-          <View style={styles.headerButton} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Order options"
+            accessibilityState={{ disabled: !order }}
+            disabled={!order}
+            onPress={() => setShowOptions(true)}
+            style={styles.headerButton}
+          >
+            <MaterialCommunityIcons
+              name="dots-vertical"
+              size={22}
+              color={theme.colors.text}
+            />
+          </Pressable>
         </View>
 
         {isLoading ? (
@@ -68,6 +89,33 @@ export function TripOrderDetailsScreen() {
           <TripOrderDetailsContent order={order} />
         )}
       </View>
+      <RequestStatusOptionsSheet
+        visible={showOptions}
+        currentStatus={order?.status ?? ""}
+        isUpdating={updateStatus.isPending}
+        pendingStatus={updateStatus.variables}
+        onClose={() => setShowOptions(false)}
+        onSelectStatus={handleStatusUpdate}
+      />
     </AppScreen>
   );
+
+  function handleStatusUpdate(status: RequestDeliveryStatus) {
+    if (!orderUid || updateStatus.isPending) return;
+    updateStatus.mutate(status, {
+      onSuccess: () => {
+        setShowOptions(false);
+        showToast(`Request status updated to ${status}.`, {
+          variant: "success",
+        });
+      },
+      onError: (failure) => {
+        showToast(
+          failure instanceof Error
+            ? failure.message
+            : "Unable to update request status.",
+        );
+      },
+    });
+  }
 }
