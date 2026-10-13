@@ -86,7 +86,7 @@ export interface TripOrder {
   total: string;
   paymentIntentId: string | null;
   captureBefore: string | null;
-  deliveryProof: string | null;
+  deliveryProof: RequestDeliveryProof | string | null;
   issue: string | null;
   rating: number | null;
   status: string;
@@ -181,7 +181,7 @@ export interface RequestDetailsResponse {
   total: string | null;
   paymentIntentId: string | null;
   captureBefore: string | null;
-  deliveryProof: string | null;
+  deliveryProof: RequestDeliveryProof | string | null;
   issue: string | null;
   rating: number | null;
   status: string;
@@ -220,6 +220,24 @@ export interface RequestDetailsResponse {
 }
 
 export type RequestDeliveryStatus = "shopping" | "delivering" | "delivered";
+
+export interface RequestDeliveryProof {
+  receiptUrl?: string | null;
+  itemPhotoUrls?: string[];
+  note?: string | null;
+}
+
+export interface AddRequestDeliveryProofPayload {
+  itemPhotoUrls: string[];
+  note?: string;
+}
+
+export interface DeliveryProofPhoto {
+  uri: string;
+  fileName: string;
+  mimeType: string;
+  size?: number;
+}
 
 export interface RequestOffer {
   uid: string;

@@ -11,6 +11,7 @@ import type {
 import { RequestOfferMessageCard } from "./RequestOfferMessageCard";
 import { SystemChatNotice } from "./SystemChatNotice";
 import { TripOrderMessageCard } from "./TripOrderMessageCard";
+import { DeliveryProofMessageCard } from "./DeliveryProofMessageCard";
 import { SwipeToReplyMessage } from "./SwipeToReplyMessage";
 import { ChatMessageMedia } from "./ChatMessageMedia";
 import { styles } from "./chatMessageRow.styles";
@@ -31,8 +32,12 @@ interface ChatMessageRowProps {
   showTripOrderActions: boolean;
   isAcceptingOffer: boolean;
   isAcceptingOrder: boolean;
+  canConfirmDelivery: boolean;
+  isConfirmingDelivery: boolean;
+  deliveryConfirmed: boolean;
   onAcceptOffer: (offerUid: string) => void;
   onAcceptOrder: (orderUid: string) => void;
+  onConfirmDelivery: (requestUid: string) => void;
   onPress: () => void;
   onLongPress: () => void;
   onDoubleTap: () => void;
@@ -55,8 +60,12 @@ export function ChatMessageRow({
   showTripOrderActions,
   isAcceptingOffer,
   isAcceptingOrder,
+  canConfirmDelivery,
+  isConfirmingDelivery,
+  deliveryConfirmed,
   onAcceptOffer,
   onAcceptOrder,
+  onConfirmDelivery,
   onPress,
   onLongPress,
   onDoubleTap,
@@ -102,7 +111,21 @@ export function ChatMessageRow({
             isMine ? styles.messageColumnMine : styles.messageColumnOther,
           ]}
         >
-          {tripOrder ? (
+          {message.deliveryProof && tripOrder ? (
+            <DeliveryProofMessageCard
+              proof={message.deliveryProof}
+              order={tripOrder}
+              canConfirm={canConfirmDelivery}
+              isConfirmed={
+                deliveryConfirmed ||
+                ["completed", "confirmed"].includes(
+                  tripOrder.status.toLowerCase(),
+                )
+              }
+              isConfirming={isConfirmingDelivery}
+              onConfirm={() => onConfirmDelivery(tripOrder.uid)}
+            />
+          ) : tripOrder ? (
             <TripOrderMessageCard
               order={tripOrder}
               message={messageText}

@@ -7,8 +7,11 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { AppScreen } from "../../../shared/components/AppScreen";
 import { useToast } from "../../../shared/components/ToastProvider";
-import { useCreateConversation } from "../../messages/hooks/useMessages";
+import {
+  useCreateConversation,
+} from "../../messages/hooks/useMessages";
 import { messageService } from "../../messages/services/messageService";
+import { RequestDeliveryProofSheet } from "../../request/components/RequestDeliveryProofSheet";
 import { RequestStatusOptionsSheet } from "../../request/components/RequestStatusOptionsSheet";
 import type { RequestDeliveryStatus } from "../../request/types/request";
 import { useUpdateRequestStatus } from "../../request/hooks/useUpdateRequestStatus";
@@ -16,6 +19,7 @@ import { styles } from "../components/tripOrderDetailsScreen.styles";
 import { TripOrderDetailsContent } from "../components/TripOrderDetailsContent";
 import { useRequestDetails } from "../../request/hooks/useRequestDetails";
 import { tripOrderKeys } from "../hooks/useTripOrders";
+import { useSubmitTripOrderDeliveryProof } from "../hooks/useSubmitTripOrderDeliveryProof";
 
 export function TripOrderDetailsScreen() {
   const router = useRouter();
@@ -23,6 +27,7 @@ export function TripOrderDetailsScreen() {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [showOptions, setShowOptions] = useState(false);
+  const [showProofSheet, setShowProofSheet] = useState(false);
   const params = useLocalSearchParams<{ uid?: string }>();
   const orderUid = typeof params.uid === "string" ? params.uid : "";
   const updateStatus = useUpdateRequestStatus(orderUid);
@@ -33,6 +38,7 @@ export function TripOrderDetailsScreen() {
     isLoading,
     refetch,
   } = useRequestDetails(orderUid);
+  const deliveryProof = useSubmitTripOrderDeliveryProof(orderUid, order);
 
   return (
     <AppScreen>
@@ -56,7 +62,16 @@ export function TripOrderDetailsScreen() {
             accessibilityLabel="Order options"
             accessibilityState={{ disabled: !order }}
             disabled={!order}
-            onPress={() => setShowOptions(true)}
+            onPress={() => {
+              if (
+                order?.status.toLowerCase() === "delivered" &&
+                deliveryProof.hasPendingProof
+              ) {
+                setShowProofSheet(true);
+                return;
+              }
+              setShowOptions(true);
+            }}
             style={styles.headerButton}
           >
             <MaterialCommunityIcons
@@ -103,11 +118,30 @@ export function TripOrderDetailsScreen() {
         onClose={() => setShowOptions(false)}
         onSelectStatus={handleStatusUpdate}
       />
+      <RequestDeliveryProofSheet
+        visible={showProofSheet}
+        submissionState={deliveryProof.submissionState}
+        preparedPhotoCount={deliveryProof.preparedPhotoCount}
+        isSubmitting={deliveryProof.isSubmitting}
+        onClose={() => setShowProofSheet(false)}
+        onSubmit={async (photos, note) => {
+          await deliveryProof.submit(photos, note);
+          setShowProofSheet(false);
+          showToast("Delivery proof was sent to the requester.", {
+            variant: "success",
+          });
+        }}
+      />
     </AppScreen>
   );
 
   async function handleStatusUpdate(status: RequestDeliveryStatus) {
     if (!orderUid || updateStatus.isPending) return;
+    if (status === "delivered") {
+      setShowOptions(false);
+      setShowProofSheet(true);
+      return;
+    }
     const previousStatus = order?.status.toLowerCase();
     try {
       const updatedRequest = await updateStatus.mutateAsync(status);

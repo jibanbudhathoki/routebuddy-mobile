@@ -42,6 +42,8 @@ export const apiEndpoints = {
     cancelRequest: "/v1/requests/:uid/cancel",
     deleteRequest: "/v1/requests/:uid",
     listMyAssignedRequests: "/v1/requests/driver/me",
+    addDeliveryProof: "/v1/requests/:uid/delivery-proof",
+    confirmDelivery: "/v1/requests/:uid/confirm-delivery",
   },
   messages: {
     uploadMedia: "/v1/media/upload",

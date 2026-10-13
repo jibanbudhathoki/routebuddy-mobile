@@ -38,8 +38,12 @@ interface ChatMessagesPanelProps {
   tripOrder?: ChatTripOrder;
   isAcceptingOffer: boolean;
   isAcceptingOrder: boolean;
+  canConfirmDelivery: boolean;
+  isConfirmingDelivery: boolean;
+  deliveryConfirmed: boolean;
   onAcceptOffer: (offerUid: string) => void;
   onAcceptOrder: (orderUid: string) => void;
+  onConfirmDelivery: (requestUid: string) => void;
   selectedMessageIds: string[];
   selectionMode: boolean;
   isLoading: boolean;
@@ -69,8 +73,12 @@ export function ChatMessagesPanel({
   tripOrder,
   isAcceptingOffer,
   isAcceptingOrder,
+  canConfirmDelivery,
+  isConfirmingDelivery,
+  deliveryConfirmed,
   onAcceptOffer,
   onAcceptOrder,
+  onConfirmDelivery,
   selectedMessageIds,
   selectionMode,
   isLoading,
@@ -142,8 +150,12 @@ export function ChatMessagesPanel({
         }
         isAcceptingOffer={isAcceptingOffer}
         isAcceptingOrder={isAcceptingOrder}
+        canConfirmDelivery={canConfirmDelivery}
+        isConfirmingDelivery={isConfirmingDelivery}
+        deliveryConfirmed={deliveryConfirmed}
         onAcceptOffer={onAcceptOffer}
         onAcceptOrder={onAcceptOrder}
+        onConfirmDelivery={onConfirmDelivery}
         onPress={() => onMessagePress(message)}
         onLongPress={() => onMessageLongPress(message)}
         onDoubleTap={() => onMessageDoubleTap(message)}

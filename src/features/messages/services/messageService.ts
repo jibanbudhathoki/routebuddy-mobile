@@ -217,6 +217,7 @@ function normalizeMessage(
     requestOffer: parsedOfferMessage.requestOffer,
     tripOrderUid: parsedOfferMessage.tripOrderUid,
     tripOrderDriverUid: parsedOfferMessage.tripOrderDriverUid,
+    deliveryProof: parsedOfferMessage.deliveryProof,
     createdAt: message.createdAt,
     type: message.type,
     mediaUrl: resolveMessageMediaUrl(

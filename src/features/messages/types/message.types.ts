@@ -4,6 +4,13 @@ export interface MessageReaction {
   [userUid: string]: string | undefined;
 }
 
+export interface ChatDeliveryProof {
+  requestUid: string;
+  driverUid: string;
+  itemPhotoUrls: string[];
+  note?: string;
+}
+
 export interface Message {
   id: string;
   conversationUid?: string;
@@ -28,6 +35,7 @@ export interface Message {
   };
   tripOrderUid?: string;
   tripOrderDriverUid?: string;
+  deliveryProof?: ChatDeliveryProof;
 }
 
 export interface ChatRequestOffer {
