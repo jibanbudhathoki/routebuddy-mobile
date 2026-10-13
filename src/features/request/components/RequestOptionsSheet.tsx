@@ -6,24 +6,29 @@ interface RequestOptionsSheetProps {
   visible: boolean;
   isCancelling: boolean;
   isDeleting: boolean;
+  isReportingIssue: boolean;
   canCancel: boolean;
   onClose: () => void;
   onShare: () => void;
   onCancelRequest: () => void;
   onDeleteRequest: () => void;
+  onReportIssue: () => void;
 }
 
 export function RequestOptionsSheet({
   visible,
   isCancelling,
   isDeleting,
+  isReportingIssue,
   canCancel,
   onClose,
   onShare,
   onCancelRequest,
   onDeleteRequest,
+  onReportIssue,
 }: RequestOptionsSheetProps) {
   const { theme } = useUnistyles();
+  const isBusy = isCancelling || isDeleting || isReportingIssue;
 
   return (
     <Modal
@@ -60,9 +65,17 @@ export function RequestOptionsSheet({
             icon="share-variant-outline"
             title="Share Request"
             description="Share a read-only link to this request."
-            disabled={isCancelling || isDeleting}
+            disabled={isBusy}
             loading={false}
             onPress={onShare}
+          />
+          <OptionButton
+            icon="alert-circle-outline"
+            title={isReportingIssue ? "Submitting report..." : "Report an Issue"}
+            description="Tell us about a problem with this request."
+            disabled={isBusy}
+            loading={isReportingIssue}
+            onPress={onReportIssue}
           />
           <OptionButton
             icon="cancel"
@@ -72,7 +85,7 @@ export function RequestOptionsSheet({
                 ? "Cancel this request before a driver accepts it."
                 : "A request can only be cancelled before a driver accepts it."
             }
-            disabled={!canCancel || isCancelling || isDeleting}
+            disabled={!canCancel || isBusy}
             loading={isCancelling}
             onPress={onCancelRequest}
           />
@@ -80,7 +93,7 @@ export function RequestOptionsSheet({
             icon="delete-outline"
             title={isDeleting ? "Deleting..." : "Delete Request"}
             description="Hide and cancel this request before fulfilment begins."
-            disabled={isCancelling || isDeleting}
+            disabled={isBusy}
             loading={isDeleting}
             destructive
             onPress={onDeleteRequest}

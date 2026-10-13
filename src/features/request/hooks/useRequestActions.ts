@@ -31,3 +31,18 @@ export function useDeleteRequest(requestUid: string) {
     },
   });
 }
+
+export function useReportRequestIssue(requestUid: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (message: string) =>
+      requestService.reportIssue(requestUid, { message }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["requests", "details", requestUid],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["requests"] });
+    },
+  });
+}

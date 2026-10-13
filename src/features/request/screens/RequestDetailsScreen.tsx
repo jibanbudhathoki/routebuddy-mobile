@@ -17,10 +17,12 @@ import { RequestAssignedDriver } from "../components/RequestAssignedDriver";
 import { RequestOffersList } from "../components/RequestOffersList";
 import { RequestShoppingList } from "../components/RequestShoppingList";
 import { RequestStatusTimeline } from "../components/RequestStatusTimeline";
+import { ReportRequestIssueDialog } from "../components/ReportRequestIssueDialog";
 import { useAcceptRequestOffer } from "../hooks/useRequestOffers";
 import {
   useCancelRequest,
   useDeleteRequest,
+  useReportRequestIssue,
 } from "../hooks/useRequestActions";
 import { useRequestDetails } from "../hooks/useRequestDetails";
 import { createSharedDetailLink } from "../../../shared/utils/sharedDetailLink";
@@ -33,6 +35,7 @@ export function RequestDetailsScreen() {
   const { theme } = useUnistyles();
   const { showToast } = useToast();
   const [showOptions, setShowOptions] = useState(false);
+  const [showIssueReport, setShowIssueReport] = useState(false);
   const [confirmation, setConfirmation] = useState<RequestConfirmation>(null);
   const createConversation = useCreateConversation();
   const requestUid = typeof uid === "string" ? uid : "";
@@ -40,6 +43,7 @@ export function RequestDetailsScreen() {
   const acceptOffer = useAcceptRequestOffer(requestUid);
   const cancelRequest = useCancelRequest(requestUid);
   const deleteRequest = useDeleteRequest(requestUid);
+  const reportIssue = useReportRequestIssue(requestUid);
 
   return (
     <AppScreen>
@@ -146,6 +150,7 @@ export function RequestDetailsScreen() {
         visible={showOptions}
         isCancelling={cancelRequest.isPending}
         isDeleting={deleteRequest.isPending}
+        isReportingIssue={reportIssue.isPending}
         canCancel={
           request
             ? ["pending", "open"].includes(request.status.toLowerCase())
@@ -164,6 +169,32 @@ export function RequestDetailsScreen() {
           setShowOptions(false);
           setConfirmation("delete");
         }}
+        onReportIssue={() => {
+          setShowOptions(false);
+          setShowIssueReport(true);
+        }}
+      />
+      <ReportRequestIssueDialog
+        visible={showIssueReport}
+        isSubmitting={reportIssue.isPending}
+        onClose={() => setShowIssueReport(false)}
+        onSubmit={(message) =>
+          reportIssue.mutate(message, {
+            onSuccess: (response) => {
+              setShowIssueReport(false);
+              showToast(response.message || "Issue reported successfully.", {
+                variant: "success",
+              });
+            },
+            onError: (failure) =>
+              showToast(
+                failure instanceof Error
+                  ? failure.message
+                  : "Unable to report this issue.",
+                { title: "Issue report failed", variant: "error" },
+              ),
+          })
+        }
       />
       <ConfirmationDialog
         visible={confirmation !== null}
