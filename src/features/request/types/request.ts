@@ -209,7 +209,11 @@ export interface RequestDetailsResponse {
     photoUrl?: string | null;
     name: string;
   } | null;
-  trip: unknown | null;
+  trip: {
+    uid: string;
+    origin: string;
+    destination: string;
+  } | null;
   offers: RequestOffer[];
   origin: string;
   destination: string;
