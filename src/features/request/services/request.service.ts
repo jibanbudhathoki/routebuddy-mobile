@@ -13,6 +13,8 @@ import type {
   ListMyAssignedRequestsResponse,
   RequestDetailsResponse,
   RequestDeliveryStatus,
+  ReportRequestIssuePayload,
+  ReportRequestIssueResponse,
   SubmitRequestOfferPayload,
   SubmitRequestOfferResponse,
 } from "../types/request";
@@ -20,6 +22,10 @@ import { updateRequestStatusSchema } from "../validations/updateRequestStatus";
 import { listMyAssignedRequestsResponseSchema } from "../validations/assignedRequests";
 import { myRequestsResponseSchema } from "../validations/myRequests";
 import { addDeliveryProofSchema } from "../validations/deliveryProof";
+import {
+  reportRequestIssueResponseSchema,
+  reportRequestIssueSchema,
+} from "../validations/reportRequestIssue";
 
 export const requestService = {
   createTripOrder: async (
@@ -294,6 +300,26 @@ export const requestService = {
     }
 
     return response;
+  },
+  reportIssue: async (
+    requestUid: string,
+    payload: ReportRequestIssuePayload,
+  ): Promise<ReportRequestIssueResponse> => {
+    if (!requestUid.trim()) {
+      throw new Error("A request ID is required to report an issue.");
+    }
+    const body = reportRequestIssueSchema.parse(payload);
+    const response = await apiRequest<unknown>(
+      apiEndpoints.requests.reportIssue.replace(
+        ":uid",
+        encodeURIComponent(requestUid),
+      ),
+      {
+        method: "POST",
+        body,
+      },
+    );
+    return reportRequestIssueResponseSchema.parse(response);
   },
 };
 

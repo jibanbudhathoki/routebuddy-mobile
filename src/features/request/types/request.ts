@@ -53,6 +53,14 @@ export interface DeleteRequestResponse {
   message: string;
 }
 
+export interface ReportRequestIssuePayload {
+  message: string;
+}
+
+export interface ReportRequestIssueResponse {
+  message: string;
+}
+
 export interface CreateTripOrderPayload {
   tripUid: string;
   stores: string[];
