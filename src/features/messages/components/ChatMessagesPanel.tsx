@@ -174,7 +174,6 @@ export function ChatMessagesPanel({
       ListHeaderComponent={
         <ConversationSummaryCard
           contextTitle={contextTitle}
-          contextId={conversationId}
         />
       }
       ListEmptyComponent={
