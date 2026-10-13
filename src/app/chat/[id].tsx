@@ -30,7 +30,9 @@ export default function ChatScreen() {
     messages.find((message) => message.requestOffer)?.requestOffer?.requestUid ||
     messages.find((message) => message.tripOrderUid)?.tripOrderUid ||
     "";
-  const { data: request } = useRequestDetails(requestUid);
+  const { data: request } = useRequestDetails(requestUid, {
+    refetchInterval: requestUid ? 10_000 : false,
+  });
   const acceptOffer = useAcceptRequestOffer(requestUid);
   const acceptTripOrder = useAcceptTripOrder();
   const tripOrderMessage = messages.find((message) => message.tripOrderUid);
@@ -54,6 +56,7 @@ export default function ChatScreen() {
   return (
     <ChatDetailScreen
       requestUid={requestUid}
+      request={request}
       requesterUid={request?.requester.uid ?? ""}
       requestOffers={
         request?.offers.map((offer) => ({

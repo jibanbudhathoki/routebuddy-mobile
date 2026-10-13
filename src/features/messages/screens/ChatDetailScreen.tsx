@@ -16,17 +16,21 @@ import { MessageDialog } from "../components/MessageDialog";
 import { ChatComposer } from "../components/ChatComposer";
 import { ChatMessagesPanel } from "../components/ChatMessagesPanel";
 import { ChatDetailHeader } from "../components/ChatDetailHeader";
+import { RequestStatusTimeline } from "../../request/components/RequestStatusTimeline";
+import type { RequestDetailsResponse } from "../../request/types/request";
 import { SelectedMessageReactions } from "../components/SelectedMessageReactions";
 import type {
   ChatRequestOffer,
   ChatTripOrder,
   InboxMessage,
 } from "../types/message.types";
+import { formatContextTitle } from "../utils/formatContextTitle";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { styles } from "../components/chatDetailScreen.styles";
 
 interface ChatDetailScreenProps {
   requestUid?: string;
+  request?: RequestDetailsResponse;
   requesterUid?: string;
   requestOffers?: ChatRequestOffer[];
   tripOrder?: ChatTripOrder;
@@ -39,6 +43,7 @@ interface ChatDetailScreenProps {
 
 export function ChatDetailScreen({
   requestUid,
+  request,
   requesterUid,
   requestOffers = [],
   tripOrder,
@@ -186,6 +191,11 @@ export function ChatDetailScreen({
         onDeleteSelected={interactions.confirmDeleteMessages}
         onOptions={interactions.showConversationOptions}
       />
+      {request ? (
+        <View style={styles.requestStatus}>
+          <RequestStatusTimeline request={request} />
+        </View>
+      ) : null}
       {showReactionPicker ? (
         <SelectedMessageReactions
           disabled={interactions.isReactingToMessages}
@@ -285,16 +295,4 @@ export function ChatDetailScreen({
       />
     </View>
   );
-}
-
-function formatContextTitle(context?: string) {
-  if (!context) return "Trip conversation";
-  const normalized = context.toLowerCase();
-  if (normalized.includes("request")) return "Request conversation";
-  if (normalized.includes("trip")) return "Trip conversation";
-  return `${capitalize(context)} conversation`;
-}
-
-function capitalize(value: string) {
-  return value ? `${value[0].toUpperCase()}${value.slice(1)}` : value;
 }
