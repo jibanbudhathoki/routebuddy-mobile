@@ -55,6 +55,7 @@ export const apiEndpoints = {
     addDeliveryProof: "/v1/requests/:uid/delivery-proof",
     confirmDelivery: "/v1/requests/:uid/confirm-delivery",
     reportIssue: "/v1/requests/:uid/issues",
+    rateDriver: "/v1/requests/:uid/rating",
   },
   messages: {
     uploadMedia: "/v1/media/upload",
@@ -77,5 +78,8 @@ export const apiEndpoints = {
     listJoinedCommunities: "/v1/communities/recent",
     listMySubmittedCommunities: "/v1/communities/my-submissions",
     joinCommunity: "/v1/communities/:uid/join",
+  },
+  ratings: {
+	rateDriver: "/v1/requests/:uid/rating",
   },
 } as const;
