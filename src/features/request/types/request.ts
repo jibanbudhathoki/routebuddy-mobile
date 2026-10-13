@@ -204,6 +204,8 @@ export interface RequestDetailsResponse {
   destination: string;
 }
 
+export type RequestDeliveryStatus = "shopping" | "delivering" | "delivered";
+
 export interface RequestOffer {
   uid: string;
   driver: {
