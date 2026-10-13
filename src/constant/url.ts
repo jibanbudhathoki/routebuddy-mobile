@@ -65,4 +65,12 @@ export const apiEndpoints = {
   orders: {
     postOrder: "/v1/requests/order",
   },
+  communities: {
+    listAllCommunities: "/v1/communities",
+    submitNewCommunity: "/v1/communities",
+    getCommunityTypes: "/v1/communities/types",
+    listJoinedCommunities: "/v1/communities/recent",
+    listMySubmittedCommunities: "/v1/communities/my-submissions",
+    joinCommunity: "/v1/communities/:uid/join",
+  },
 } as const;
