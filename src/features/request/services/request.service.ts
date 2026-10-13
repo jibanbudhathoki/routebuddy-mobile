@@ -5,6 +5,7 @@ import type {
   CreateTripOrderResponse,
   CreateOpenRequestApiPayload,
   CreateOpenRequestResponse,
+  AddRequestDeliveryProofPayload,
   CancelRequestResponse,
   DeleteRequestResponse,
   ListAllRequestsResponse,
@@ -18,6 +19,7 @@ import type {
 import { updateRequestStatusSchema } from "../validations/updateRequestStatus";
 import { listMyAssignedRequestsResponseSchema } from "../validations/assignedRequests";
 import { myRequestsResponseSchema } from "../validations/myRequests";
+import { addDeliveryProofSchema } from "../validations/deliveryProof";
 
 export const requestService = {
   createTripOrder: async (
@@ -188,6 +190,65 @@ export const requestService = {
       throw new Error("The status response did not include request details.");
     }
 
+    return response.data;
+  },
+  addDeliveryProof: async (
+    requestUid: string,
+    payload: AddRequestDeliveryProofPayload,
+  ): Promise<RequestDetailsResponse> => {
+    if (!requestUid.trim()) {
+      throw new Error("A request ID is required to add delivery proof.");
+    }
+    const validation = addDeliveryProofSchema.safeParse(payload);
+    if (!validation.success) {
+      throw new Error(
+        validation.error.issues[0]?.message ??
+          "Add at least one valid delivery photo.",
+      );
+    }
+
+    const response = await apiRequest<{
+      success: boolean;
+      message: string;
+      data: RequestDetailsResponse;
+    }>(
+      apiEndpoints.requests.addDeliveryProof.replace(
+        ":uid",
+        encodeURIComponent(requestUid),
+      ),
+      {
+        method: "POST",
+        body: validation.data,
+      },
+    );
+
+    if (!response.success || !response.data?.uid) {
+      throw new Error(response.message || "Unable to save delivery proof.");
+    }
+    return response.data;
+  },
+  confirmDelivery: async (
+    requestUid: string,
+  ): Promise<RequestDetailsResponse> => {
+    if (!requestUid.trim()) {
+      throw new Error("A request ID is required to confirm delivery.");
+    }
+
+    const response = await apiRequest<{
+      success: boolean;
+      message: string;
+      data: RequestDetailsResponse;
+    }>(
+      apiEndpoints.requests.confirmDelivery.replace(
+        ":uid",
+        encodeURIComponent(requestUid),
+      ),
+      { method: "POST" },
+    );
+
+    if (!response.success || !response.data?.uid) {
+      throw new Error(response.message || "Unable to confirm delivery.");
+    }
     return response.data;
   },
   cancelRequest: async (requestUid: string): Promise<CancelRequestResponse> => {

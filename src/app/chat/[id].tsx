@@ -1,4 +1,5 @@
 import { useLocalSearchParams } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { ChatDetailScreen } from "../../features/messages/screens/ChatDetailScreen";
 import {
@@ -10,6 +11,7 @@ import {
   useAcceptTripOrder,
 } from "../../features/request/hooks/useRequestOffers";
 import { useRequestDetails } from "../../features/request/hooks/useRequestDetails";
+import { useConfirmDelivery } from "../../features/request/hooks/useDeliveryProof";
 import { useTripDetails } from "../../features/trip/hooks/useTripDetails";
 
 export default function ChatScreen() {
@@ -18,6 +20,8 @@ export default function ChatScreen() {
     requestUid?: string;
   }>();
   const conversationId = typeof id === "string" ? id : "";
+  const queryClient = useQueryClient();
+  const confirmDelivery = useConfirmDelivery();
   const { data: conversations = [] } = useListMessages();
   const { data: messages = [] } = useConversationMessages(conversationId);
   const conversation = conversations.find(
@@ -71,11 +75,18 @@ export default function ChatScreen() {
       orderDriverUid={tripOrderDriverUid}
       isAcceptingOffer={acceptOffer.isPending}
       isAcceptingOrder={acceptTripOrder.isPending}
+      isConfirmingDelivery={confirmDelivery.isPending}
       onAcceptOffer={async (offerUid) => {
         await acceptOffer.mutateAsync(offerUid);
       }}
       onAcceptOrder={async (orderUid) => {
         await acceptTripOrder.mutateAsync(orderUid);
+      }}
+      onConfirmDelivery={async (requestId) => {
+        await confirmDelivery.mutateAsync(requestId);
+        await queryClient.invalidateQueries({
+          queryKey: ["trips", "orders"],
+        });
       }}
     />
   );

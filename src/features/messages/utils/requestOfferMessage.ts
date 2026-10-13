@@ -1,5 +1,8 @@
+import type { ChatDeliveryProof } from "../types/message.types";
+
 const OFFER_MESSAGE_PREFIX = "[[routebuddy-offer:";
 const TRIP_ORDER_MESSAGE_PREFIX = "[[routebuddy-order:";
+const DELIVERY_PROOF_MESSAGE_PREFIX = "[[routebuddy-delivery-proof:";
 
 export interface RequestOfferMessageReference {
   requestUid: string;
@@ -25,12 +28,68 @@ export function createTripOrderMessage(
   return `${TRIP_ORDER_MESSAGE_PREFIX}${reference}]]\n${visibleMessage}`;
 }
 
+export function createDeliveryProofMessage(
+  proof: ChatDeliveryProof,
+) {
+  if (!proof.requestUid.trim() || !proof.driverUid.trim()) {
+    throw new Error("A request ID and driver ID are required for delivery proof.");
+  }
+  if (proof.itemPhotoUrls.length === 0) {
+    throw new Error("At least one delivery photo is required.");
+  }
+  const reference = encodeURIComponent(JSON.stringify(proof));
+  return `${DELIVERY_PROOF_MESSAGE_PREFIX}${reference}]]`;
+}
+
 export function parseRequestOfferMessage(content: string): {
   visibleMessage: string;
   requestOffer?: RequestOfferMessageReference;
   tripOrderUid?: string;
   tripOrderDriverUid?: string;
+  deliveryProof?: ChatDeliveryProof;
 } {
+  if (content.startsWith(DELIVERY_PROOF_MESSAGE_PREFIX)) {
+    const endOfHeader = content.indexOf(
+      "]]",
+      DELIVERY_PROOF_MESSAGE_PREFIX.length,
+    );
+    if (endOfHeader >= 0) {
+      try {
+        const proof = JSON.parse(
+          decodeURIComponent(
+            content.slice(DELIVERY_PROOF_MESSAGE_PREFIX.length, endOfHeader),
+          ),
+        ) as Partial<ChatDeliveryProof>;
+        if (
+          typeof proof.requestUid === "string" &&
+          proof.requestUid &&
+          typeof proof.driverUid === "string" &&
+          proof.driverUid &&
+          Array.isArray(proof.itemPhotoUrls) &&
+          proof.itemPhotoUrls.length > 0 &&
+          proof.itemPhotoUrls.every(
+            (url) => typeof url === "string" && url.length > 0,
+          )
+        ) {
+          return {
+            visibleMessage: "Delivery proof submitted.",
+            tripOrderUid: proof.requestUid,
+            tripOrderDriverUid: proof.driverUid,
+            deliveryProof: {
+              requestUid: proof.requestUid,
+              driverUid: proof.driverUid,
+              itemPhotoUrls: proof.itemPhotoUrls,
+              note: typeof proof.note === "string" ? proof.note : undefined,
+            },
+          };
+        }
+      } catch {
+        return { visibleMessage: content };
+      }
+    }
+    return { visibleMessage: content };
+  }
+
   if (content.startsWith(TRIP_ORDER_MESSAGE_PREFIX)) {
     const endOfHeader = content.indexOf("]]", TRIP_ORDER_MESSAGE_PREFIX.length);
     if (endOfHeader >= 0) {
