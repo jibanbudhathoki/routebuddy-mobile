@@ -41,6 +41,7 @@ export const apiEndpoints = {
     acceptTripOrder: "/v1/requests/:uid/accept",
     cancelRequest: "/v1/requests/:uid/cancel",
     deleteRequest: "/v1/requests/:uid",
+    listMyAssignedRequests: "/v1/requests/driver/me",
   },
   messages: {
     uploadMedia: "/v1/media/upload",

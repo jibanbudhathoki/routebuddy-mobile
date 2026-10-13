@@ -9,12 +9,14 @@ import type {
   DeleteRequestResponse,
   ListAllRequestsResponse,
   ListMyRequestsResponse,
+  ListMyAssignedRequestsResponse,
   RequestDetailsResponse,
   RequestDeliveryStatus,
   SubmitRequestOfferPayload,
   SubmitRequestOfferResponse,
 } from "../types/request";
 import { updateRequestStatusSchema } from "../validations/updateRequestStatus";
+import { listMyAssignedRequestsResponseSchema } from "../validations/assignedRequests";
 
 export const requestService = {
   createTripOrder: async (
@@ -250,6 +252,44 @@ export const listMyRequests = async (): Promise<
   }
 
   return response.data;
+};
+
+export const listMyAssignedRequests = async (): Promise<
+  ListMyAssignedRequestsResponse["data"]
+> => {
+  const response = await apiRequest<unknown>(
+    apiEndpoints.requests.listMyAssignedRequests,
+    { method: "GET" },
+  );
+
+  if (
+    typeof response === "object" &&
+    response !== null &&
+    "success" in response &&
+    response.success === false
+  ) {
+    const message =
+      "message" in response && typeof response.message === "string"
+        ? response.message
+        : "Failed to load assigned requests.";
+    throw new Error(message);
+  }
+
+  const parsedResponse =
+    listMyAssignedRequestsResponseSchema.safeParse(response);
+  if (!parsedResponse.success) {
+    throw new Error(
+      parsedResponse.error.issues[0]?.message ??
+        "The assigned requests response was invalid.",
+    );
+  }
+  if (!parsedResponse.data.success) {
+    throw new Error(
+      parsedResponse.data.message || "Failed to load assigned requests.",
+    );
+  }
+
+  return parsedResponse.data.data;
 };
 
 export const listAllRequests = async (): Promise<

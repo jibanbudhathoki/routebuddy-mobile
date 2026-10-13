@@ -5,6 +5,7 @@ import { useUnistyles } from "react-native-unistyles";
 import { RequesterAvatar } from "./TripOrdersSection";
 import { styles } from "./tripOrderDetailsScreen.styles";
 import type { RequestDetailsResponse } from "../../request/types/request";
+import { RequestStatusTimeline } from "../../request/components/RequestStatusTimeline";
 
 export function TripOrderDetailsContent({
   order,
@@ -37,6 +38,8 @@ export function TripOrderDetailsContent({
           <Text style={styles.statusText}>{formatStatus(order.status)}</Text>
         </View>
       </View>
+
+      <RequestStatusTimeline request={order} />
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Order details</Text>
