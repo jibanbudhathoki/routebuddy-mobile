@@ -26,25 +26,6 @@ export function MyRequestsScreen() {
 
   return (
     <View>
-      <View style={styles.sectionHeading}>
-        <View style={styles.sectionTitleGroup}>
-          <MaterialCommunityIcons
-            name="bag-personal-outline"
-            size={20}
-            color={theme.colors.text}
-          />
-          <Text style={styles.sectionTitle}>Requests Coming Up</Text>
-        </View>
-        <View style={styles.viewAll}>
-          <Text style={styles.viewAllText}>View All</Text>
-          <MaterialCommunityIcons
-            name="chevron-right"
-            size={18}
-            color={theme.colors.text}
-          />
-        </View>
-      </View>
-
       {isLoading ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyStateText}>Loading your requests...</Text>
@@ -91,32 +72,6 @@ export function MyRequestsScreen() {
 }
 
 const styles = StyleSheet.create((theme) => ({
-  sectionHeading: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: theme.spacing.md,
-  },
-  sectionTitleGroup: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-  },
-  sectionTitle: {
-    color: theme.colors.text,
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  viewAll: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: theme.spacing.xs,
-  },
-  viewAllText: {
-    color: theme.colors.text,
-    fontSize: 12,
-    fontWeight: "500",
-  },
   requestList: {
     gap: theme.spacing.sm,
   },

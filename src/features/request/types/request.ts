@@ -155,6 +155,17 @@ export interface ListMyRequestsResponse {
 
 export interface ListAllRequestsResponse extends ListMyRequestsResponse {}
 
+export interface AssignedRequestListItem extends MyRequestListItem {}
+
+export interface ListMyAssignedRequestsResponse {
+  success: boolean;
+  message: string;
+  data: AssignedRequestListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface RequestDetailsResponse {
   uid: string;
   kind: string;
