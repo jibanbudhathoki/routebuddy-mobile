@@ -419,3 +419,34 @@ export const getRequestDetails = async (
 
   return response.data;
 };
+
+export const getSharedRequestDetails = async (
+  uid: string,
+): Promise<RequestDetailsResponse> => {
+  if (!uid.trim()) {
+    throw new Error("A request ID is required to load shared request details.");
+  }
+  const response = await apiRequest<{
+    success: boolean;
+    message: string;
+    data: RequestDetailsResponse;
+  }>(
+    apiEndpoints.requests.sharedRequestDetails.replace(
+      ":uid",
+      encodeURIComponent(uid),
+    ),
+    { method: "GET" },
+  );
+
+  if (!response.success) {
+    throw new Error(
+      response.message || "Failed to load shared request details.",
+    );
+  }
+  if (!response.data?.uid) {
+    throw new Error(
+      "The shared request response did not include request details.",
+    );
+  }
+  return response.data;
+};

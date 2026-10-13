@@ -27,6 +27,7 @@ import { useTripOrders } from "../hooks/useTripOrders";
 import { useToggleTripOrders } from "../hooks/useToggleTripOrders";
 import { useUpdateTripStatus } from "../hooks/useUpdateTripStatus";
 import type { TripOrder, TripStatus } from "../types/trip";
+import { createSharedDetailLink } from "../../../shared/utils/sharedDetailLink";
 
 export function TripDetailsScreen() {
   const router = useRouter();
@@ -170,8 +171,10 @@ export function TripDetailsScreen() {
 
     if (action === "share") {
       try {
+        const link = createSharedDetailLink("trip", trip.uid);
         await Share.share({
-          message: `Trip: ${trip.origin} to ${trip.destination}, departing ${formatDate(trip.departureAt)}.`,
+          message: `Trip: ${trip.origin} to ${trip.destination}, departing ${formatDate(trip.departureAt)}.\n${link}`,
+          url: link,
         });
       } catch {
         showToast("Unable to share this trip.");

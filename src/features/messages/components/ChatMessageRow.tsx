@@ -1,7 +1,9 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { Image, Text, View } from "react-native";
 import { useUnistyles } from "react-native-unistyles";
 
+import { parseSharedDetailLink } from "../../../shared/utils/sharedDetailLink";
 import { MessageGesturePressable } from "./MessageGesturePressable";
 import type {
   ChatRequestOffer,
@@ -71,6 +73,7 @@ export function ChatMessageRow({
   onDoubleTap,
   onSwipeReply,
 }: ChatMessageRowProps) {
+  const router = useRouter();
   const { theme } = useUnistyles();
 
   if (message.type === "system" || message.senderId === null) {
@@ -92,6 +95,8 @@ export function ChatMessageRow({
         : message.type === "voice"
           ? "Voice message"
           : `${capitalize(message.type)} message`;
+  const sharedTarget =
+    message.type === "text" ? parseSharedDetailLink(message.text) : null;
   const reactions = getReactionCounts(message.reactions);
   const avatarUrl = message.sender?.photoUrl ?? participantAvatar;
   const name = message.sender?.displayName ?? participantName;
@@ -199,6 +204,37 @@ export function ChatMessageRow({
               ) : null}
             </MessageGesturePressable>
           )}
+          {sharedTarget ? (
+            <MessageGesturePressable
+              selectionMode={selectionMode}
+              accessibilityLabel={`Open shared ${sharedTarget.type}`}
+              onPress={() => {
+                if (selectionMode) {
+                  onPress();
+                  return;
+                }
+                router.push({
+                  pathname:
+                    sharedTarget.type === "trip"
+                      ? "/shared/trip/[uid]"
+                      : "/shared/request/[uid]",
+                  params: { uid: sharedTarget.uid },
+                });
+              }}
+              onLongPress={onLongPress}
+              onDoubleTap={() => undefined}
+              style={styles.sharedLinkButton}
+            >
+              <MaterialCommunityIcons
+                name="open-in-new"
+                size={15}
+                color={theme.colors.primary}
+              />
+              <Text style={styles.sharedLinkText}>
+                Open shared {sharedTarget.type}
+              </Text>
+            </MessageGesturePressable>
+          ) : null}
           {reactions.length ? (
             <View style={styles.reactionsRow}>
               {reactions.map(({ emoji, count }) => (
