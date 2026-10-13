@@ -7,7 +7,7 @@ import { FormInput } from "./FormInput";
 
 interface AddressFormFieldsProps {
   formData: AddressFormData;
-  updateField: (field: keyof AddressFormData, value: string) => void;
+  updateField: (field: keyof AddressFormData, value: string | boolean) => void;
   onSelectCountry: () => void;
   onSelectProvince: () => void;
   onSelectCity: () => void;
@@ -88,6 +88,15 @@ export function AddressFormFields({
         onChangeText={(text) => updateField("postalCode", text)}
         maxLength={20}
       />
+      <FormInput
+        label="Phone (optional)"
+        icon="phone-outline"
+        placeholder="Recipient phone number"
+        value={formData.phone}
+        onChangeText={(text) => updateField("phone", text)}
+        maxLength={20}
+        keyboardType="phone-pad"
+      />
       <View style={styles.textAreaWrapper}>
         <FormInput
           label="Notes for driver (optional)"
@@ -103,6 +112,19 @@ export function AddressFormFields({
         />
         <Text style={styles.charCount}>{formData.notes.length}/150</Text>
       </View>
+      <TouchableOpacity
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: formData.isDefault }}
+        style={styles.defaultAddressRow}
+        onPress={() => updateField("isDefault", !formData.isDefault)}
+      >
+        <MaterialCommunityIcons
+          name={formData.isDefault ? "checkbox-marked" : "checkbox-blank-outline"}
+          size={22}
+          color={formData.isDefault ? theme.colors.primary : theme.colors.muted}
+        />
+        <Text style={styles.defaultAddressText}>Set as default address</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -201,6 +223,16 @@ const styles = StyleSheet.create((theme) => ({
   },
   textAreaWrapper: {
     position: "relative",
+  },
+  defaultAddressRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
+  },
+  defaultAddressText: {
+    color: theme.colors.text,
+    fontSize: 14,
   },
   charCount: {
     position: "absolute",

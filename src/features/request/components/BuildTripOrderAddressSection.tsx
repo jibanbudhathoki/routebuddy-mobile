@@ -79,10 +79,10 @@ export function formatAddress(address: Address) {
   return [
     address.line1,
     address.line2,
-    address.city.name,
-    address.province.name,
+    address.city?.name,
+    address.province?.name,
     address.postalCode,
-    address.country.name,
+    address.country?.name,
   ]
     .filter(Boolean)
     .join(", ");

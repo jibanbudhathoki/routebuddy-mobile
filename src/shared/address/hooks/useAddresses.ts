@@ -1,7 +1,11 @@
-import { useState, useCallback } from 'react';
-import { useFocusEffect } from 'expo-router';
-import { addressService } from '../services/address.service';
-import { Address, CreateAddressDto, UpdateAddressDto } from '../types/address';
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { addressService } from "../services/address.service";
+import type { Address, CreateAddressDto, UpdateAddressDto } from "../types/address";
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export function useAddresses() {
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -12,12 +16,9 @@ export function useAddresses() {
     setIsLoading(true);
     setError(null);
     try {
-      const response: any = await addressService.getAddresses();
-      const addressesArray = Array.isArray(response) ? response : response?.data || [];
-      setAddresses(addressesArray);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to fetch addresses.');
-      console.error(err);
+      setAddresses(await addressService.getAddresses());
+    } catch (fetchError: unknown) {
+      setError(getErrorMessage(fetchError, "Failed to fetch addresses."));
     } finally {
       setIsLoading(false);
     }
@@ -25,42 +26,32 @@ export function useAddresses() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchAddresses();
-    }, [fetchAddresses])
+      void fetchAddresses();
+    }, [fetchAddresses]),
   );
 
   const createAddress = async (dto: CreateAddressDto) => {
-    try {
-      const newAddress = await addressService.createAddress(dto);
-      setAddresses((prev) => [...prev, newAddress]);
-      return newAddress;
-    } catch (err: any) {
-      console.error('Failed to create address:', err);
-      throw err;
-    }
+    const created = await addressService.createAddress(dto);
+    setAddresses((current) => [...current, created]);
+    return created;
   };
 
   const updateAddress = async (uid: string, dto: UpdateAddressDto) => {
-    try {
-      const updated = await addressService.updateAddress(uid, dto);
-      setAddresses((prev) =>
-        prev.map((addr) => (addr.uid === uid ? updated : addr))
-      );
-      return updated;
-    } catch (err: any) {
-      console.error('Failed to update address:', err);
-      throw err;
+    const response = await addressService.updateAddress(uid, dto);
+    const existing = addresses.find((address) => address.uid === uid);
+    if (!existing) {
+      throw new Error("The address could not be found after updating.");
     }
+    const updatedAddress: Address = { ...existing, ...dto, ...response, uid };
+    setAddresses((current) =>
+      current.map((address) => (address.uid === uid ? updatedAddress : address)),
+    );
+    return updatedAddress;
   };
 
   const deleteAddress = async (uid: string) => {
-    try {
-      await addressService.deleteAddress(uid);
-      setAddresses((prev) => prev.filter((addr) => addr.uid !== uid));
-    } catch (err: any) {
-      console.error('Failed to delete address:', err);
-      throw err;
-    }
+    await addressService.deleteAddress(uid);
+    setAddresses((current) => current.filter((address) => address.uid !== uid));
   };
 
   return {

@@ -80,7 +80,16 @@ export function DeliveryAddressScreen() {
         ) : (
           addresses.map((addr) => {
             const isSelected = selectedAddress === addr.uid;
-            const formattedAddress = `${addr.line1}${addr.line2 ? `, ${addr.line2}` : ""}\n${addr.city?.name}, ${addr.province?.name}`;
+            const locality = [addr.city?.name, addr.province?.name]
+              .filter(Boolean)
+              .join(", ");
+            const formattedAddress = [
+              [addr.line1, addr.line2].filter(Boolean).join(", "),
+              locality,
+              addr.postalCode,
+            ]
+              .filter(Boolean)
+              .join("\n");
 
             return (
               <TouchableOpacity
@@ -152,13 +161,13 @@ export function DeliveryAddressScreen() {
               return;
             }
             const selectedAddrObj = addresses.find((a) => a.uid === selectedAddress);
-            if (!selectedAddrObj?.city?.uid) {
+            if (!selectedAddrObj?.cityUid) {
               showToast("The selected address does not have a delivery city.");
               return;
             }
             updateRequestData({
               deliveryAddress: selectedAddress,
-              deliveryCityUid: selectedAddrObj.city.uid,
+              deliveryCityUid: selectedAddrObj.cityUid,
             });
             router.back();
           }}

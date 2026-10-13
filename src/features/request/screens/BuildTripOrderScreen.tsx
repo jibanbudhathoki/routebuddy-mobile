@@ -114,7 +114,7 @@ export function BuildTripOrderScreen() {
       updateRequestData({
         stores: validation.data.stores,
         deliveryAddress: selectedAddress.uid,
-        deliveryCityUid: selectedAddress.city.uid,
+        deliveryCityUid: selectedAddress.cityUid,
         itemsInstructions: notes.trim(),
         dayNeeded: trip.departureAt,
         latestDeliveryTime: trip.deliveryLatestBy,
