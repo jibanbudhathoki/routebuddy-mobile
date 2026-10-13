@@ -1,9 +1,11 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 interface ChatDetailHeaderProps {
   participantName: string;
+  participantAvatar: string | null;
   contextTitle: string;
   selectedCount: number;
   isDeleting: boolean;
@@ -15,6 +17,7 @@ interface ChatDetailHeaderProps {
 
 export function ChatDetailHeader({
   participantName,
+  participantAvatar,
   contextTitle,
   selectedCount,
   isDeleting,
@@ -39,6 +42,22 @@ export function ChatDetailHeader({
           color={theme.colors.primary}
         />
       </TouchableOpacity>
+      <View style={styles.avatar}>
+        {participantAvatar ? (
+          <Image
+            source={{ uri: participantAvatar }}
+            style={styles.avatarImage}
+            contentFit="cover"
+            accessibilityLabel={`${participantName} profile photo`}
+          />
+        ) : (
+          <MaterialCommunityIcons
+            name="account"
+            size={21}
+            color={theme.colors.onPrimary}
+          />
+        )}
+      </View>
       <View style={styles.title}>
         <Text numberOfLines={1} style={styles.participantName}>
           {participantName}
@@ -117,6 +136,20 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     flex: 1,
     minWidth: 0,
+  },
+  avatar: {
+    alignItems: "center",
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: 19,
+    height: 38,
+    justifyContent: "center",
+    marginRight: theme.spacing.sm,
+    overflow: "hidden",
+    width: 38,
+  },
+  avatarImage: {
+    height: "100%",
+    width: "100%",
   },
   participantName: {
     color: theme.colors.primary,

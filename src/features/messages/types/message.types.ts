@@ -157,6 +157,7 @@ export interface InboxMessageResponse {
   latestMsgSenderUid?: string;
   contextType?: string;
   avatarUrl?: string | null;
+  recipientImage?: string | null;
   timestamp?: string;
   unreadCount?: number;
   tripId?: string | null;

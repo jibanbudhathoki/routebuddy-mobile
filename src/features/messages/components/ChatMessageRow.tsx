@@ -17,6 +17,7 @@ import { DeliveryProofMessageCard } from "./DeliveryProofMessageCard";
 import { SwipeToReplyMessage } from "./SwipeToReplyMessage";
 import { ChatMessageMedia } from "./ChatMessageMedia";
 import { styles } from "./chatMessageRow.styles";
+import { resolveAvatarUrl } from "../utils/resolveAvatarUrl";
 
 interface ChatMessageRowProps {
   message: Message;
@@ -98,7 +99,9 @@ export function ChatMessageRow({
   const sharedTarget =
     message.type === "text" ? parseSharedDetailLink(message.text) : null;
   const reactions = getReactionCounts(message.reactions);
-  const avatarUrl = message.sender?.photoUrl ?? participantAvatar;
+  const avatarUrl = resolveAvatarUrl(
+    message.sender?.photoUrl ?? participantAvatar,
+  );
   const name = message.sender?.displayName ?? participantName;
 
   return (
