@@ -42,9 +42,9 @@ export const useListMessages = () => {
         const cachedTime = Date.parse(cached.timestamp ?? "");
         const fetchedTime = Date.parse(conversation.timestamp ?? "");
         if (
-          Number.isFinite(cachedTime) &&
-          Number.isFinite(fetchedTime) &&
-          fetchedTime > cachedTime
+          !Number.isFinite(cachedTime) ||
+          !Number.isFinite(fetchedTime) ||
+          cachedTime <= fetchedTime
         ) {
           return conversation;
         }

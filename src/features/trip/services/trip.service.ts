@@ -16,6 +16,7 @@ import type {
 } from "../types/trip";
 import { updateTripStatusSchema } from "../validations/updateTripStatus";
 import { listTripOrdersResponseSchema } from "../validations/tripOrders";
+import { myTripsResponseSchema } from "../validations/myTrips";
 
 export const tripService = {
   async createTrip(data: CreateTripRequest) {
@@ -164,10 +165,31 @@ export const tripService = {
 };
 
 export const listMyTrips = async (): Promise<ListMyTripsResponse[]> => {
-  const response = await apiRequest<any>(apiEndpoints.trips.listMyTrips, {
+  const response = await apiRequest<unknown>(apiEndpoints.trips.listMyTrips, {
     method: "GET",
   });
-  return response.data;
+
+  if (
+    typeof response === "object" &&
+    response !== null &&
+    "success" in response &&
+    response.success === false
+  ) {
+    throw new Error(
+      "message" in response && typeof response.message === "string"
+        ? response.message
+        : "Failed to load your trips.",
+    );
+  }
+
+  const parsedResponse = myTripsResponseSchema.safeParse(response);
+  if (!parsedResponse.success) {
+    throw new Error(
+      parsedResponse.error.issues[0]?.message ??
+        "The trips response was invalid.",
+    );
+  }
+  return parsedResponse.data.data;
 };
 
 export const getTripDetails = async (

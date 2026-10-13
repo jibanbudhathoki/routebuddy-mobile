@@ -17,6 +17,7 @@ import type {
 } from "../types/request";
 import { updateRequestStatusSchema } from "../validations/updateRequestStatus";
 import { listMyAssignedRequestsResponseSchema } from "../validations/assignedRequests";
+import { myRequestsResponseSchema } from "../validations/myRequests";
 
 export const requestService = {
   createTripOrder: async (
@@ -238,20 +239,32 @@ export const requestService = {
 export const listMyRequests = async (): Promise<
   ListMyRequestsResponse["data"]
 > => {
-  const response = await apiRequest<ListMyRequestsResponse>(
+  const response = await apiRequest<unknown>(
     apiEndpoints.requests.listMyRequests,
     { method: "GET" },
   );
 
-  if (!response.success) {
-    throw new Error(response.message || "Failed to load your requests.");
+  if (
+    typeof response === "object" &&
+    response !== null &&
+    "success" in response &&
+    response.success === false
+  ) {
+    throw new Error(
+      "message" in response && typeof response.message === "string"
+        ? response.message
+        : "Failed to load your requests.",
+    );
   }
 
-  if (!Array.isArray(response.data)) {
-    throw new Error("The requests response did not include a valid data list.");
+  const parsedResponse = myRequestsResponseSchema.safeParse(response);
+  if (!parsedResponse.success) {
+    throw new Error(
+      parsedResponse.error.issues[0]?.message ??
+        "The requests response was invalid.",
+    );
   }
-
-  return response.data;
+  return parsedResponse.data.data;
 };
 
 export const listMyAssignedRequests = async (): Promise<
@@ -295,20 +308,33 @@ export const listMyAssignedRequests = async (): Promise<
 export const listAllRequests = async (): Promise<
   ListAllRequestsResponse["data"]
 > => {
-  const response = await apiRequest<ListAllRequestsResponse>(
+  const response = await apiRequest<unknown>(
     apiEndpoints.requests.listAllRequests,
     { method: "GET" },
   );
 
-  if (!response.success) {
-    throw new Error(response.message || "Failed to load open requests.");
+  if (
+    typeof response === "object" &&
+    response !== null &&
+    "success" in response &&
+    response.success === false
+  ) {
+    throw new Error(
+      "message" in response && typeof response.message === "string"
+        ? response.message
+        : "Failed to load open requests.",
+    );
   }
 
-  if (!Array.isArray(response.data)) {
-    throw new Error("The requests response did not include a valid data list.");
+  const parsedResponse = myRequestsResponseSchema.safeParse(response);
+  if (!parsedResponse.success) {
+    throw new Error(
+      parsedResponse.error.issues[0]?.message ??
+        "The open requests response was invalid.",
+    );
   }
 
-  return response.data;
+  return parsedResponse.data.data;
 };
 
 export const getRequestDetails = async (

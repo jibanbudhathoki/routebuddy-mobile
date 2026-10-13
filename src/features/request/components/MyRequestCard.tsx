@@ -15,8 +15,8 @@ export function MyRequestCard({
 }: MyRequestCardProps) {
   const { theme } = useUnistyles();
   const stores = request.stores ?? [];
-  const neededDate = formatUtcDate(request.neededBy);
-  const neededTime = formatUtcTime(request.neededBy);
+  const neededDate = formatDate(request.neededBy);
+  const neededTime = formatTime(request.neededBy);
   const totalCost = request.totalCost ?? "-";
   const status = request.status.replace(/[_-]+/g, " ").toUpperCase();
 
@@ -105,7 +105,7 @@ export function MyRequestCard({
             color={theme.colors.primary}
           />
           <Text style={styles.metadataText}>
-            By {formatUtcDate(request.latestDeliveryBy)}
+            By {formatDate(request.latestDeliveryBy)}
           </Text>
         </View>
       </View>
@@ -175,24 +175,22 @@ function StoreTag({ name, index }: { name: string; index: number }) {
   );
 }
 
-function formatUtcDate(value: string) {
+function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
   return date.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
-    timeZone: "UTC",
   });
 }
 
-function formatUtcTime(value: string) {
+function formatTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
   return date.toLocaleTimeString(undefined, {
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "UTC",
   });
 }
 
