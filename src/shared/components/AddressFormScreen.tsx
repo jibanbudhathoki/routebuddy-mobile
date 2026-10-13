@@ -31,11 +31,15 @@ export interface AddressFormData {
   countryName: string;
   postalCode: string;
   notes: string;
+  phone: string;
+  isDefault: boolean;
 }
 
 interface AddressFormScreenProps {
   onSave: (data: AddressFormData) => void;
   isLoading?: boolean;
+  initialData?: AddressFormData;
+  title?: string;
 }
 
 const EMPTY_ADDRESS: AddressFormData = {
@@ -51,10 +55,14 @@ const EMPTY_ADDRESS: AddressFormData = {
   countryName: "",
   postalCode: "",
   notes: "",
+  phone: "",
+  isDefault: false,
 };
 
-function useAddressForm() {
-  const [formData, setFormData] = useState<AddressFormData>(EMPTY_ADDRESS);
+function useAddressForm(initialData?: AddressFormData) {
+  const [formData, setFormData] = useState<AddressFormData>(
+    () => initialData ?? EMPTY_ADDRESS,
+  );
   const [selectionType, setSelectionType] = useState<
     "country" | "province" | "city" | null
   >(null);
@@ -72,11 +80,21 @@ function useAddressForm() {
       .getCountries()
       .then((items) => {
         if (isActive) {
-          setCountries(items.map(({ uid, name, code }) => ({
+          const options = items.map(({ uid, name, code }) => ({
             uid,
             name,
             subtitle: code,
-          })));
+          }));
+          setCountries(options);
+          const selectedCountry = options.find(
+            (option) => option.uid === formData.countryUid,
+          );
+          if (initialData && selectedCountry) {
+            setFormData((previous) => ({
+              ...previous,
+              countryName: selectedCountry.name,
+            }));
+          }
         }
       })
       .catch((error: unknown) => {
@@ -109,11 +127,21 @@ function useAddressForm() {
       .getProvinces(formData.countryUid)
       .then((items) => {
         if (isActive) {
-          setProvinces(items.map(({ uid, name, code }) => ({
+          const options = items.map(({ uid, name, code }) => ({
             uid,
             name,
             subtitle: code,
-          })));
+          }));
+          setProvinces(options);
+          const selectedProvince = options.find(
+            (option) => option.uid === formData.provinceUid,
+          );
+          if (initialData && selectedProvince) {
+            setFormData((previous) => ({
+              ...previous,
+              provinceName: selectedProvince.name,
+            }));
+          }
         }
       })
       .catch((error: unknown) => {
@@ -149,7 +177,17 @@ function useAddressForm() {
           throw new Error("The cities response did not include a valid list.");
         }
         if (isActive) {
-          setCities(response.data.map(({ uid, name }) => ({ uid, name })));
+          const options = response.data.map(({ uid, name }) => ({ uid, name }));
+          setCities(options);
+          const selectedCity = options.find(
+            (option) => option.uid === formData.cityUid,
+          );
+          if (initialData && selectedCity) {
+            setFormData((previous) => ({
+              ...previous,
+              cityName: selectedCity.name,
+            }));
+          }
         }
       })
       .catch((error: unknown) => {
@@ -168,7 +206,10 @@ function useAddressForm() {
     };
   }, [formData.provinceUid, showToast]);
 
-  const updateField = (field: keyof AddressFormData, value: string) => {
+  const updateField = (
+    field: keyof AddressFormData,
+    value: string | boolean,
+  ) => {
     setFormData((previous) => ({ ...previous, [field]: value }));
   };
 
@@ -225,9 +266,11 @@ function useAddressForm() {
 function AddressFormHeader({
   topInset,
   onClose,
+  title,
 }: {
   topInset: number;
   onClose: () => void;
+  title: string;
 }) {
   const { theme } = useUnistyles();
 
@@ -240,7 +283,7 @@ function AddressFormHeader({
           color={theme.colors.text}
         />
       </TouchableOpacity>
-      <Text style={styles.headerTitle}>Add New Address</Text>
+      <Text style={styles.headerTitle}>{title}</Text>
       <TouchableOpacity style={styles.headerButton} onPress={onClose}>
         <MaterialCommunityIcons
           name="close"
@@ -270,11 +313,13 @@ function AddressFormFooter({
   bottomInset,
   isLoading,
   onSave,
+  buttonTitle,
 }: {
   formData: AddressFormData;
   bottomInset: number;
   isLoading: boolean;
   onSave: () => void;
+  buttonTitle: string;
 }) {
   const { theme } = useUnistyles();
   const isSaveDisabled =
@@ -291,6 +336,8 @@ function AddressFormFooter({
     formData.aptSuiteUnit.trim().length > 100 ||
     formData.postalCode.trim().length < 3 ||
     formData.postalCode.trim().length > 20 ||
+    formData.phone.trim().length > 20 ||
+    formData.notes.trim().length > 150 ||
     isLoading;
 
   return (
@@ -301,7 +348,7 @@ function AddressFormFooter({
       ]}
     >
       <PrimaryButton
-        title="Save Address"
+        title={buttonTitle}
         onPress={onSave}
         disabled={isSaveDisabled}
         loading={isLoading}
@@ -313,6 +360,8 @@ function AddressFormFooter({
 export function AddressFormScreen({
   onSave,
   isLoading = false,
+  initialData,
+  title = "Add New Address",
 }: AddressFormScreenProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -329,13 +378,14 @@ export function AddressFormScreen({
     isLoadingCities,
     isLoadingOptions,
     selectLocation,
-  } = useAddressForm();
+  } = useAddressForm(initialData);
 
   return (
     <View style={styles.container}>
       <AddressFormHeader
         topInset={insets.top}
         onClose={() => router.back()}
+        title={title}
       />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -365,6 +415,7 @@ export function AddressFormScreen({
         bottomInset={insets.bottom}
         isLoading={isLoading}
         onSave={() => onSave(formData)}
+        buttonTitle={initialData ? "Update Address" : "Save Address"}
       />
       <AddressLocationSelectionModal
         visible={selectionType !== null}

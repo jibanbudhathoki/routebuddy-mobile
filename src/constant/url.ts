@@ -10,7 +10,10 @@ export const apiEndpoints = {
   profile: {
     base: "/v1/profile",
     updateProfile: "/v1/profile",
-    addresses: "/v1/profile/addresses",
+    addAddresses: "/v1/profile/addresses",
+    listAllAddresses: "/v1/profile/addresses",
+    updateAddress: "/v1/profile/addresses/:uid",
+    removeAddress: "/v1/profile/addresses/:uid",
   },
   media: {
     upload: "/v1/media/upload",

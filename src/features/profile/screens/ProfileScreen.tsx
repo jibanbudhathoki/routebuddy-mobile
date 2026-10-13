@@ -106,6 +106,7 @@ export function ProfileScreen() {
             iconName="map-marker-outline"
             title="Saved Addresses"
             subtitle="View your saved addresses"
+            onPress={() => router.push("/(modals)/saved-addresses")}
           />
           <ProfileMenuItem
             iconName="credit-card-outline"
