@@ -6,8 +6,21 @@ import type {
   ProfileNotificationPreferences,
   ProfileAddress,
   ProfileLocation,
+  ProfileSummary,
   UserProfile,
 } from "../types/profile";
+
+export const profileSummarySchema: z.ZodType<ProfileSummary> = z.object({
+  displayName: z.string(),
+  photoUrl: z.string().url().nullable(),
+  rating: z.number().min(0).max(5),
+});
+
+export const profileSummaryResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: profileSummarySchema,
+});
 
 const profileNotificationPreferencesSchema: z.ZodType<ProfileNotificationPreferences> =
   z.object({

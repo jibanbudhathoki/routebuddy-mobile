@@ -14,6 +14,7 @@ export const apiEndpoints = {
     listAllAddresses: "/v1/profile/addresses",
     updateAddress: "/v1/profile/addresses/:uid",
     removeAddress: "/v1/profile/addresses/:uid",
+    profileSummary: "/v1/profile/summary",
   },
   media: {
     upload: "/v1/media/upload",
