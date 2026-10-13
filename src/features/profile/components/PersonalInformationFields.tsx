@@ -1,7 +1,9 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -46,6 +48,7 @@ export function PersonalInformationFields({
   onHomeTownChange,
   onChangePhoto,
 }: PersonalInformationFieldsProps) {
+  const [isPhotoOpen, setIsPhotoOpen] = useState(false);
   const { theme } = useUnistyles();
 
   return (
@@ -62,11 +65,17 @@ export function PersonalInformationFields({
       <View style={styles.photoSection}>
         <View style={styles.photoContainer}>
           {photoUrl ? (
-            <Image
-              source={{ uri: photoUrl }}
-              style={styles.profilePhoto}
-              accessibilityLabel="Profile photo"
-            />
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Open profile photo"
+              onPress={() => setIsPhotoOpen(true)}
+            >
+              <Image
+                source={{ uri: photoUrl }}
+                style={styles.profilePhoto}
+                accessibilityLabel="Profile photo"
+              />
+            </TouchableOpacity>
           ) : (
             <View style={[styles.profilePhoto, styles.photoFallback]}>
               <MaterialCommunityIcons
@@ -76,13 +85,6 @@ export function PersonalInformationFields({
               />
             </View>
           )}
-          <View style={styles.cameraIconContainer}>
-            <MaterialCommunityIcons
-              name="camera"
-              size={16}
-              color={theme.colors.onPrimary}
-            />
-          </View>
         </View>
         <View style={styles.photoActions}>
           <View style={styles.photoButtonsRow}>
@@ -105,6 +107,36 @@ export function PersonalInformationFields({
           </View>
         </View>
       </View>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={isPhotoOpen}
+        onRequestClose={() => setIsPhotoOpen(false)}
+      >
+        <View style={styles.photoModal}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Close profile photo"
+            style={styles.photoModalClose}
+            onPress={() => setIsPhotoOpen(false)}
+          >
+            <MaterialCommunityIcons
+              name="close"
+              size={28}
+              color={theme.colors.onPrimary}
+            />
+          </TouchableOpacity>
+          {photoUrl ? (
+            <Image
+              source={{ uri: photoUrl }}
+              style={styles.expandedPhoto}
+              contentFit="contain"
+              accessibilityLabel="Expanded profile photo"
+            />
+          ) : null}
+        </View>
+      </Modal>
 
       <View style={styles.divider} />
 
@@ -238,18 +270,24 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.primarySoft,
     justifyContent: "center",
   },
-  cameraIconContainer: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    backgroundColor: theme.colors.text,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: "center",
+  photoModal: {
     alignItems: "center",
-    borderWidth: 2,
-    borderColor: theme.colors.surface,
+    backgroundColor: theme.colors.overlay,
+    flex: 1,
+    justifyContent: "center",
+    padding: theme.spacing.lg,
+  },
+  photoModalClose: {
+    alignItems: "center",
+    alignSelf: "flex-end",
+    justifyContent: "center",
+    marginBottom: theme.spacing.md,
+    minHeight: 44,
+    minWidth: 44,
+  },
+  expandedPhoto: {
+    height: "75%",
+    width: "100%",
   },
   photoActions: {
     flex: 1,

@@ -4,6 +4,7 @@ import {
   profileApiResponseSchema,
   profilePhotoUploadDataSchema,
   profilePhotoUploadEnvelopeSchema,
+  profileSummaryResponseSchema,
   profilePhotoUploadPayloadSchema,
   updateUserProfilePayloadSchema,
   userProfileSchema,
@@ -11,6 +12,7 @@ import {
 import type {
   ProfilePhotoFile,
   ProfilePhotoUploadResponse,
+  ProfileSummary,
   UpdateUserProfilePayload,
   UserProfile,
 } from "../types/profile";
@@ -18,11 +20,24 @@ import type {
 export type {
   ProfilePhotoFile,
   ProfilePhotoUploadResponse,
+  ProfileSummary,
   UpdateUserProfilePayload,
   UserProfile,
 } from "../types/profile";
 
 export const profileService = {
+  async getProfileSummary(): Promise<ProfileSummary> {
+    const response = await apiRequest<unknown>(
+      apiEndpoints.profile.profileSummary,
+      { method: "GET" },
+    );
+    const parsed = profileSummaryResponseSchema.parse(response);
+    if (!parsed.success) {
+      throw new Error(parsed.message || "Failed to load profile summary.");
+    }
+    return parsed.data;
+  },
+
   async getProfile(): Promise<UserProfile> {
     const response = await apiRequest<unknown>(apiEndpoints.profile.base, {
       method: "GET",

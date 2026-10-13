@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   ScrollView,
   View,
   Text,
   TouchableOpacity,
   ActivityIndicator,
-  ActionSheetIOS,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -16,8 +14,7 @@ import { ProfileHeader } from "../components/ProfileHeader";
 import { ProfileSection } from "../components/ProfileSection";
 import { ProfileMenuItem } from "../components/ProfileMenuItem";
 import { clearAuthSession } from "../../auth/services/authStorage";
-import { useProfile } from "../hooks/useProfile";
-import { UnistylesRuntime } from "react-native-unistyles";
+import { useProfileSummary } from "../hooks/useProfileSummary";
 import { useToast } from "../../../shared/components/ToastProvider";
 
 import { AppearanceModal } from "../components/AppearanceModal";
@@ -26,7 +23,7 @@ export function ProfileScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const { profile, isLoading } = useProfile();
+  const { summary, isLoading, error, refetch } = useProfileSummary();
   const { theme } = useUnistyles();
   const [isAppearanceModalVisible, setAppearanceModalVisible] = useState(false);
 
@@ -57,25 +54,28 @@ export function ProfileScreen() {
     );
   }
 
-  const nameParts = profile?.displayName
-    ? profile.displayName.split(" ")
-    : ["User", "Name"];
-  const firstName = nameParts[0] || "User";
-  const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "N";
+  if (error || !summary) {
+    return (
+      <SafeAreaView edges={["top", "left", "right"]} style={styles.container}>
+        <View style={styles.topBar}>
+          <Text style={styles.title}>Profile</Text>
+        </View>
+        <View style={styles.center}>
+          <Text style={styles.errorText}>
+            {error ?? "Profile summary is unavailable."}
+          </Text>
+          <TouchableOpacity accessibilityRole="button" onPress={() => void refetch()}>
+            <Text style={styles.retryText}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.container}>
       <View style={styles.topBar}>
         <Text style={styles.title}>Profile</Text>
-        <TouchableOpacity
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <MaterialCommunityIcons
-            name="cog-outline"
-            size={26}
-            color={theme.colors.text}
-          />
-        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -83,9 +83,9 @@ export function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         <ProfileHeader
-          firstName={firstName}
-          lastName={lastName}
-          photoUrl={profile?.photoUrl}
+          displayName={summary.displayName}
+          rating={summary.rating}
+          photoUrl={summary.photoUrl}
         />
 
         <ProfileSection title="ACCOUNT">
@@ -199,6 +199,17 @@ const styles = StyleSheet.create((theme) => ({
   title: {
     color: theme.colors.text,
     fontSize: 26,
+    fontWeight: "700",
+  },
+  errorText: {
+    color: theme.colors.error,
+    fontSize: 14,
+    marginBottom: theme.spacing.md,
+    textAlign: "center",
+  },
+  retryText: {
+    color: theme.colors.primary,
+    fontSize: 15,
     fontWeight: "700",
   },
   scrollContent: {

@@ -1,59 +1,87 @@
-import { View, Text } from "react-native";
+import { useState } from "react";
+import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 interface ProfileHeaderProps {
-  firstName: string;
-  lastName: string;
-  rating?: string;
-  trips?: number;
-  location?: string;
-  joinYear?: string;
+  displayName: string;
+  rating: number;
   photoUrl?: string | null;
 }
 
 export function ProfileHeader({
-  firstName,
-  lastName,
-  rating = "4.9",
-  trips = 84,
-  location = "Reston, Manitoba",
-  joinYear = "2025",
+  displayName,
+  rating,
   photoUrl,
 }: ProfileHeaderProps) {
-  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const [isPhotoOpen, setIsPhotoOpen] = useState(false);
+  const initials = displayName
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join("")
+    .toUpperCase();
   const { theme } = useUnistyles();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.avatarContainer}>
-        {photoUrl ? (
-          <Image source={{ uri: photoUrl }} style={styles.avatar} />
-        ) : (
-          <View style={styles.avatar}>
-            <Text style={styles.initials}>{initials}</Text>
+    <>
+      <View style={styles.container}>
+        <View style={styles.avatarContainer}>
+          {photoUrl ? (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Open profile photo"
+              onPress={() => setIsPhotoOpen(true)}
+            >
+              <Image source={{ uri: photoUrl }} style={styles.avatar} />
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.avatar}>
+              <Text style={styles.initials}>{initials}</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.infoContainer}>
+          <Text style={styles.name}>{displayName}</Text>
+          <View style={styles.statsRow}>
+            <MaterialCommunityIcons name="star" size={14} color={theme.colors.text} />
+            <Text style={styles.statsText}>{` ${rating.toFixed(1)} rating`}</Text>
           </View>
-        )}
-        <View style={styles.cameraBadge}>
-          <MaterialCommunityIcons
-            name="camera-outline"
-            size={14}
-            color={theme.colors.onPrimary}
-          />
         </View>
       </View>
 
-      <View style={styles.infoContainer}>
-        <Text style={styles.name}>{`${firstName} ${lastName}`}</Text>
-        <View style={styles.statsRow}>
-          <MaterialCommunityIcons name="star" size={14} color={theme.colors.text} />
-          <Text style={styles.statsText}>{` ${rating} (${trips} trips)`}</Text>
+      <Modal
+        animationType="fade"
+        transparent
+        visible={isPhotoOpen}
+        onRequestClose={() => setIsPhotoOpen(false)}
+      >
+        <View style={styles.photoModal}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Close profile photo"
+            style={styles.closeButton}
+            onPress={() => setIsPhotoOpen(false)}
+          >
+            <MaterialCommunityIcons
+              name="close"
+              size={28}
+              color={theme.colors.onPrimary}
+            />
+          </TouchableOpacity>
+          {photoUrl ? (
+            <Image
+              source={{ uri: photoUrl }}
+              style={styles.expandedPhoto}
+              contentFit="contain"
+            />
+          ) : null}
         </View>
-        <Text style={styles.metaText}>{location}</Text>
-        <Text style={styles.memberText}>{`Member since ${joinYear}`}</Text>
-      </View>
-    </View>
+      </Modal>
+    </>
   );
 }
 
@@ -65,7 +93,6 @@ const styles = StyleSheet.create((theme) => ({
     marginTop: 16,
   },
   avatarContainer: {
-    position: "relative",
     marginRight: 20,
   },
   avatar: {
@@ -81,18 +108,24 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "700",
     color: theme.colors.text,
   },
-  cameraBadge: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    backgroundColor: theme.colors.primary,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: "center",
+  photoModal: {
     alignItems: "center",
-    borderWidth: 2,
-    borderColor: theme.colors.surface,
+    backgroundColor: theme.colors.overlay,
+    flex: 1,
+    justifyContent: "center",
+    padding: theme.spacing.lg,
+  },
+  closeButton: {
+    alignItems: "center",
+    alignSelf: "flex-end",
+    justifyContent: "center",
+    marginBottom: theme.spacing.md,
+    minHeight: 44,
+    minWidth: 44,
+  },
+  expandedPhoto: {
+    height: "75%",
+    width: "100%",
   },
   infoContainer: {
     flex: 1,
@@ -111,16 +144,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   statsText: {
     fontSize: 14,
-    color: theme.colors.muted,
-  },
-  metaText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: theme.colors.text,
-    marginBottom: 2,
-  },
-  memberText: {
-    fontSize: 13,
     color: theme.colors.muted,
   },
 }));

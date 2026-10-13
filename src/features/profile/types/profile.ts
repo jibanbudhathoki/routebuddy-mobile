@@ -22,6 +22,12 @@ export interface UserProfile {
   location?: ProfileLocation | null;
 }
 
+export interface ProfileSummary {
+  displayName: string;
+  photoUrl: string | null;
+  rating: number;
+}
+
 export interface ProfileNotificationPreferences {
   pushNewTripRequests: boolean;
   pushNewMessages: boolean;
