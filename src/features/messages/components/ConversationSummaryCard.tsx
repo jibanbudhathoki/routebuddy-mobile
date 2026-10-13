@@ -4,10 +4,8 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 export function ConversationSummaryCard({
   contextTitle,
-  contextId,
 }: {
   contextTitle: string;
-  contextId: string;
 }) {
   const { theme } = useUnistyles();
 
@@ -28,23 +26,6 @@ export function ConversationSummaryCard({
         <Text style={styles.route} numberOfLines={1}>
           Order and delivery conversation
         </Text>
-        <View style={styles.meta}>
-          <MaterialCommunityIcons
-            name="identifier"
-            size={13}
-            color={theme.colors.muted}
-          />
-          <Text style={styles.metaText}>
-            {contextId ? `Conversation ${contextId.slice(0, 8)}` : "Conversation"}
-          </Text>
-          <View style={styles.divider} />
-          <MaterialCommunityIcons
-            name="message-text-outline"
-            size={13}
-            color={theme.colors.muted}
-          />
-          <Text style={styles.metaText}>Direct chat</Text>
-        </View>
       </View>
     </View>
   );
@@ -97,21 +78,5 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text,
     fontSize: 11,
     marginTop: 4,
-  },
-  meta: {
-    alignItems: "center",
-    flexDirection: "row",
-    marginTop: 6,
-  },
-  metaText: {
-    color: theme.colors.muted,
-    fontSize: 9,
-    marginLeft: 3,
-  },
-  divider: {
-    backgroundColor: theme.colors.border,
-    height: 11,
-    marginHorizontal: theme.spacing.xs,
-    width: 1,
   },
 }));

@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -35,6 +36,7 @@ export function SendRequestOfferModal({
   onSubmit,
 }: SendRequestOfferModalProps) {
   const { theme } = useUnistyles();
+  const scrollViewRef = useRef<ScrollView>(null);
   const [proposedAt, setProposedAt] = useState(() =>
     getInitialProposalDate(latestDeliveryBy),
   );
@@ -51,6 +53,15 @@ export function SendRequestOfferModal({
     setMessage("");
     setError("");
   }, [latestDeliveryBy, visible]);
+
+  useEffect(() => {
+    if (!visible) return;
+    const keyboardSubscription = Keyboard.addListener(
+      "keyboardDidShow",
+      () => scrollViewRef.current?.scrollToEnd({ animated: true }),
+    );
+    return () => keyboardSubscription.remove();
+  }, [visible]);
 
   const handleSubmit = async () => {
     setError("");
@@ -86,20 +97,34 @@ export function SendRequestOfferModal({
       transparent
       visible={visible}
       onRequestClose={onClose}
+      statusBarTranslucent
     >
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <View style={styles.scrim} pointerEvents="none" />
+      <View style={styles.modalRoot}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Close send offer"
+          style={styles.backdrop}
+          onPress={onClose}
+        >
+          <View style={styles.scrim} pointerEvents="none" />
+        </Pressable>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.sheetWrap}
+          style={styles.keyboardAvoiding}
         >
           <Pressable
             style={styles.sheet}
             onPress={(event) => event.stopPropagation()}
           >
             <ScrollView
+              ref={scrollViewRef}
+              style={styles.scrollView}
               contentContainerStyle={styles.content}
               keyboardShouldPersistTaps="handled"
+              keyboardDismissMode={
+                Platform.OS === "ios" ? "interactive" : "on-drag"
+              }
+              automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
               showsVerticalScrollIndicator={false}
             >
               <View style={styles.headingRow}>
@@ -166,7 +191,7 @@ export function SendRequestOfferModal({
             </ScrollView>
           </Pressable>
         </KeyboardAvoidingView>
-      </Pressable>
+      </View>
     </Modal>
   );
 }
@@ -183,9 +208,15 @@ function getInitialProposalDate(latestDeliveryBy: string) {
 }
 
 const styles = StyleSheet.create((theme) => ({
-  backdrop: {
+  modalRoot: {
     flex: 1,
-    justifyContent: "flex-end",
+  },
+  backdrop: {
+    bottom: 0,
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0,
   },
   scrim: {
     backgroundColor: theme.colors.text,
@@ -196,14 +227,19 @@ const styles = StyleSheet.create((theme) => ({
     right: 0,
     top: 0,
   },
-  sheetWrap: {
-    maxHeight: "92%",
+  keyboardAvoiding: {
+    flex: 1,
+    justifyContent: "flex-end",
   },
   sheet: {
     backgroundColor: theme.colors.surface,
     borderTopLeftRadius: theme.radius.lg,
     borderTopRightRadius: theme.radius.lg,
+    maxHeight: "92%",
     overflow: "hidden",
+  },
+  scrollView: {
+    flexGrow: 0,
   },
   content: {
     gap: theme.spacing.sm,
