@@ -8,6 +8,7 @@ interface RequestOptionsSheetProps {
   isDeleting: boolean;
   canCancel: boolean;
   onClose: () => void;
+  onShare: () => void;
   onCancelRequest: () => void;
   onDeleteRequest: () => void;
 }
@@ -18,6 +19,7 @@ export function RequestOptionsSheet({
   isDeleting,
   canCancel,
   onClose,
+  onShare,
   onCancelRequest,
   onDeleteRequest,
 }: RequestOptionsSheetProps) {
@@ -54,6 +56,14 @@ export function RequestOptionsSheet({
               />
             </Pressable>
           </View>
+          <OptionButton
+            icon="share-variant-outline"
+            title="Share Request"
+            description="Share a read-only link to this request."
+            disabled={isCancelling || isDeleting}
+            loading={false}
+            onPress={onShare}
+          />
           <OptionButton
             icon="cancel"
             title={isCancelling ? "Cancelling..." : "Cancel Request"}

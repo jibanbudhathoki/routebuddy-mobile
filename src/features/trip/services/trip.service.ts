@@ -210,6 +210,33 @@ export const getTripDetails = async (
   return response.data;
 };
 
+export const getSharedTripDetails = async (
+  uid: string,
+): Promise<TripDetailsResponse> => {
+  if (!uid.trim()) {
+    throw new Error("A trip ID is required to load shared trip details.");
+  }
+  const response = await apiRequest<{
+    success: boolean;
+    message: string;
+    data: TripDetailsResponse;
+  }>(
+    apiEndpoints.trips.sharedTripDetails.replace(
+      ":uid",
+      encodeURIComponent(uid),
+    ),
+    { method: "GET" },
+  );
+
+  if (!response.success) {
+    throw new Error(response.message || "Failed to load shared trip details.");
+  }
+  if (!response.data?.uid) {
+    throw new Error("The shared trip response did not include trip details.");
+  }
+  return response.data;
+};
+
 export const deleteTrip = async (uid: string): Promise<DeleteTripResponse> => {
   const response = await apiRequest<DeleteTripResponse>(
     apiEndpoints.trips.deleteTrip.replace(":uid", encodeURIComponent(uid)),

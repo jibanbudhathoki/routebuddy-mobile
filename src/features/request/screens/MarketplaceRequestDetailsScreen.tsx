@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   Pressable,
   ScrollView,
+  Share,
   Text,
   View,
 } from "react-native";
@@ -25,6 +26,7 @@ import { RequestDetailsSummary } from "../components/RequestDetailsSummary";
 import { MarketplaceRequestItems } from "../components/MarketplaceRequestItems";
 import { SendRequestOfferModal } from "../components/SendRequestOfferModal";
 import { useRequestDetails } from "../hooks/useRequestDetails";
+import { createSharedDetailLink } from "../../../shared/utils/sharedDetailLink";
 
 export function MarketplaceRequestDetailsScreen() {
   const router = useRouter();
@@ -62,18 +64,34 @@ export function MarketplaceRequestDetailsScreen() {
           <Text style={styles.headerTitle} numberOfLines={1}>
             {title}
           </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Close request details"
-            onPress={() => router.back()}
-            style={styles.headerAction}
-          >
-            <MaterialCommunityIcons
-              name="close"
-              size={21}
-              color={theme.colors.text}
-            />
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Share request"
+              accessibilityState={{ disabled: !request }}
+              disabled={!request}
+              onPress={() => void shareRequest()}
+              style={styles.headerAction}
+            >
+              <MaterialCommunityIcons
+                name="share-variant-outline"
+                size={20}
+                color={theme.colors.text}
+              />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close request details"
+              onPress={() => router.back()}
+              style={styles.headerAction}
+            >
+              <MaterialCommunityIcons
+                name="close"
+                size={21}
+                color={theme.colors.text}
+              />
+            </Pressable>
+          </View>
         </View>
 
         <ScrollView
@@ -251,6 +269,23 @@ export function MarketplaceRequestDetailsScreen() {
       );
     }
   }
+
+  async function shareRequest() {
+    if (!request) return;
+    try {
+      const link = createSharedDetailLink("request", request.uid);
+      await Share.share({
+        message: `Request: ${request.origin} to ${request.destination}.\n${link}`,
+        url: link,
+      });
+    } catch (failure) {
+      showToast(
+        failure instanceof Error
+          ? failure.message
+          : "Unable to share this request.",
+      );
+    }
+  }
 }
 
 const styles = StyleSheet.create((theme) => ({
@@ -268,6 +303,12 @@ const styles = StyleSheet.create((theme) => ({
     height: 40,
     justifyContent: "center",
     width: 34,
+  },
+  headerActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    width: 68,
   },
   headerTitle: {
     color: theme.colors.primary,

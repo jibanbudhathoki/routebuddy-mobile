@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Share, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { AppScreen } from "../../../shared/components/AppScreen";
@@ -11,6 +11,7 @@ import { MarketplaceTripOverview } from "../components/MarketplaceTripOverview";
 import { MarketplaceTripRouteCard } from "../components/MarketplaceTripRouteCard";
 import { useCreateConversation } from "../../messages/hooks/useMessages";
 import { useTripDetails } from "../hooks/useTripDetails";
+import { createSharedDetailLink } from "../../../shared/utils/sharedDetailLink";
 
 export function MarketplaceTripDetailsScreen() {
   const router = useRouter();
@@ -29,6 +30,7 @@ export function MarketplaceTripDetailsScreen() {
           onNotificationsPress={() =>
             showToast("Notifications are not available yet.")
           }
+          onSharePress={() => void shareTrip()}
         />
         <ScrollView
           contentContainerStyle={styles.content}
@@ -97,6 +99,21 @@ export function MarketplaceTripDetailsScreen() {
         failure instanceof Error
           ? failure.message
           : "Unable to start a conversation with the driver.",
+      );
+    }
+  }
+
+  async function shareTrip() {
+    if (!trip) return;
+    try {
+      const link = createSharedDetailLink("trip", trip.uid);
+      await Share.share({
+        message: `Trip: ${trip.origin} to ${trip.destination}, departing ${new Date(trip.departureAt).toLocaleString()}.\n${link}`,
+        url: link,
+      });
+    } catch (failure) {
+      showToast(
+        failure instanceof Error ? failure.message : "Unable to share this trip.",
       );
     }
   }

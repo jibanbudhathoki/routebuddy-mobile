@@ -5,11 +5,13 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 interface MarketplaceTripDetailsHeaderProps {
   onBack: () => void;
   onNotificationsPress: () => void;
+  onSharePress: () => void;
 }
 
 export function MarketplaceTripDetailsHeader({
   onBack,
   onNotificationsPress,
+  onSharePress,
 }: MarketplaceTripDetailsHeaderProps) {
   const { theme } = useUnistyles();
 
@@ -28,21 +30,35 @@ export function MarketplaceTripDetailsHeader({
         />
       </Pressable>
       <Text style={styles.headerTitle}>Trip Details</Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Notifications"
-        onPress={onNotificationsPress}
-        style={styles.headerAction}
-      >
-        <MaterialCommunityIcons
-          name="bell-outline"
-          size={21}
-          color={theme.colors.text}
-        />
-        <View style={styles.notificationBadge}>
-          <Text style={styles.notificationBadgeText}>3</Text>
-        </View>
-      </Pressable>
+      <View style={styles.headerActions}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Share trip"
+          onPress={onSharePress}
+          style={styles.headerAction}
+        >
+          <MaterialCommunityIcons
+            name="share-variant-outline"
+            size={20}
+            color={theme.colors.text}
+          />
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Notifications"
+          onPress={onNotificationsPress}
+          style={styles.headerAction}
+        >
+          <MaterialCommunityIcons
+            name="bell-outline"
+            size={21}
+            color={theme.colors.text}
+          />
+          <View style={styles.notificationBadge}>
+            <Text style={styles.notificationBadgeText}>3</Text>
+          </View>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -60,6 +76,12 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
     position: "relative",
     width: 36,
+  },
+  headerActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    width: 76,
   },
   headerTitle: {
     color: theme.colors.text,

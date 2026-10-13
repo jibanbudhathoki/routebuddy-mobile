@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Share, Text, View } from "react-native";
 import { useState } from "react";
 import { useUnistyles } from "react-native-unistyles";
 
@@ -23,6 +23,7 @@ import {
   useDeleteRequest,
 } from "../hooks/useRequestActions";
 import { useRequestDetails } from "../hooks/useRequestDetails";
+import { createSharedDetailLink } from "../../../shared/utils/sharedDetailLink";
 
 type RequestConfirmation = "cancel" | "delete" | null;
 
@@ -151,6 +152,10 @@ export function RequestDetailsScreen() {
             : false
         }
         onClose={() => setShowOptions(false)}
+        onShare={() => {
+          setShowOptions(false);
+          void shareRequest();
+        }}
         onCancelRequest={() => {
           setShowOptions(false);
           setConfirmation("cancel");
@@ -180,6 +185,23 @@ export function RequestDetailsScreen() {
       />
     </AppScreen>
   );
+
+  async function shareRequest() {
+    if (!request) return;
+    try {
+      const link = createSharedDetailLink("request", request.uid);
+      await Share.share({
+        message: `Request: ${request.origin} to ${request.destination}.\n${link}`,
+        url: link,
+      });
+    } catch (failure) {
+      showToast(
+        failure instanceof Error
+          ? failure.message
+          : "Unable to share this request.",
+      );
+    }
+  }
 
   async function handleMessageDriver() {
     if (createConversation.isPending) return;
