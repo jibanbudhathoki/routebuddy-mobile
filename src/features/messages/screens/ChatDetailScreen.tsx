@@ -27,6 +27,7 @@ import type {
 } from "../types/message.types";
 import { formatContextTitle } from "../utils/formatContextTitle";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
+import { resolveAvatarUrl } from "../utils/resolveAvatarUrl";
 import { styles } from "../components/chatDetailScreen.styles";
 
 interface ChatDetailScreenProps {
@@ -155,8 +156,15 @@ export function ChatDetailScreen({
     routeRecipientName ??
     "Conversation";
   const contextTitle = formatContextTitle(conversation?.contextType);
-  const participantAvatar =
-    otherParticipant?.photoUrl ?? currentParticipant?.photoUrl ?? null;
+  const requestParticipantAvatar =
+    currentUserUid && currentUserUid === request?.requester.uid
+      ? request?.driver?.photoUrl
+      : request?.requester.photoUrl;
+  const participantAvatar = resolveAvatarUrl(
+    otherParticipant?.photoUrl ??
+      requestParticipantAvatar ??
+      conversation?.avatarUrl,
+  );
   const effectiveRequestUid = requestUid || conversation?.requestId || "";
   const requestActions = useChatRequestActions({
     requestUid: effectiveRequestUid,
@@ -199,6 +207,7 @@ export function ChatDetailScreen({
     >
       <ChatDetailHeader
         participantName={participantName}
+        participantAvatar={participantAvatar}
         contextTitle={contextTitle}
         selectedCount={selectedMessageIds.length}
         isDeleting={interactions.isDeletingMessages}

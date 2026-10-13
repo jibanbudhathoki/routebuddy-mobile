@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
-import { View, Text, TouchableOpacity, Image, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { Image } from 'expo-image';
 import type { ImageSourcePropType } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -78,6 +79,7 @@ export function MessageListItem({
           <Image
             source={typeof avatarUrl === 'string' ? { uri: avatarUrl } : avatarUrl}
             style={styles.avatar}
+            contentFit="cover"
           />
         ) : (
           <View style={[styles.avatar, styles.avatarFallback]}>

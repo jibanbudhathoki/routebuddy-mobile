@@ -17,6 +17,8 @@ import { apiEndpoints } from "../../../constant/url";
 import { getAuthSession } from "../../auth/services/authStorage";
 import { formatMessagePreview } from "../utils/messagePreview";
 import { parseRequestOfferMessage } from "../utils/requestOfferMessage";
+import { resolveAvatarUrl } from "../utils/resolveAvatarUrl";
+import { getConversationParticipantAvatar } from "../utils/conversationAvatar";
 
 export const messageService = {
   listMessages: async (): Promise<InboxMessage[]> => {
@@ -30,7 +32,7 @@ export const messageService = {
       throw new Error("The messages response did not include a conversation list.");
     }
     const session = await getAuthSession();
-    return response.data.map((item) => {
+    const conversations = response.data.map((item) => {
       const msgId = item.msgId ?? item.uid;
       if (!msgId) {
         throw new Error("A conversation in the response did not include an ID.");
@@ -56,13 +58,48 @@ export const messageService = {
         contextType:
           item.contextType ??
           (item.requestId ? "request" : item.tripId ? "trip" : "direct"),
-        avatarUrl: item.avatarUrl ?? null,
+        avatarUrl: resolveAvatarUrl(item.avatarUrl ?? item.recipientImage),
         timestamp: item.timestamp ?? item.lastMessage?.createdAt ?? item.createdAt,
         unreadCount: item.unreadCount ?? 0,
         requestId: item.requestId ?? item.requestUid ?? null,
         tripId: item.tripId ?? null,
       };
     });
+
+    const conversationsMissingAvatars = conversations.filter(
+      (conversation) => !conversation.avatarUrl,
+    );
+    const avatarResults = await Promise.allSettled(
+      conversationsMissingAvatars.map(async (conversation) => ({
+        conversationId: conversation.msgId,
+        avatarUrl: await getConversationParticipantAvatar(
+          session?.user.id ?? "",
+          () => messageService.getConversationMessages(conversation.msgId),
+        ),
+      })),
+    );
+    const avatarByConversationId = new Map<string, string>();
+    avatarResults.forEach((result, index) => {
+      if (result.status === "fulfilled" && result.value.avatarUrl) {
+        avatarByConversationId.set(
+          result.value.conversationId,
+          result.value.avatarUrl,
+        );
+      } else if (result.status === "rejected") {
+        console.warn(
+          `Unable to load participant photo for conversation ${conversationsMissingAvatars[index]?.msgId}.`,
+          result.reason,
+        );
+      }
+    });
+
+    return conversations.map((conversation) => ({
+      ...conversation,
+      avatarUrl:
+        conversation.avatarUrl ??
+        avatarByConversationId.get(conversation.msgId) ??
+        null,
+    }));
   },
 
   createConversation: async (
