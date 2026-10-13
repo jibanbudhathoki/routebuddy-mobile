@@ -37,6 +37,7 @@ export default function RootLayout() {
                     <Stack screenOptions={{ headerShown: false }}>
                       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                      <Stack.Screen name="(modals)/community" options={{ presentation: 'fullScreenModal' }} />
                       <Stack.Screen name="request-details" options={{ headerShown: false }} />
                       <Stack.Screen name="edit-trip" options={{ headerShown: false }} />
                       {/* Post Trip Flow Modals */}

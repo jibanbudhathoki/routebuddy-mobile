@@ -99,7 +99,8 @@ export function ProfileScreen() {
           <ProfileMenuItem
             iconName="account-group-outline"
             title="Community"
-            subtitle="Edit preferences"
+            subtitle="Browse and join communities"
+            onPress={() => router.push("/(modals)/community")}
           />
           <ProfileMenuItem
             iconName="map-marker-outline"
