@@ -125,7 +125,13 @@ export function TripDetailsScreen() {
         <View style={styles.footer}>
           <Button
             title="Start Shopping"
-            onPress={() => {}}
+            onPress={() =>
+              router.push({
+                pathname: "/trip-shopping/[uid]",
+                params: { uid: tripUid },
+              })
+            }
+            disabled={!tripUid}
             style={styles.startButton}
           />
           <View style={styles.buttonIcon}>
