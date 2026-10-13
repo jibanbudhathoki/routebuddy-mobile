@@ -9,7 +9,11 @@ export const apiEndpoints = {
   },
   profile: {
     base: "/v1/profile",
+    updateProfile: "/v1/profile",
     addresses: "/v1/profile/addresses",
+  },
+  media: {
+    upload: "/v1/media/upload",
   },
   trips: {
     trips: "/v1/trips",

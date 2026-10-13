@@ -1,37 +1,91 @@
-import { apiRequest } from '../../../shared/api/apiClient';
-import { apiEndpoints } from '../../../constant/url';
+import { apiEndpoints } from "../../../constant/url";
+import { apiRequest } from "../../../shared/api/apiClient";
+import {
+  profileApiResponseSchema,
+  profilePhotoUploadDataSchema,
+  profilePhotoUploadEnvelopeSchema,
+  profilePhotoUploadPayloadSchema,
+  updateUserProfilePayloadSchema,
+  userProfileSchema,
+} from "../validations/profile";
+import type {
+  ProfilePhotoFile,
+  ProfilePhotoUploadResponse,
+  UpdateUserProfilePayload,
+  UserProfile,
+} from "../types/profile";
 
-export interface UserProfile {
-  uid: string;
-  slug: string;
-  email: string;
-  emailVerified: boolean;
-  displayName: string;
-  photoUrl: string | null;
-  provider: string;
-  phone: string | null;
-  homeTown: string | null;
-  rating: number | null;
-  createdAt: string;
-  updatedAt: string;
-}
+export type {
+  ProfilePhotoFile,
+  ProfilePhotoUploadResponse,
+  UpdateUserProfilePayload,
+  UserProfile,
+} from "../types/profile";
 
 export const profileService = {
-  async getProfile() {
-    const response = await apiRequest<any>(apiEndpoints.profile.base, {
-      method: 'GET',
+  async getProfile(): Promise<UserProfile> {
+    const response = await apiRequest<unknown>(apiEndpoints.profile.base, {
+      method: "GET",
     });
-    return response.data as UserProfile;
+    return parseProfileResponse(response);
   },
 
-  async updateProfile(data: { firstName: string; lastName: string; phone?: string }) {
-    const response = await apiRequest<any>(apiEndpoints.profile.base, {
-      method: 'PUT',
-      body: {
-        displayName: `${data.firstName} ${data.lastName}`.trim(),
-        phone: data.phone,
-      },
+  async updateProfile(
+    data: UpdateUserProfilePayload,
+  ): Promise<UserProfile> {
+    const payload = updateUserProfilePayloadSchema.parse(data);
+    const response = await apiRequest<unknown>(apiEndpoints.profile.base, {
+      method: "PUT",
+      body: payload,
     });
-    return response.data as UserProfile;
+    return parseProfileResponse(response);
+  },
+
+  async uploadProfilePhoto(
+    file: ProfilePhotoFile,
+  ): Promise<ProfilePhotoUploadResponse> {
+    const formData = new FormData();
+    formData.append(
+      "file",
+      {
+        uri: file.uri,
+        name: file.fileName,
+        type: file.mimeType,
+      } as unknown as Blob,
+    );
+
+    const response = await apiRequest<unknown>(
+      `${apiEndpoints.media.upload}?folder=profiles`,
+      {
+        method: "POST",
+        body: formData,
+        timeoutMs: 120_000,
+      },
+    );
+    const directResponse =
+      profilePhotoUploadPayloadSchema.safeParse(response);
+    if (directResponse.success) return directResponse.data;
+
+    const envelopeResponse = profilePhotoUploadEnvelopeSchema.parse(response);
+    if (!envelopeResponse.success) {
+      throw new Error(
+        envelopeResponse.message || "The profile photo upload failed.",
+      );
+    }
+    const uploadData = profilePhotoUploadDataSchema.parse(
+      envelopeResponse.data,
+    );
+    return {
+      ...uploadData,
+      message: envelopeResponse.message,
+    };
   },
 };
+
+function parseProfileResponse(response: unknown): UserProfile {
+  const parsedResponse = profileApiResponseSchema.parse(response);
+  if (!parsedResponse.success) {
+    throw new Error(parsedResponse.message || "The profile request failed.");
+  }
+  return userProfileSchema.parse(parsedResponse.data);
+}
