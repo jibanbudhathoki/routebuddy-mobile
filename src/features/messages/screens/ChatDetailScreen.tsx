@@ -12,6 +12,7 @@ import {
 } from "../hooks/useMessages";
 import { useChatMessageInteractions } from "../hooks/useChatMessageInteractions";
 import { useChatMedia } from "../hooks/useChatMedia";
+import { useChatRequestActions } from "../hooks/useChatRequestActions";
 import { MessageDialog } from "../components/MessageDialog";
 import { ChatComposer } from "../components/ChatComposer";
 import { ChatMessagesPanel } from "../components/ChatMessagesPanel";
@@ -41,6 +42,7 @@ interface ChatDetailScreenProps {
   onAcceptOffer?: (offerUid: string) => Promise<void>;
   onAcceptOrder?: (orderUid: string) => Promise<void>;
   onConfirmDelivery?: (requestUid: string) => Promise<void>;
+  onDeliveryConfirmed?: () => void;
 }
 
 export function ChatDetailScreen({
@@ -56,6 +58,7 @@ export function ChatDetailScreen({
   onAcceptOffer,
   onAcceptOrder,
   onConfirmDelivery,
+  onDeliveryConfirmed,
 }: ChatDetailScreenProps = {}) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -86,7 +89,6 @@ export function ChatDetailScreen({
 
   const [messageText, setMessageText] = useState("");
   const [currentUserUid, setCurrentUserUid] = useState("");
-  const [deliveryConfirmed, setDeliveryConfirmed] = useState(false);
   const {
     replyTo,
     setReplyTo,
@@ -156,9 +158,15 @@ export function ChatDetailScreen({
   const participantAvatar =
     otherParticipant?.photoUrl ?? currentParticipant?.photoUrl ?? null;
   const effectiveRequestUid = requestUid || conversation?.requestId || "";
-  useEffect(() => {
-    setDeliveryConfirmed(false);
-  }, [effectiveRequestUid]);
+  const requestActions = useChatRequestActions({
+    requestUid: effectiveRequestUid,
+    onAcceptOffer,
+    onAcceptOrder,
+    onConfirmDelivery,
+    onDeliveryConfirmed,
+    setDialog,
+    setError: interactions.setError,
+  });
 
   const handleSendMessage = async () => {
     const content = messageText.trim();
@@ -231,62 +239,10 @@ export function ChatDetailScreen({
           requesterUid && currentUserUid === requesterUid,
         )}
         isConfirmingDelivery={isConfirmingDelivery}
-        deliveryConfirmed={deliveryConfirmed}
-        onAcceptOffer={(offerUid) => {
-          if (!onAcceptOffer) return;
-          void onAcceptOffer(offerUid)
-            .then(() => {
-              setDialog({
-                title: "Offer accepted",
-                message: "The request has been assigned to this driver.",
-                actions: [{ label: "OK", onPress: () => {} }],
-              });
-            })
-            .catch((failure: unknown) => {
-              interactions.setError(
-                failure instanceof Error
-                  ? failure.message
-                  : "Unable to accept this offer. Please try again.",
-              );
-            });
-        }}
-        onAcceptOrder={(orderUid) => {
-          if (!onAcceptOrder) return;
-          void onAcceptOrder(orderUid)
-            .then(() => {
-              setDialog({
-                title: "Order accepted",
-                message: "The order is now assigned to you.",
-                actions: [{ label: "OK", onPress: () => {} }],
-              });
-            })
-            .catch((failure: unknown) => {
-              interactions.setError(
-                failure instanceof Error
-                  ? failure.message
-                  : "Unable to accept this order. Please try again.",
-              );
-            });
-        }}
-        onConfirmDelivery={(orderUid) => {
-          if (!onConfirmDelivery) return;
-          void onConfirmDelivery(orderUid)
-            .then(() => {
-              setDeliveryConfirmed(true);
-              setDialog({
-                title: "Delivery confirmed",
-                message: "The requester has confirmed this delivery.",
-                actions: [{ label: "OK", onPress: () => {} }],
-              });
-            })
-            .catch((failure: unknown) => {
-              interactions.setError(
-                failure instanceof Error
-                  ? failure.message
-                  : "Unable to confirm delivery. Please try again.",
-              );
-            });
-        }}
+        deliveryConfirmed={requestActions.deliveryConfirmed}
+        onAcceptOffer={requestActions.onAcceptOffer}
+        onAcceptOrder={requestActions.onAcceptOrder}
+        onConfirmDelivery={requestActions.onConfirmDelivery}
         selectedMessageIds={selectedMessageIds}
         selectionMode={selectedMessageIds.length > 0}
         isLoading={isLoading}
