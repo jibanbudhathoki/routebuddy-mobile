@@ -79,12 +79,12 @@ export const apiEndpoints = {
     listMySubmittedCommunities: "/v1/communities/my-submissions",
     joinCommunity: "/v1/communities/:uid/join",
   },
-  ratings: {
-    rateDriver: "/v1/requests/:uid/rating",
-  },
   notifications: {
     listNotifications: "/v1/notifications",
     markAsRead: "/v1/notifications/:id/read",
     markAllAsRead: "/v1/notifications/read-all",
+  },
+  appReview: {
+    submitReview: "/v1/app-reviews",
   },
 } as const;
