@@ -16,8 +16,9 @@ import { ProfileMenuItem } from "../components/ProfileMenuItem";
 import { clearAuthSession } from "../../auth/services/authStorage";
 import { useProfileSummary } from "../hooks/useProfileSummary";
 import { useToast } from "../../../shared/components/ToastProvider";
-
 import { AppearanceModal } from "../components/AppearanceModal";
+import { AppReviewPrompt } from "../../appReview/components/AppReviewPrompt";
+import { useSubmitAppReview } from "../../appReview/hooks/useSubmitAppReview";
 
 export function ProfileScreen() {
   const router = useRouter();
@@ -26,6 +27,8 @@ export function ProfileScreen() {
   const { summary, isLoading, error, refetch } = useProfileSummary();
   const { theme } = useUnistyles();
   const [isAppearanceModalVisible, setAppearanceModalVisible] = useState(false);
+  const [isAppReviewVisible, setAppReviewVisible] = useState(false);
+  const submitAppReview = useSubmitAppReview();
 
   const handleLogout = async () => {
     try {
@@ -42,6 +45,24 @@ export function ProfileScreen() {
 
   const handleAppearancePress = () => {
     setAppearanceModalVisible(true);
+  };
+
+  const handleSubmitAppReview = async (rating: number, comment?: string) => {
+    try {
+      await submitAppReview.mutateAsync({ rating, comment });
+      setAppReviewVisible(false);
+      showToast("Thank you for reviewing RouteBuddy.", {
+        title: "Review submitted",
+        variant: "success",
+      });
+    } catch (failure) {
+      showToast(
+        failure instanceof Error
+          ? failure.message
+          : "Unable to submit your review. Please try again.",
+        { title: "Review not submitted", variant: "error" },
+      );
+    }
   };
 
   if (isLoading) {
@@ -139,9 +160,10 @@ export function ProfileScreen() {
             onPress={() => router.push("/notifications")}
           />
           <ProfileMenuItem
-            iconName="help-circle-outline"
-            title="Help & Support"
-            subtitle="FAQs, contact support"
+            iconName="star-outline"
+            title="Review App"
+            subtitle="Rate your experience"
+            onPress={() => setAppReviewVisible(true)}
           />
           <ProfileMenuItem
             iconName="logout"
@@ -174,6 +196,14 @@ export function ProfileScreen() {
       <AppearanceModal 
         visible={isAppearanceModalVisible}
         onClose={() => setAppearanceModalVisible(false)}
+      />
+      <AppReviewPrompt
+        visible={isAppReviewVisible}
+        isSubmitting={submitAppReview.isPending}
+        onClose={() => setAppReviewVisible(false)}
+        onSubmit={(rating, comment) =>
+          void handleSubmitAppReview(rating, comment)
+        }
       />
     </SafeAreaView>
   );
