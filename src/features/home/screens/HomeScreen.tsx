@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
+import { useRouter } from "expo-router";
 
 import { AppScreen } from "../../../shared/components/AppScreen";
-import { useToast } from "../../../shared/components/ToastProvider";
+import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
 import { useListAllRequests } from "../../request/hooks/useListAllRequests";
 import { useListAllTrips } from "../../trip/hooks/useListAllTrips";
 import {
@@ -12,13 +13,14 @@ import { HomeHeader } from "../components/HomeHeader";
 import { HomeResultsList } from "../components/HomeResultsList";
 
 export function HomeScreen() {
+  const router = useRouter();
+  const unreadCount = useUnreadNotificationCount();
   const [mode, setMode] = useState<BrowseMode>("trips");
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("All locations");
   const [dateFilter, setDateFilter] = useState("Any date");
   const [storeFilter, setStoreFilter] = useState("All stores");
   const [showMoreFilters, setShowMoreFilters] = useState(false);
-  const { showToast } = useToast();
   const {
     data: trips,
     error,
@@ -188,7 +190,8 @@ export function HomeScreen() {
             : locationFilter
         }
         onLocationPress={cycleLocation}
-        onNotificationsPress={() => showToast("You are all caught up.")}
+        unreadCount={unreadCount}
+        onNotificationsPress={() => router.push("/notifications")}
       />
       <HomeBrowseControls
         mode={mode}

@@ -135,7 +135,8 @@ export function ProfileScreen() {
           <ProfileMenuItem
             iconName="bell-outline"
             title="Notifications"
-            subtitle="Manage your preferences"
+            subtitle="View recent notifications"
+            onPress={() => router.push("/notifications")}
           />
           <ProfileMenuItem
             iconName="help-circle-outline"
