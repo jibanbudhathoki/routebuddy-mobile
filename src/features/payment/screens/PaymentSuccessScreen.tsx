@@ -100,7 +100,7 @@ export function PaymentSuccessScreen() {
       `• Tax: $${formatCurrency(tripOrderConversation.tax)} CAD`,
       `• Total paid: $${formatCurrency(tripOrderConversation.total)} CAD`,
       "",
-      "Payment is secured. Please review the list and accept the order. Reject is unavailable until a driver-decline action is supported.",
+      "Payment is secured. Please review the list and accept or reject the order.",
     ]
       .filter(Boolean)
       .join("\n");

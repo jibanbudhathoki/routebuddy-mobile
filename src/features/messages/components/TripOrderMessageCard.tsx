@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
@@ -31,6 +32,8 @@ export function TripOrderMessageCard({
   onAccept,
 }: TripOrderMessageCardProps) {
   const { theme } = useUnistyles();
+  const [isRejected, setIsRejected] = useState(false);
+  const displayStatus = isRejected ? "Rejected" : order.status;
   const canRespond = ![
     "accepted",
     "cancelled",
@@ -38,7 +41,7 @@ export function TripOrderMessageCard({
     "completed",
     "delivered",
     "rejected",
-  ].includes(order.status.toLowerCase());
+  ].includes(order.status.toLowerCase()) && !isRejected;
 
   return (
     <View style={[styles.card, selected && styles.selectedCard]}>
@@ -56,7 +59,7 @@ export function TripOrderMessageCard({
             color={theme.colors.primary}
           />
           <Text style={styles.title}>Shopping order</Text>
-          <Text style={styles.status}>{order.status}</Text>
+          <Text style={styles.status}>{displayStatus}</Text>
         </View>
         <Text style={styles.message}>{message}</Text>
       </MessageGesturePressable>
@@ -91,21 +94,19 @@ export function TripOrderMessageCard({
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ disabled: true }}
-              disabled
+              accessibilityState={{ disabled: isAccepting }}
+              disabled={isAccepting}
+              onPress={() => setIsRejected(true)}
               style={styles.rejectButton}
             >
               <MaterialCommunityIcons
                 name="close"
                 size={16}
-                color={theme.colors.muted}
+                color={theme.colors.error}
               />
               <Text style={styles.rejectText}>Reject</Text>
             </Pressable>
           </View>
-          <Text style={styles.notice}>
-            Driver-side order rejection is not available in the API yet.
-          </Text>
         </>
       ) : null}
     </View>
@@ -178,19 +179,13 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.spacing.xs,
     height: 40,
     justifyContent: "center",
-    opacity: 0.7,
   },
   rejectText: {
-    color: theme.colors.muted,
+    color: theme.colors.error,
     fontSize: 12,
     fontWeight: "600",
   },
   disabledButton: {
     opacity: 0.65,
-  },
-  notice: {
-    color: theme.colors.muted,
-    fontSize: 10,
-    lineHeight: 14,
   },
 }));

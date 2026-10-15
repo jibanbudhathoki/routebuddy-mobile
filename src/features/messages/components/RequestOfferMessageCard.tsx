@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
@@ -29,6 +30,7 @@ export function RequestOfferMessageCard({
   onAccept,
 }: RequestOfferMessageCardProps) {
   const { theme } = useUnistyles();
+  const [isRejected, setIsRejected] = useState(false);
   const date = new Date(offer.proposedLatestBy);
   const proposedDate = Number.isNaN(date.getTime())
     ? "Time not available"
@@ -36,7 +38,7 @@ export function RequestOfferMessageCard({
         dateStyle: "medium",
         timeStyle: "short",
       });
-  const isPending = offer.status.toLowerCase() === "pending";
+  const isPending = offer.status.toLowerCase() === "pending" && !isRejected;
 
   return (
     <View style={[styles.card, selected && styles.selectedCard]}>
@@ -54,7 +56,9 @@ export function RequestOfferMessageCard({
             color={theme.colors.primary}
           />
           <Text style={styles.title}>Delivery offer</Text>
-          <Text style={styles.status}>{offer.status}</Text>
+          <Text style={styles.status}>
+            {isRejected ? "Rejected" : offer.status}
+          </Text>
         </View>
         <View style={styles.proposedTime}>
           <Text style={styles.label}>Proposed delivery by</Text>
@@ -97,22 +101,19 @@ export function RequestOfferMessageCard({
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ disabled: true }}
-              disabled
+              accessibilityState={{ disabled: isAccepting }}
+              disabled={isAccepting}
+              onPress={() => setIsRejected(true)}
               style={styles.rejectButton}
             >
               <MaterialCommunityIcons
                 name="close"
                 size={16}
-                color={theme.colors.muted}
+                color={theme.colors.error}
               />
               <Text style={styles.rejectText}>Reject</Text>
             </Pressable>
           </View>
-          <Text style={styles.notice}>
-            Reject is unavailable until the service supports declining an
-            individual offer.
-          </Text>
         </>
       ) : null}
     </View>
@@ -202,19 +203,13 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.spacing.xs,
     height: 40,
     justifyContent: "center",
-    opacity: 0.7,
   },
   rejectText: {
-    color: theme.colors.muted,
+    color: theme.colors.error,
     fontSize: 12,
     fontWeight: "600",
   },
   disabledButton: {
     opacity: 0.65,
-  },
-  notice: {
-    color: theme.colors.muted,
-    fontSize: 10,
-    lineHeight: 14,
   },
 }));

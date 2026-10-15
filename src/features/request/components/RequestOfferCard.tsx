@@ -1,5 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
@@ -22,6 +23,7 @@ export function RequestOfferCard({
   onAccept,
 }: RequestOfferCardProps) {
   const { theme } = useUnistyles();
+  const [isRejected, setIsRejected] = useState(false);
   const driverName = offer.driver.name ?? offer.driver.fName ?? "Driver";
   const initials = driverName
     .split(/\s+/)
@@ -29,7 +31,7 @@ export function RequestOfferCard({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const isPending = offer.status.toLowerCase() === "pending";
+  const isPending = offer.status.toLowerCase() === "pending" && !isRejected;
 
   return (
     <View style={styles.offerCard}>
@@ -66,7 +68,9 @@ export function RequestOfferCard({
             isPending ? styles.pendingBadge : styles.otherBadge,
           ]}
         >
-          <Text style={styles.statusText}>{offer.status}</Text>
+          <Text style={styles.statusText}>
+            {isRejected ? "Rejected" : offer.status}
+          </Text>
         </View>
       </View>
 
@@ -128,23 +132,25 @@ export function RequestOfferCard({
               </Text>
             </Pressable>
             <Pressable
-              disabled
               accessibilityRole="button"
-              accessibilityState={{ disabled: true }}
-              style={styles.rejectButton}
+              accessibilityState={{
+                disabled: isAnyOfferAccepting,
+              }}
+              disabled={isAnyOfferAccepting}
+              onPress={() => setIsRejected(true)}
+              style={[
+                styles.rejectButton,
+                isAnyOfferAccepting && styles.disabledButton,
+              ]}
             >
               <MaterialCommunityIcons
                 name="close"
                 size={16}
-                color={theme.colors.muted}
+                color={theme.colors.error}
               />
               <Text style={styles.rejectText}>Reject</Text>
             </Pressable>
           </View>
-          <Text style={styles.rejectNotice}>
-            Reject is unavailable until the service supports declining an
-            individual offer.
-          </Text>
         </>
       ) : null}
     </View>
@@ -273,19 +279,13 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.spacing.xs,
     height: 40,
     justifyContent: "center",
-    opacity: 0.7,
   },
   rejectText: {
-    color: theme.colors.muted,
+    color: theme.colors.error,
     fontSize: 12,
     fontWeight: "600",
   },
   disabledButton: {
     opacity: 0.55,
-  },
-  rejectNotice: {
-    color: theme.colors.muted,
-    fontSize: 10,
-    lineHeight: 14,
   },
 }));
