@@ -19,11 +19,14 @@ import {
   useMarkConversationAsRead,
 } from "../hooks/useMessages";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
+import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
+import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
 
 export function MessageScreen() {
   const { theme } = useUnistyles();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const unreadCount = useUnreadNotificationCount();
 
   const { data: conversations, isLoading, isError, error, refetch } =
     useListMessages();
@@ -147,16 +150,10 @@ export function MessageScreen() {
     <View style={[styles.container, { paddingTop: getTopSafeAreaInset(insets.top) }]}>
       <View style={styles.header}>
         <Text style={styles.title}>Messages</Text>
-        <TouchableOpacity style={styles.notificationBtn}>
-          <MaterialCommunityIcons
-            name="bell-outline"
-            size={28}
-            color={theme.colors.primary}
-          />
-          <View style={styles.badgeContainer}>
-            <Text style={styles.badgeText}>3</Text>
-          </View>
-        </TouchableOpacity>
+        <NotificationBellButton
+          unreadCount={unreadCount}
+          onPress={() => router.push("/notifications")}
+        />
       </View>
 
       <View style={styles.searchContainer}>
@@ -221,29 +218,6 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 32,
     fontWeight: "800",
     color: theme.colors.text,
-  },
-  notificationBtn: {
-    position: "relative",
-    padding: theme.spacing.xs,
-  },
-  badgeContainer: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    backgroundColor: theme.colors.error,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 4,
-    borderWidth: 2,
-    borderColor: theme.colors.surface,
-  },
-  badgeText: {
-    color: theme.colors.onPrimary,
-    fontSize: 10,
-    fontWeight: "bold",
   },
   searchContainer: {
     flexDirection: "row",

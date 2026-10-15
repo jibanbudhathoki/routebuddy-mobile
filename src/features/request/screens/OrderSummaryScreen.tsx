@@ -16,11 +16,14 @@ import { calculateEstimate } from "../../../shared/utils/pricing";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { useToast } from "../../../shared/components/ToastProvider";
 import { validateOpenRequest } from "../validations/openRequest";
+import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
+import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
 
 export function OrderSummaryScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useUnistyles();
+  const unreadCount = useUnreadNotificationCount();
   const { showToast } = useToast();
   const { requestData, updateRequestData } = useRequestCreation();
   const { createRequest, isLoading: isCreatingRequest } = useCreateRequest();
@@ -120,18 +123,10 @@ export function OrderSummaryScreen() {
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Your Items</Text>
-        <TouchableOpacity style={styles.headerButton}>
-          <View>
-            <MaterialCommunityIcons
-              name="bell-outline"
-              size={28}
-              color={theme.colors.primary}
-            />
-            <View style={styles.notificationBadge}>
-              <Text style={styles.notificationText}>3</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
+        <NotificationBellButton
+          unreadCount={unreadCount}
+          onPress={() => router.push("/notifications")}
+        />
       </View>
 
       <ScrollView
@@ -192,24 +187,6 @@ const styles = StyleSheet.create((theme) => ({
   headerTitle: {
     color: theme.colors.primary,
     fontSize: 20,
-    fontWeight: "bold",
-  },
-  notificationBadge: {
-    alignItems: "center",
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.surface,
-    borderRadius: 10,
-    borderWidth: 2,
-    height: 18,
-    justifyContent: "center",
-    position: "absolute",
-    right: -4,
-    top: -4,
-    width: 18,
-  },
-  notificationText: {
-    color: theme.colors.surface,
-    fontSize: 10,
     fontWeight: "bold",
   },
   scrollContent: {

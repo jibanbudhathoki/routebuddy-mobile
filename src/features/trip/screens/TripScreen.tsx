@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useUnistyles } from 'react-native-unistyles';
+import { useRouter } from 'expo-router';
 import { AppScreen } from '../../../shared/components/AppScreen';
+import { NotificationBellButton } from '../../../shared/components/NotificationBellButton';
+import { useUnreadNotificationCount } from '../../notifications/hooks/useNotifications';
 import { MyRequestsScreen } from '../../request/screens/MyRequestsScreen';
 import { AssignedToMeOrders } from '../components/AssignedToMeOrders';
 import {
@@ -16,10 +19,12 @@ import { styles } from './tripScreen.styles';
 type TripMode = 'driving' | 'ordering';
 
 export function TripScreen() {
+  const router = useRouter();
   const [tripMode, setTripMode] = useState<TripMode>('driving');
   const [requestOrderMode, setRequestOrderMode] =
     useState<RequestOrderMode>('posted');
   const { theme } = useUnistyles();
+  const unreadCount = useUnreadNotificationCount();
   const {
     data: trips,
     error,
@@ -35,16 +40,10 @@ export function TripScreen() {
       >
         <View style={styles.header}>
           <Text style={styles.title}>My Trips</Text>
-          <View style={styles.notification}>
-            <MaterialCommunityIcons
-              name="bell-outline"
-              size={23}
-              color={theme.colors.text}
-            />
-            <View style={styles.notificationCount}>
-              <Text style={styles.notificationCountText}>3</Text>
-            </View>
-          </View>
+          <NotificationBellButton
+            unreadCount={unreadCount}
+            onPress={() => router.push('/notifications')}
+          />
         </View>
 
         <View style={styles.segmentControl}>

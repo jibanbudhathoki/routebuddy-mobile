@@ -20,6 +20,8 @@ import { calculateEstimate } from "../../../shared/utils/pricing";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { useStripe } from "@stripe/stripe-react-native";
 import { useToast } from "../../../shared/components/ToastProvider";
+import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
+import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
 
 export function CheckoutScreen() {
   const insets = useSafeAreaInsets();
@@ -36,6 +38,7 @@ export function CheckoutScreen() {
   const { initiateCheckout, isInitializing, error: paymentError } = usePayment();
   const { confirmPayment } = useStripe();
   const { showToast } = useToast();
+  const unreadCount = useUnreadNotificationCount();
 
   const items = requestData.items || [];
   const { subtotal, serviceFee, taxes, total } = calculateEstimate(items);
@@ -121,18 +124,10 @@ export function CheckoutScreen() {
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Checkout & Payment</Text>
-        <TouchableOpacity style={styles.headerButton}>
-          <View>
-            <MaterialCommunityIcons
-              name="bell-outline"
-              size={28}
-              color={theme.colors.primary}
-            />
-            <View style={styles.notificationBadge}>
-              <Text style={styles.notificationText}>3</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
+        <NotificationBellButton
+          unreadCount={unreadCount}
+          onPress={() => router.push("/notifications")}
+        />
       </View>
 
       <ScrollView
@@ -218,24 +213,6 @@ const styles = StyleSheet.create((theme) => ({
   headerTitle: {
     color: theme.colors.primary,
     fontSize: 20,
-    fontWeight: "bold",
-  },
-  notificationBadge: {
-    alignItems: "center",
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.surface,
-    borderRadius: 10,
-    borderWidth: 2,
-    height: 18,
-    justifyContent: "center",
-    position: "absolute",
-    right: -4,
-    top: -4,
-    width: 18,
-  },
-  notificationText: {
-    color: theme.colors.surface,
-    fontSize: 10,
     fontWeight: "bold",
   },
   scrollContent: {

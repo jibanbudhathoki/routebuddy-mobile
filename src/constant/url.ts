@@ -80,6 +80,11 @@ export const apiEndpoints = {
     joinCommunity: "/v1/communities/:uid/join",
   },
   ratings: {
-	rateDriver: "/v1/requests/:uid/rating",
+    rateDriver: "/v1/requests/:uid/rating",
+  },
+  notifications: {
+    listNotifications: "/v1/notifications",
+    markAsRead: "/v1/notifications/:id/read",
+    markAllAsRead: "/v1/notifications/read-all",
   },
 } as const;

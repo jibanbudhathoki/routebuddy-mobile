@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Share, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { AppScreen } from "../../../shared/components/AppScreen";
+import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
 import { useToast } from "../../../shared/components/ToastProvider";
 import { MarketplaceTripDetailsActions } from "../components/MarketplaceTripDetailsActions";
 import { MarketplaceTripDetailsHeader } from "../components/MarketplaceTripDetailsHeader";
@@ -18,6 +19,7 @@ export function MarketplaceTripDetailsScreen() {
   const { uid } = useLocalSearchParams<{ uid?: string }>();
   const { theme } = useUnistyles();
   const { showToast } = useToast();
+  const unreadCount = useUnreadNotificationCount();
   const createConversation = useCreateConversation();
   const tripUid = typeof uid === "string" ? uid : "";
   const { data: trip, error, isLoading, refetch } = useTripDetails(tripUid);
@@ -26,10 +28,9 @@ export function MarketplaceTripDetailsScreen() {
     <AppScreen>
       <View style={styles.screen}>
         <MarketplaceTripDetailsHeader
+          unreadCount={unreadCount}
           onBack={() => router.back()}
-          onNotificationsPress={() =>
-            showToast("Notifications are not available yet.")
-          }
+          onNotificationsPress={() => router.push("/notifications")}
           onSharePress={() => void shareTrip()}
         />
         <ScrollView

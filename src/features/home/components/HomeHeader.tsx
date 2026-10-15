@@ -1,15 +1,18 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
 
 interface HomeHeaderProps {
   location: string;
+  unreadCount: number;
   onLocationPress: () => void;
   onNotificationsPress: () => void;
 }
 
 export function HomeHeader({
   location,
+  unreadCount,
   onLocationPress,
   onNotificationsPress,
 }: HomeHeaderProps) {
@@ -22,19 +25,10 @@ export function HomeHeader({
           <Text style={styles.brand}>Route Buddy</Text>
           <Text style={styles.community}>Community</Text>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Notifications"
+        <NotificationBellButton
+          unreadCount={unreadCount}
           onPress={onNotificationsPress}
-          style={styles.notificationButton}
-        >
-          <MaterialCommunityIcons
-            name="bell-outline"
-            size={22}
-            color={theme.colors.primary}
-          />
-          <View style={styles.notificationDot} />
-        </Pressable>
+        />
       </View>
       <Pressable
         accessibilityRole="button"
@@ -78,23 +72,6 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.muted,
     fontSize: 10,
     marginTop: 2,
-  },
-  notificationButton: {
-    alignItems: "center",
-    height: 36,
-    justifyContent: "center",
-    width: 36,
-  },
-  notificationDot: {
-    backgroundColor: theme.colors.secondary,
-    borderColor: theme.colors.surface,
-    borderRadius: 4,
-    borderWidth: 1,
-    height: 8,
-    position: "absolute",
-    right: 4,
-    top: 4,
-    width: 8,
   },
   locationButton: {
     alignItems: "center",
