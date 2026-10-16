@@ -236,7 +236,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   statusText: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
     textTransform: "capitalize",
   },
   spotsBadge: {
@@ -250,7 +250,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   spotsText: {
     color: theme.colors.text,
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: "600",
   },
   routeRow: {
@@ -278,7 +278,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   scheduleText: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   storeRow: {
     flexDirection: "row",
@@ -300,7 +300,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   storeName: {
     color: theme.colors.text,
-    fontSize: 7,
+    fontSize: 9,
     fontWeight: "600",
     textAlign: "center",
   },
@@ -310,7 +310,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   moreStoresText: {
     color: theme.colors.text,
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "700",
   },
   cardFooter: {
@@ -332,18 +332,18 @@ const styles = StyleSheet.create((theme) => ({
   },
   feeLabel: {
     color: theme.colors.muted,
-    fontSize: 8,
+    fontSize: 10,
   },
   price: {
     color: theme.colors.text,
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: "600",
     marginLeft: theme.spacing.xs,
   },
   detailsButton: {
     alignItems: "center",
     backgroundColor: theme.colors.primary,
-    borderRadius: 6,
+    borderRadius: theme.radius.sm,
     flexDirection: "row",
     gap: 2,
     justifyContent: "center",
@@ -352,13 +352,13 @@ const styles = StyleSheet.create((theme) => ({
   },
   detailsText: {
     color: theme.colors.onPrimary,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "600",
   },
   shareButton: {
     alignItems: "center",
     borderColor: theme.colors.primary,
-    borderRadius: 6,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
     height: 32,
     justifyContent: "center",

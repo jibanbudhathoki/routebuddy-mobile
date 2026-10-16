@@ -241,8 +241,8 @@ const styles = StyleSheet.create((theme) => ({
   headerTitle: {
     color: theme.colors.text,
     flex: 1,
-    fontSize: 22,
-    fontWeight: "800",
+    fontSize: 24,
+    fontWeight: "700",
   },
   markAllButton: {
     minHeight: 40,

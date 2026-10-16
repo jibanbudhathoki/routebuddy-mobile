@@ -17,6 +17,9 @@ export function useUpdateTrip() {
     onSuccess: async (response, { uid }) => {
       queryClient.setQueryData(["trips", "details", uid], response.data);
       await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["trips", "details", uid],
+        }),
         queryClient.invalidateQueries({ queryKey: ["trips", "mine"] }),
         queryClient.invalidateQueries({ queryKey: ["trips", "all"] }),
       ]);

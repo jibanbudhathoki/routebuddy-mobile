@@ -201,7 +201,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   statusText: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
     textTransform: "capitalize",
   },
   routeRow: {
@@ -230,7 +230,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   scheduleText: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   storeRow: {
     flexDirection: "row",
@@ -242,14 +242,14 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     backgroundColor: theme.colors.background,
     borderRadius: 6,
-    height: 46,
+    height: 50,
     justifyContent: "center",
     paddingHorizontal: theme.spacing.xs,
-    width: 46,
+    width: 50,
   },
   storeName: {
     color: theme.colors.text,
-    fontSize: 6,
+    fontSize: 9,
     fontWeight: "700",
     marginTop: 2,
     textAlign: "center",
@@ -278,7 +278,7 @@ const styles = StyleSheet.create((theme) => ({
   detailsButton: {
     alignItems: "center",
     backgroundColor: theme.colors.primary,
-    borderRadius: 6,
+    borderRadius: theme.radius.sm,
     flexDirection: "row",
     gap: theme.spacing.xs,
     justifyContent: "center",
@@ -287,7 +287,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   detailsText: {
     color: theme.colors.onPrimary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "700",
   },
 }));

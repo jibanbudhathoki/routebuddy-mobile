@@ -101,7 +101,7 @@ const styles = StyleSheet.create((theme) => ({
     borderColor: theme.colors.primarySoft,
     borderRadius: theme.radius.md,
     marginBottom: theme.spacing.md,
-    shadowColor: "#000",
+    shadowColor: theme.colors.text,
     shadowOffset: {
       width: 0,
       height: 1,

@@ -162,7 +162,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   tabText: {
     color: theme.colors.muted,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "500",
   },
   selectedTabText: {
@@ -187,7 +187,7 @@ const styles = StyleSheet.create((theme) => ({
   input: {
     color: theme.colors.text,
     flex: 1,
-    fontSize: 10,
+    fontSize: 13,
     paddingVertical: 0,
   },
   filterButton: {
@@ -198,7 +198,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   filterButtonText: {
     color: theme.colors.text,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "600",
   },
 }));

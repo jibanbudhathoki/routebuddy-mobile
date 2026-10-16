@@ -108,13 +108,17 @@ function DetailMetric({
   );
 }
 
-function getInitials(name: string) {
-  return name
+function getInitials(name: string | null | undefined) {
+  const safeName = typeof name === "string" ? name.trim() : "";
+  const initials = safeName
     .split(/\s+/)
+    .filter(Boolean)
     .map((part) => part[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
+
+  return initials || "?";
 }
 
 const styles = StyleSheet.create((theme) => ({

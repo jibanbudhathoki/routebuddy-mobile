@@ -159,13 +159,6 @@ export function MessageScreen() {
             }
           />
         </View>
-        <TouchableOpacity style={styles.filterBtn}>
-          <MaterialCommunityIcons
-            name="tune-variant"
-            size={24}
-            color={theme.colors.text}
-          />
-        </TouchableOpacity>
       </View>
 
       {renderContent()}
@@ -204,8 +197,8 @@ const styles = StyleSheet.create((theme) => ({
     paddingBottom: theme.spacing.sm,
   },
   title: {
-    fontSize: 32,
-    fontWeight: "800",
+    fontSize: 24,
+    fontWeight: "700",
     color: theme.colors.text,
   },
   searchContainer: {
@@ -217,16 +210,6 @@ const styles = StyleSheet.create((theme) => ({
   searchBarWrapper: {
     flex: 1,
     marginRight: theme.spacing.sm,
-  },
-  filterBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
   },
   listContent: {
     paddingHorizontal: theme.spacing.lg,
