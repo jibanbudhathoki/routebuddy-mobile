@@ -20,7 +20,7 @@ export function AssignedToMeOrders() {
   if (isLoading) {
     return (
       <View style={styles.stateCard}>
-        <ActivityIndicator color={theme.colors.primary} />
+        <ActivityIndicator color={theme.colors.text} />
         <Text style={styles.stateText}>Loading orders assigned to you...</Text>
       </View>
     );

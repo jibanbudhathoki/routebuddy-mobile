@@ -78,7 +78,7 @@ export function RequestStatusOptionsSheet({
               <MaterialCommunityIcons
                 name="truck-check-outline"
                 size={19}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
             </View>
             <View style={styles.dropdownCopy}>
@@ -125,7 +125,7 @@ export function RequestStatusOptionsSheet({
                       <MaterialCommunityIcons
                         name="loading"
                         size={18}
-                        color={theme.colors.primary}
+                        color={theme.colors.text}
                       />
                     ) : (
                       <MaterialCommunityIcons

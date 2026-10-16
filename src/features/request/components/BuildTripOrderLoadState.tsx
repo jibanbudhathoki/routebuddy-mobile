@@ -19,7 +19,7 @@ export function BuildTripOrderLoadState({
   if (isLoading) {
     return (
       <ActivityIndicator
-        color={theme.colors.primary}
+        color={theme.colors.text}
         size="large"
         style={styles.loading}
       />
@@ -66,7 +66,7 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: "center",
   },
   retryText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "700",
     padding: theme.spacing.xs,

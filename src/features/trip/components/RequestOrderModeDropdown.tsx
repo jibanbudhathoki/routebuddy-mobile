@@ -36,7 +36,7 @@ export function RequestOrderModeDropdown({
         <MaterialCommunityIcons
           name={isExpanded ? "chevron-up" : "chevron-down"}
           size={18}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
       </Pressable>
       {isExpanded

@@ -40,6 +40,9 @@ export const styles = StyleSheet.create((theme) => ({
   messageColumn: {
     maxWidth: "78%",
   },
+  messageColumnOffer: {
+    flexGrow: 1,
+  },
   messageColumnOther: {
     alignItems: "flex-start",
   },
@@ -91,7 +94,7 @@ export const styles = StyleSheet.create((theme) => ({
     paddingVertical: theme.spacing.xs,
   },
   sharedLinkText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 11,
     fontWeight: "700",
   },
@@ -102,7 +105,7 @@ export const styles = StyleSheet.create((theme) => ({
     paddingLeft: theme.spacing.xs,
   },
   messageReplyName: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 10,
     fontWeight: "700",
   },

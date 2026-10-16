@@ -39,12 +39,12 @@ export function MarketplaceTripDetailsActions({
         ]}
       >
         {isMessagingDriver ? (
-          <ActivityIndicator size="small" color={theme.colors.primary} />
+          <ActivityIndicator size="small" color={theme.colors.text} />
         ) : (
           <MaterialCommunityIcons
             name="message-outline"
             size={17}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         )}
         <Text style={styles.secondaryButtonText}>
@@ -73,7 +73,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   primaryButtonText: {
     color: theme.colors.onPrimary,
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "700",
   },
   secondaryButton: {
@@ -91,8 +91,8 @@ const styles = StyleSheet.create((theme) => ({
     opacity: 0.65,
   },
   secondaryButtonText: {
-    color: theme.colors.primary,
-    fontSize: 10,
+    color: theme.colors.text,
+    fontSize: 12,
     fontWeight: "600",
   },
 }));

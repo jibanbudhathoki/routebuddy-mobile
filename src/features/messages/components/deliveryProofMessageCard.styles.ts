@@ -64,7 +64,7 @@ export const styles = StyleSheet.create((theme) => ({
     minHeight: 32,
   },
   confirmedText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 11,
     fontWeight: "700",
   },

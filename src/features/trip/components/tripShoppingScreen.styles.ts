@@ -172,7 +172,7 @@ export const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.xs,
   },
   retryText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 11,
     fontWeight: "700",
   },

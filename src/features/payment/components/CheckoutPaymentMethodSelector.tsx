@@ -20,7 +20,7 @@ export function CheckoutPaymentMethodSelector() {
         />
         <Text style={styles.methodText}>Credit or Debit Card</Text>
         <View style={styles.cardLogos}>
-          <Text style={[styles.cardLogoText, { color: theme.colors.primary }]}>
+          <Text style={[styles.cardLogoText, { color: theme.colors.text }]}>
             VISA
           </Text>
           <View style={styles.mcLogo}>
@@ -38,7 +38,7 @@ export function CheckoutPaymentMethodSelector() {
 
 const styles = StyleSheet.create((theme) => ({
   sectionTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: theme.spacing.md,

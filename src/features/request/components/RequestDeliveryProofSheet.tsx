@@ -147,7 +147,7 @@ export function RequestDeliveryProofSheet({
               <MaterialCommunityIcons
                 name="camera-outline"
                 size={21}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
               <Text style={styles.title}>Delivery Proof</Text>
             </View>
@@ -180,7 +180,7 @@ export function RequestDeliveryProofSheet({
             <MaterialCommunityIcons
               name="image-plus-outline"
               size={19}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
             <Text style={styles.addPhotosText}>
               {photos.length ? "Add more photos" : "Choose delivery photos"}

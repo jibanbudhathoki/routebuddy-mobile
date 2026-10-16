@@ -108,7 +108,7 @@ export function ChatComposer({
           <MaterialCommunityIcons
             name="plus"
             size={23}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
         <View style={styles.inputPill}>
@@ -205,7 +205,7 @@ const styles = StyleSheet.create((theme) => ({
     minWidth: 0,
   },
   replyTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 10,
     fontWeight: "700",
   },

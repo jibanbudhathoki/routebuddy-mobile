@@ -142,7 +142,7 @@ function LocationButton({
           {value || placeholder}
         </Text>
         {loading ? (
-          <ActivityIndicator size="small" color={theme.colors.primary} />
+          <ActivityIndicator size="small" color={theme.colors.text} />
         ) : (
           <MaterialCommunityIcons
             name="chevron-down"
@@ -208,7 +208,7 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.xs,
   },
   retryText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 13,
     fontWeight: "700",
   },

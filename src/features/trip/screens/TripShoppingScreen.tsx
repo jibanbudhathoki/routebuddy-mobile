@@ -114,7 +114,7 @@ export function TripShoppingScreen() {
         >
           {isLoadingDetails || isLoadingSavedItems ? (
             <View style={styles.state}>
-              <ActivityIndicator color={theme.colors.primary} />
+              <ActivityIndicator color={theme.colors.text} />
               <Text style={styles.stateText}>Loading shopping list...</Text>
             </View>
           ) : storageError ? (

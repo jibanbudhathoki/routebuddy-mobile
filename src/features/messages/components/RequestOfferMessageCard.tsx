@@ -53,7 +53,7 @@ export function RequestOfferMessageCard({
           <MaterialCommunityIcons
             name="package-variant"
             size={18}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.title}>Delivery offer</Text>
           <Text style={styles.status}>
@@ -122,6 +122,7 @@ export function RequestOfferMessageCard({
 
 const styles = StyleSheet.create((theme) => ({
   card: {
+    alignSelf: "stretch",
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
     borderRadius: theme.radius.sm,
@@ -145,7 +146,7 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "700",
   },
   status: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 10,
     fontWeight: "700",
     textTransform: "capitalize",
@@ -174,6 +175,7 @@ const styles = StyleSheet.create((theme) => ({
     lineHeight: 17,
   },
   actions: {
+    alignSelf: "stretch",
     flexDirection: "row",
     gap: theme.spacing.sm,
   },
@@ -186,6 +188,8 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.spacing.xs,
     height: 40,
     justifyContent: "center",
+    minWidth: 0,
+    paddingHorizontal: theme.spacing.xs,
   },
   acceptText: {
     color: theme.colors.onPrimary,
@@ -203,6 +207,8 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.spacing.xs,
     height: 40,
     justifyContent: "center",
+    minWidth: 0,
+    paddingHorizontal: theme.spacing.xs,
   },
   rejectText: {
     color: theme.colors.error,

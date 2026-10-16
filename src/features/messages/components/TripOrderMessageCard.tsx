@@ -56,7 +56,7 @@ export function TripOrderMessageCard({
           <MaterialCommunityIcons
             name="clipboard-list-outline"
             size={18}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.title}>Shopping order</Text>
           <Text style={styles.status}>{displayStatus}</Text>
@@ -138,7 +138,7 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "700",
   },
   status: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 10,
     fontWeight: "700",
     textTransform: "capitalize",

@@ -58,12 +58,12 @@ export function TripStatusDropdown({
               {title}
             </Text>
             {isUpdating && pendingStatus === status ? (
-              <ActivityIndicator size="small" color={theme.colors.primary} />
+              <ActivityIndicator size="small" color={theme.colors.text} />
             ) : (
               <MaterialCommunityIcons
                 name={selected ? "check-circle" : "chevron-right"}
                 size={18}
-                color={selected ? theme.colors.primary : theme.colors.muted}
+                color={selected ? theme.colors.text : theme.colors.muted}
               />
             )}
           </Pressable>

@@ -255,7 +255,7 @@ export function PersonalInformationScreen() {
 
         {isLoading && !profile ? (
           <View style={styles.statusCard} accessibilityLiveRegion="polite">
-            <ActivityIndicator color={theme.colors.primary} />
+            <ActivityIndicator color={theme.colors.text} />
             <Text style={styles.statusText}>Loading personal information...</Text>
           </View>
         ) : error && !profile ? (
@@ -320,7 +320,7 @@ export function PersonalInformationScreen() {
         </View>
         {photoProgress ? (
           <View style={styles.photoProgress} accessibilityLiveRegion="polite">
-            <ActivityIndicator color={theme.colors.primary} size="small" />
+            <ActivityIndicator color={theme.colors.text} size="small" />
             <Text style={styles.statusText}>
               {photoProgress === "uploading"
                 ? "Uploading profile photo..."
@@ -410,7 +410,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: theme.spacing.sm,
   },
   retryText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "700",
   },

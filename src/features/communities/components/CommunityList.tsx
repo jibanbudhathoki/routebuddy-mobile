@@ -60,7 +60,7 @@ export function CommunityList({
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={onRefresh}
-          tintColor={theme.colors.primary}
+          tintColor={theme.colors.text}
         />
       }
     >
@@ -78,7 +78,7 @@ export function CommunityList({
       ) : null}
       {isLoading && communities.length === 0 ? (
         <View style={styles.state}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.text} />
           <Text style={styles.stateText}>Loading communities...</Text>
         </View>
       ) : error && communities.length === 0 ? (
@@ -123,7 +123,7 @@ export function CommunityList({
               style={styles.loadMoreButton}
             >
               {loadingMore ? (
-                <ActivityIndicator color={theme.colors.primary} />
+                <ActivityIndicator color={theme.colors.text} />
               ) : (
                 <Text style={styles.loadMoreText}>Load more</Text>
               )}
@@ -176,7 +176,7 @@ function EmptyState({
               : "account-group-outline"
           }
           size={34}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
       </View>
       <Text style={styles.emptyTitle}>{title}</Text>
@@ -221,7 +221,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: theme.spacing.sm,
   },
   retryText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "700",
     textAlign: "center",
@@ -264,7 +264,7 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.md,
   },
   loadMoreText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "700",
   },

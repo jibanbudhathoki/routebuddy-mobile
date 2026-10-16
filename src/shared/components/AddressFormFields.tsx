@@ -121,7 +121,7 @@ export function AddressFormFields({
         <MaterialCommunityIcons
           name={formData.isDefault ? "checkbox-marked" : "checkbox-blank-outline"}
           size={22}
-          color={formData.isDefault ? theme.colors.primary : theme.colors.muted}
+          color={formData.isDefault ? theme.colors.text : theme.colors.muted}
         />
         <Text style={styles.defaultAddressText}>Set as default address</Text>
       </TouchableOpacity>

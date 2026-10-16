@@ -59,7 +59,7 @@ export function AppReviewPrompt({
             <MaterialCommunityIcons
               name="star-outline"
               size={26}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
           </View>
           <Text style={styles.title}>Review RouteBuddy</Text>

@@ -49,7 +49,7 @@ export function EditTripDateTimeField({
           <MaterialCommunityIcons
             name="calendar-outline"
             size={17}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.valueText}>{date.toLocaleDateString()}</Text>
         </Pressable>
@@ -61,7 +61,7 @@ export function EditTripDateTimeField({
           <MaterialCommunityIcons
             name="clock-outline"
             size={17}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.valueText}>
             {date.toLocaleTimeString([], {
@@ -144,7 +144,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: theme.spacing.xs,
   },
   pickerAction: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "600",
   },

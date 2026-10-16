@@ -48,7 +48,7 @@ export function AddItemsScreen() {
             <MaterialCommunityIcons
               name="clipboard-text-outline"
               size={80}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
           </View>
           

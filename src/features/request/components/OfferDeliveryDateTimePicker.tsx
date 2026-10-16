@@ -52,7 +52,7 @@ export function OfferDeliveryDateTimePicker({
           <MaterialCommunityIcons
             name="calendar-outline"
             size={18}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.dateTimeText}>{value.toLocaleDateString()}</Text>
         </Pressable>
@@ -64,7 +64,7 @@ export function OfferDeliveryDateTimePicker({
           <MaterialCommunityIcons
             name="clock-outline"
             size={18}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.dateTimeText}>
             {value.toLocaleTimeString([], {
@@ -181,7 +181,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: theme.spacing.sm,
   },
   donePickerText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "700",
   },

@@ -65,7 +65,7 @@ const styles = StyleSheet.create((theme) => ({
     borderRadius: 24,
   },
   initials: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "700",
   },
@@ -75,12 +75,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   eyebrow: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "700",
   },
   name: {
     color: theme.colors.text,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "700",
   },
 }));

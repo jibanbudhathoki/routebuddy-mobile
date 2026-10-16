@@ -105,7 +105,7 @@ export function PaymentSuccessNextSteps({
         <MaterialCommunityIcons
           name="email-outline"
           size={16}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
         <Text style={styles.footerText}>
           {isRequestPublished
@@ -142,7 +142,7 @@ function TimelineItem({
         <MaterialCommunityIcons
           name={icon}
           size={24}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
       </View>
       {!isLast ? <View style={styles.timelineLine} /> : null}
@@ -176,7 +176,7 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
   },
   securityTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "bold",
     marginBottom: 4,
@@ -188,7 +188,7 @@ const styles = StyleSheet.create((theme) => ({
     opacity: 0.8,
   },
   sectionTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: theme.spacing.lg,
@@ -232,7 +232,7 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
   },
   timelineTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 15,
     fontWeight: "bold",
     marginBottom: 4,
@@ -267,7 +267,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: theme.spacing.md,
   },
   secondaryButtonText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "bold",
   },

@@ -6,12 +6,15 @@ import {
   profilePhotoUploadEnvelopeSchema,
   profileSummaryResponseSchema,
   profilePhotoUploadPayloadSchema,
+  profileNotificationPreferencesResponseSchema,
+  profileNotificationPreferencesSchema,
   updateUserProfilePayloadSchema,
   userProfileSchema,
 } from "../validations/profile";
 import type {
   ProfilePhotoFile,
   ProfilePhotoUploadResponse,
+  ProfileNotificationPreferences,
   ProfileSummary,
   UpdateUserProfilePayload,
   UserProfile,
@@ -20,6 +23,7 @@ import type {
 export type {
   ProfilePhotoFile,
   ProfilePhotoUploadResponse,
+  ProfileNotificationPreferences,
   ProfileSummary,
   UpdateUserProfilePayload,
   UserProfile,
@@ -54,6 +58,25 @@ export const profileService = {
       body: payload,
     });
     return parseProfileResponse(response);
+  },
+
+  async getNotificationPreferences(): Promise<ProfileNotificationPreferences> {
+    const response = await apiRequest<unknown>(
+      apiEndpoints.profile.getNotificationPreferences,
+      { method: "GET" },
+    );
+    return parseNotificationPreferencesResponse(response);
+  },
+
+  async updateNotificationPreferences(
+    preferences: ProfileNotificationPreferences,
+  ): Promise<ProfileNotificationPreferences> {
+    const payload = profileNotificationPreferencesSchema.parse(preferences);
+    const response = await apiRequest<unknown>(
+      apiEndpoints.profile.updateNotificationPreferences,
+      { method: "PATCH", body: payload },
+    );
+    return parseNotificationPreferencesResponse(response);
   },
 
   async uploadProfilePhoto(
@@ -103,4 +126,17 @@ function parseProfileResponse(response: unknown): UserProfile {
     throw new Error(parsedResponse.message || "The profile request failed.");
   }
   return userProfileSchema.parse(parsedResponse.data);
+}
+
+function parseNotificationPreferencesResponse(
+  response: unknown,
+): ProfileNotificationPreferences {
+  const parsedResponse =
+    profileNotificationPreferencesResponseSchema.parse(response);
+  if (!parsedResponse.success) {
+    throw new Error(
+      parsedResponse.message || "The notification preferences request failed.",
+    );
+  }
+  return profileNotificationPreferencesSchema.parse(parsedResponse.data);
 }

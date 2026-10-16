@@ -21,7 +21,7 @@ export function RequestDetailsSummary({
           <MaterialCommunityIcons
             name="chat-outline"
             size={18}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <View style={styles.instructionsContent}>
             <Text style={styles.instructionsTitle}>Special Instructions</Text>
@@ -96,13 +96,13 @@ const styles = StyleSheet.create((theme) => ({
   },
   instructionsTitle: {
     color: theme.colors.text,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "700",
   },
   instructionsText: {
     color: theme.colors.muted,
-    fontSize: 8,
-    lineHeight: 12,
+    fontSize: 12,
+    lineHeight: 18,
   },
   summaryCard: {
     backgroundColor: theme.colors.surface,
@@ -113,7 +113,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   heading: {
     color: theme.colors.text,
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: "700",
   },
   metrics: {
@@ -130,12 +130,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   metricLabel: {
     color: theme.colors.muted,
-    fontSize: 7,
+    fontSize: 11,
     textAlign: "center",
   },
   metricValue: {
-    color: theme.colors.primary,
-    fontSize: 11,
+    color: theme.colors.text,
+    fontSize: 12,
     fontWeight: "700",
     textAlign: "center",
   },
@@ -156,11 +156,11 @@ const styles = StyleSheet.create((theme) => ({
   },
   costLabel: {
     color: theme.colors.muted,
-    fontSize: 8,
+    fontSize: 12,
   },
   costValue: {
     color: theme.colors.text,
-    fontSize: 8,
+    fontSize: 12,
   },
   totalRow: {
     borderTopColor: theme.colors.border,
@@ -172,12 +172,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   totalLabel: {
     color: theme.colors.text,
-    fontSize: 10,
+    fontSize: 13,
     fontWeight: "700",
   },
   totalValue: {
-    color: theme.colors.primary,
-    fontSize: 11,
+    color: theme.colors.text,
+    fontSize: 13,
     fontWeight: "800",
   },
 }));

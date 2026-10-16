@@ -47,7 +47,7 @@ export function MarketplaceRequestItems({
             <MaterialCommunityIcons
               name="cart-outline"
               size={20}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
           </View>
           <Text style={styles.note}>
@@ -106,7 +106,7 @@ export function MarketplaceRequestItems({
           <MaterialCommunityIcons
             name="tag"
             size={17}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </View>
         <View style={styles.subtotalDetails}>
@@ -172,7 +172,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   itemCount: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   estimatedTotal: {
     alignItems: "flex-end",
@@ -180,13 +180,13 @@ const styles = StyleSheet.create((theme) => ({
     maxWidth: "38%",
   },
   totalAmount: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "800",
   },
   totalCaption: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
     marginTop: 5,
   },
   noteRow: {
@@ -210,8 +210,8 @@ const styles = StyleSheet.create((theme) => ({
   note: {
     color: theme.colors.text,
     flex: 1,
-    fontSize: 9,
-    lineHeight: 14,
+    fontSize: 12,
+    lineHeight: 18,
   },
   itemsSection: {
     gap: theme.spacing.xs,
@@ -237,7 +237,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   headerText: {
     color: theme.colors.text,
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: "700",
     textAlign: "center",
   },
@@ -258,7 +258,7 @@ const styles = StyleSheet.create((theme) => ({
   itemRow: {
     alignItems: "center",
     flexDirection: "row",
-    minHeight: 43,
+    minHeight: 50,
     paddingHorizontal: theme.spacing.xs,
   },
   itemDivider: {
@@ -267,28 +267,28 @@ const styles = StyleSheet.create((theme) => ({
   },
   number: {
     color: theme.colors.text,
-    fontSize: 9,
+    fontSize: 11,
     textAlign: "center",
   },
   itemName: {
     color: theme.colors.text,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "600",
   },
   description: {
     color: theme.colors.text,
-    fontSize: 8,
-    lineHeight: 12,
+    fontSize: 11,
+    lineHeight: 15,
   },
   price: {
-    color: theme.colors.primary,
-    fontSize: 9,
+    color: theme.colors.text,
+    fontSize: 11,
     fontWeight: "700",
     textAlign: "right",
   },
   emptyItems: {
     color: theme.colors.muted,
-    fontSize: 10,
+    fontSize: 12,
     padding: theme.spacing.md,
     textAlign: "center",
   },
@@ -318,7 +318,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   subtotalLabel: {
     color: theme.colors.text,
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: "700",
   },
   subtotalCount: {
@@ -327,10 +327,10 @@ const styles = StyleSheet.create((theme) => ({
   },
   estimateNote: {
     color: theme.colors.muted,
-    fontSize: 7,
+    fontSize: 11,
   },
   subtotalAmount: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "800",
   },

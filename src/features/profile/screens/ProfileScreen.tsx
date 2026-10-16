@@ -154,10 +154,10 @@ export function ProfileScreen() {
             onPress={handleAppearancePress}
           />
           <ProfileMenuItem
-            iconName="bell-outline"
-            title="Notifications"
-            subtitle="View recent notifications"
-            onPress={() => router.push("/notifications")}
+            iconName="tune-variant"
+            title="Notification Preferences"
+            subtitle="Choose which alerts you receive"
+            onPress={() => router.push("/(modals)/notification-preferences")}
           />
           <ProfileMenuItem
             iconName="star-outline"
@@ -239,7 +239,7 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: "center",
   },
   retryText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 15,
     fontWeight: "700",
   },

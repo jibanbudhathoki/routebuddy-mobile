@@ -30,7 +30,7 @@ export function TripOrdersSection({
       <Text style={styles.title}>Orders ({acceptedOrders.length})</Text>
       {isLoading ? (
         <View style={styles.stateCard}>
-          <ActivityIndicator color={theme.colors.primary} />
+          <ActivityIndicator color={theme.colors.text} />
           <Text style={styles.stateText}>Loading orders...</Text>
         </View>
       ) : error ? (
@@ -132,7 +132,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   title: {
     color: theme.colors.text,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "700",
   },
   orderList: {
@@ -163,7 +163,7 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
   },
   initials: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 13,
     fontWeight: "700",
   },
@@ -174,16 +174,16 @@ const styles = StyleSheet.create((theme) => ({
   },
   requesterName: {
     color: theme.colors.text,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "700",
   },
   route: {
     color: theme.colors.muted,
-    fontSize: 10,
+    fontSize: 12,
   },
   orderStatus: {
-    color: theme.colors.primary,
-    fontSize: 9,
+    color: theme.colors.text,
+    fontSize: 11,
     fontWeight: "600",
   },
   stateCard: {
@@ -197,15 +197,15 @@ const styles = StyleSheet.create((theme) => ({
   },
   stateText: {
     color: theme.colors.muted,
-    fontSize: 11,
+    fontSize: 12,
     textAlign: "center",
   },
   retryButton: {
     padding: theme.spacing.xs,
   },
   retryText: {
-    color: theme.colors.primary,
-    fontSize: 11,
+    color: theme.colors.text,
+    fontSize: 12,
     fontWeight: "600",
   },
 }));

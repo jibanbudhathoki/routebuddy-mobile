@@ -172,7 +172,7 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "600",
   },
   selectedTabText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   search: {
     paddingHorizontal: theme.spacing.md,

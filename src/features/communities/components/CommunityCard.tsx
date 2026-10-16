@@ -29,7 +29,7 @@ export function CommunityCard({
         <MaterialCommunityIcons
           name="account-group-outline"
           size={24}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
       </View>
       <View style={styles.details}>
@@ -128,7 +128,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.secondarySoft,
   },
   badgeText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 11,
     fontWeight: "700",
     textTransform: "capitalize",

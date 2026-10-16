@@ -75,7 +75,7 @@ export const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.spacing.sm,
   },
   addPhotosText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     flex: 1,
     fontSize: 12,
     fontWeight: "700",
@@ -130,7 +130,7 @@ export const styles = StyleSheet.create((theme) => ({
     fontSize: 12,
   },
   savedProofNotice: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 11,
     lineHeight: 16,
   },

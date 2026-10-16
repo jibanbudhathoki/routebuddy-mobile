@@ -81,7 +81,7 @@ export function PersonalInformationFields({
               <MaterialCommunityIcons
                 name="account"
                 size={38}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
             </View>
           )}
@@ -209,7 +209,7 @@ export function PersonalInformationFields({
             {cityName || "Select your city"}
           </Text>
           {isLoadingCities ? (
-            <ActivityIndicator size="small" color={theme.colors.primary} />
+            <ActivityIndicator size="small" color={theme.colors.text} />
           ) : (
             <MaterialCommunityIcons
               name="chevron-down"

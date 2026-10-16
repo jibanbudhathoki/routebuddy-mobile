@@ -75,7 +75,7 @@ export function RequestItemsEditor({
               <MaterialCommunityIcons
                 name="trash-can-outline"
                 size={22}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
             </TouchableOpacity>
           </View>
@@ -90,7 +90,7 @@ export function RequestItemsEditor({
         <MaterialCommunityIcons
           name="plus-circle-outline"
           size={20}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
         <Text style={styles.addButtonText}>Add another item</Text>
       </TouchableOpacity>
@@ -102,12 +102,12 @@ const styles = StyleSheet.create((theme) => ({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: theme.colors.primary,
+    color: theme.colors.text,
     opacity: 0.8,
     marginBottom: theme.spacing.md,
   },
@@ -129,7 +129,7 @@ const styles = StyleSheet.create((theme) => ({
   tableHeaderText: {
     fontSize: 11,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   tableRow: {
     flexDirection: "row",
@@ -153,7 +153,7 @@ const styles = StyleSheet.create((theme) => ({
   priceSymbol: {
     fontSize: 13,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   actionCell: {
     alignItems: "center",
@@ -173,7 +173,7 @@ const styles = StyleSheet.create((theme) => ({
   addButtonText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     marginLeft: theme.spacing.sm,
   },
 }));

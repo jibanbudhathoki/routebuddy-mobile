@@ -119,7 +119,7 @@ export function OrderSummaryScreen() {
           <MaterialCommunityIcons
             name="chevron-left"
             size={32}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Your Items</Text>
@@ -185,7 +185,7 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.xs,
   },
   headerTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: "bold",
   },
@@ -194,7 +194,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.spacing.md,
   },
   subtitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     marginBottom: theme.spacing.lg,
     marginTop: theme.spacing.xs,

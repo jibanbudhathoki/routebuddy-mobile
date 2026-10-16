@@ -53,7 +53,7 @@ export function ConfirmationDialog({
             <MaterialCommunityIcons
               name={icon}
               size={26}
-              color={destructive ? theme.colors.error : theme.colors.primary}
+              color={destructive ? theme.colors.error : theme.colors.text}
             />
           </View>
           <Text style={styles.title}>{title}</Text>

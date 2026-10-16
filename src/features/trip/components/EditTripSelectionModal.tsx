@@ -88,7 +88,7 @@ export function EditTripSelectionModal({
                           : "radiobox-blank"
                     }
                     size={21}
-                    color={selected ? theme.colors.primary : theme.colors.muted}
+                    color={selected ? theme.colors.text : theme.colors.muted}
                   />
                 </Pressable>
               );
@@ -138,7 +138,7 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.xs,
   },
   doneText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 13,
     fontWeight: "700",
   },

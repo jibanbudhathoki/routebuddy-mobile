@@ -15,6 +15,8 @@ export const apiEndpoints = {
     updateAddress: "/v1/profile/addresses/:uid",
     removeAddress: "/v1/profile/addresses/:uid",
     profileSummary: "/v1/profile/summary",
+    getNotificationPreferences: "/v1/profile/notification-preferences",
+    updateNotificationPreferences: "/v1/profile/notification-preferences",
   },
   media: {
     upload: "/v1/media/upload",

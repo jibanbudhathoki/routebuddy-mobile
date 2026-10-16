@@ -74,7 +74,7 @@ export function DeliveryAddressScreen() {
         {isLoading ? (
           <ActivityIndicator
             size="large"
-            color={theme.colors.primary}
+            color={theme.colors.text}
             style={{ marginVertical: theme.spacing.xl }}
           />
         ) : (

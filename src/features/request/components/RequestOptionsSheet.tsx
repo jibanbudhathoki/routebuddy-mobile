@@ -136,13 +136,13 @@ function OptionButton({
           <MaterialCommunityIcons
             name="loading"
             size={20}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         ) : (
           <MaterialCommunityIcons
             name={icon}
             size={20}
-            color={destructive ? theme.colors.error : theme.colors.primary}
+            color={destructive ? theme.colors.error : theme.colors.text}
           />
         )}
       </View>

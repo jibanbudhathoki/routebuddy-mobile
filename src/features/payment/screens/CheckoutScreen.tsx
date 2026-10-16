@@ -120,7 +120,7 @@ export function CheckoutScreen() {
           <MaterialCommunityIcons
             name="chevron-left"
             size={32}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Checkout & Payment</Text>
@@ -211,7 +211,7 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.xs,
   },
   headerTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: "bold",
   },
@@ -242,7 +242,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: 4,
   },
   errorBannerText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 13,
   },
 }));

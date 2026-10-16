@@ -179,7 +179,7 @@ export function ChatMessagesPanel({
       ListEmptyComponent={
         <View style={styles.emptyState}>
           {isLoading ? (
-            <ActivityIndicator color={theme.colors.primary} />
+            <ActivityIndicator color={theme.colors.text} />
           ) : isError ? (
             <>
               <Text style={styles.emptyText}>
@@ -313,7 +313,7 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: "center",
   },
   retryText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 13,
     fontWeight: "700",
     marginTop: theme.spacing.sm,

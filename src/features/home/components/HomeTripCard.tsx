@@ -60,7 +60,7 @@ export function HomeTripCard({ trip }: HomeTripCardProps) {
             <MaterialCommunityIcons
               name="check-circle"
               size={13}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
             <Text style={styles.statusText}>
               {trip.status.replace(/[_-]+/g, " ")}
@@ -71,7 +71,7 @@ export function HomeTripCard({ trip }: HomeTripCardProps) {
           <MaterialCommunityIcons
             name="account-multiple"
             size={12}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.spotsText}>
             {trip.availableSeats} of {trip.capacity} spots remaining
@@ -125,7 +125,7 @@ export function HomeTripCard({ trip }: HomeTripCardProps) {
               <MaterialCommunityIcons
                 name="storefront-outline"
                 size={14}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
               <Text style={styles.storeName} numberOfLines={2}>
                 {store}
@@ -178,7 +178,7 @@ export function HomeTripCard({ trip }: HomeTripCardProps) {
           <MaterialCommunityIcons
             name="share-variant"
             size={17}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </Pressable>
       </View>
@@ -215,7 +215,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 38,
   },
   avatarInitials: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "700",
   },
@@ -249,7 +249,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: 5,
   },
   spotsText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 8,
     fontWeight: "600",
   },
@@ -309,7 +309,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 34,
   },
   moreStoresText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 9,
     fontWeight: "700",
   },
@@ -326,7 +326,7 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.spacing.xs,
   },
   feeAmount: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 15,
     fontWeight: "800",
   },

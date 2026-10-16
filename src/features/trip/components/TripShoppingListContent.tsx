@@ -32,7 +32,7 @@ export function TripShoppingListContent({
               <MaterialCommunityIcons
                 name="account-outline"
                 size={18}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
             </View>
             <View style={styles.requesterInfo}>

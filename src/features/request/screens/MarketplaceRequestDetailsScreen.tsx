@@ -58,7 +58,7 @@ export function MarketplaceRequestDetailsScreen() {
             <MaterialCommunityIcons
               name="chevron-left"
               size={25}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
           </Pressable>
           <Text style={styles.headerTitle} numberOfLines={1}>
@@ -311,7 +311,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 68,
   },
   headerTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     flex: 1,
     fontSize: 15,
     fontWeight: "700",

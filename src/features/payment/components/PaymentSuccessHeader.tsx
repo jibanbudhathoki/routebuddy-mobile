@@ -135,7 +135,7 @@ const styles = StyleSheet.create((theme) => ({
     top: 60,
   },
   title: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: theme.spacing.sm,
@@ -163,7 +163,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   conversationRetry: {
     alignSelf: "flex-end",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "700",
     marginTop: theme.spacing.xs,

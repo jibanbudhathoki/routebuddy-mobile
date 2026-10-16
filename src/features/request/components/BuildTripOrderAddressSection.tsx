@@ -28,7 +28,7 @@ export function BuildTripOrderAddressSection({
       <Text style={styles.sectionTitle}>Delivery Address</Text>
       {isLoading ? (
         <ActivityIndicator
-          color={theme.colors.primary}
+          color={theme.colors.text}
           style={styles.addressLoading}
         />
       ) : error ? (
@@ -47,7 +47,7 @@ export function BuildTripOrderAddressSection({
           <MaterialCommunityIcons
             name="map-marker-outline"
             size={22}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <View style={styles.addressDetails}>
             <Text style={styles.addressTitle}>{selectedAddress.label}</Text>
@@ -93,7 +93,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: theme.spacing.lg,
   },
   sectionTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: "700",
     marginBottom: theme.spacing.sm,
@@ -116,7 +116,7 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: "center",
   },
   retryText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "700",
     padding: theme.spacing.xs,

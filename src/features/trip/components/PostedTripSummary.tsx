@@ -26,7 +26,7 @@ export function PostedTripSummary({ trip }: PostedTripSummaryProps) {
           <MaterialCommunityIcons
             name="star-four-points"
             size={12}
-            color="#0B2447"
+            color={theme.colors.text}
             style={[styles.confetti, { top: -10, left: 20 }]}
           />
           <MaterialCommunityIcons
@@ -44,13 +44,13 @@ export function PostedTripSummary({ trip }: PostedTripSummaryProps) {
           <MaterialCommunityIcons
             name="star-four-points"
             size={14}
-            color="#0B2447"
+            color={theme.colors.text}
             style={[styles.confetti, { top: -5, right: 10 }]}
           />
           <MaterialCommunityIcons
             name="star-four-points"
             size={12}
-            color="#0B2447"
+            color={theme.colors.text}
             style={[styles.confetti, { bottom: -10, right: 25 }]}
           />
           <View style={styles.checkCircle}>

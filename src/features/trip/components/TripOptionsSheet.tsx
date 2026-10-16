@@ -215,7 +215,7 @@ export function TripOptionsSheet({
                   <MaterialCommunityIcons
                     name="information-outline"
                     size={15}
-                    color={theme.colors.primary}
+                    color={theme.colors.text}
                   />
                   <View style={styles.infoCopy}>
                     <Text style={styles.infoText}>

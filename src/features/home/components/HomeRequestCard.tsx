@@ -49,7 +49,7 @@ export function HomeRequestCard({ request }: HomeRequestCardProps) {
             <MaterialCommunityIcons
               name="checkbox-blank-circle"
               size={9}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
             <Text style={styles.statusText}>
               {request.status.replace(/[_-]+/g, " ")}
@@ -65,7 +65,7 @@ export function HomeRequestCard({ request }: HomeRequestCardProps) {
         <MaterialCommunityIcons
           name="arrow-right"
           size={16}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
         <Text style={styles.route} numberOfLines={1}>
           {request.destination}
@@ -110,7 +110,7 @@ export function HomeRequestCard({ request }: HomeRequestCardProps) {
               <MaterialCommunityIcons
                 name="storefront-outline"
                 size={17}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
               <Text style={styles.storeName} numberOfLines={2}>
                 {store}
@@ -181,7 +181,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 38,
   },
   avatarInitials: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "700",
   },
@@ -258,7 +258,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.primarySoft,
   },
   moreStoresText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 10,
     fontWeight: "700",
   },
@@ -269,7 +269,7 @@ const styles = StyleSheet.create((theme) => ({
     marginTop: theme.spacing.sm,
   },
   totalCost: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     flex: 1,
     fontSize: 13,
     fontWeight: "800",

@@ -163,7 +163,7 @@ export const styles = StyleSheet.create((theme) => ({
     fontWeight: "600",
   },
   statusChoiceTextSelected: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   statusFootnote: {
     color: theme.colors.muted,

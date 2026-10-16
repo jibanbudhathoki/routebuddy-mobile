@@ -1,12 +1,13 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   Pressable,
-  ScrollView,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { HomeFilterChips } from "./HomeFilterChips";
+import type { HomeFilterOption } from "../types/homeFilters";
 
 export type BrowseMode = "trips" | "requests";
 
@@ -19,9 +20,12 @@ interface HomeBrowseControlsProps {
   showMoreFilters: boolean;
   onModeChange: (mode: BrowseMode) => void;
   onSearchChange: (search: string) => void;
-  onLocationFilterPress: () => void;
-  onDateFilterPress: () => void;
-  onStoreFilterPress: () => void;
+  locationOptions: HomeFilterOption[];
+  dateOptions: HomeFilterOption[];
+  storeOptions: HomeFilterOption[];
+  onLocationFilterChange: (value: string) => void;
+  onDateFilterChange: (value: string) => void;
+  onStoreFilterChange: (value: string) => void;
   onToggleMoreFilters: () => void;
 }
 
@@ -32,11 +36,14 @@ export function HomeBrowseControls({
   dateFilter,
   storeFilter,
   showMoreFilters,
+  locationOptions,
+  dateOptions,
+  storeOptions,
   onModeChange,
   onSearchChange,
-  onLocationFilterPress,
-  onDateFilterPress,
-  onStoreFilterPress,
+  onLocationFilterChange,
+  onDateFilterChange,
+  onStoreFilterChange,
   onToggleMoreFilters,
 }: HomeBrowseControlsProps) {
   const { theme } = useUnistyles();
@@ -115,27 +122,17 @@ export function HomeBrowseControls({
         </Pressable>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filters}
-      >
-        <FilterChip
-          icon="map-marker"
-          label={locationFilter}
-          onPress={onLocationFilterPress}
-        />
-        <FilterChip
-          icon="calendar-blank-outline"
-          label={dateFilter}
-          onPress={onDateFilterPress}
-        />
-        <FilterChip
-          icon="store-outline"
-          label={storeFilter}
-          onPress={onStoreFilterPress}
-        />
-      </ScrollView>
+      <HomeFilterChips
+        locationOptions={locationOptions}
+        dateOptions={dateOptions}
+        storeOptions={storeOptions}
+        locationFilter={locationFilter}
+        dateFilter={dateFilter}
+        storeFilter={storeFilter}
+        onLocationChange={onLocationFilterChange}
+        onDateChange={onDateFilterChange}
+        onStoreChange={onStoreFilterChange}
+      />
 
       {showMoreFilters && (
         <View style={styles.moreFilters}>
@@ -147,45 +144,11 @@ export function HomeBrowseControls({
           <MaterialCommunityIcons
             name="check-circle"
             size={16}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </View>
       )}
     </View>
-  );
-}
-
-function FilterChip({
-  icon,
-  label,
-  onPress,
-}: {
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
-  label: string;
-  onPress: () => void;
-}) {
-  const { theme } = useUnistyles();
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={styles.filterChip}
-    >
-      <MaterialCommunityIcons
-        name={icon}
-        size={14}
-        color={theme.colors.primary}
-      />
-      <Text style={styles.filterChipText} numberOfLines={1}>
-        {label}
-      </Text>
-      <MaterialCommunityIcons
-        name="chevron-down"
-        size={16}
-        color={theme.colors.text}
-      />
-    </Pressable>
   );
 }
 
@@ -250,28 +213,6 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text,
     fontSize: 11,
     fontWeight: "600",
-  },
-  filters: {
-    gap: theme.spacing.xs,
-    paddingTop: theme.spacing.sm,
-  },
-  filterChip: {
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: theme.spacing.xs,
-    height: 32,
-    maxWidth: 136,
-    paddingHorizontal: theme.spacing.sm,
-  },
-  filterChipText: {
-    color: theme.colors.text,
-    fontSize: 10,
-    fontWeight: "500",
-    flexShrink: 1,
   },
   moreFilters: {
     alignItems: "center",

@@ -167,7 +167,7 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
   },
   tripCardTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 4,
@@ -208,7 +208,7 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.lg,
   },
   summaryTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: theme.spacing.lg,
@@ -260,7 +260,7 @@ const styles = StyleSheet.create((theme) => ({
     marginTop: theme.spacing.sm,
   },
   totalLabel: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "bold",
   },
@@ -269,18 +269,18 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
   },
   totalSymbol: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: "bold",
     marginRight: 4,
   },
   totalValue: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: "bold",
   },
   totalCurrency: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "bold",
     marginLeft: 4,

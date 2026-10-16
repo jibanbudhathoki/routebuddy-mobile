@@ -66,7 +66,7 @@ export function MessageScreen() {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.text} />
         </View>
       );
     }
@@ -82,7 +82,7 @@ export function MessageScreen() {
               : "Failed to load conversations"}
           </Text>
           <TouchableOpacity accessibilityRole="button" onPress={() => refetch()}>
-            <Text style={{ color: theme.colors.primary, marginTop: theme.spacing.sm }}>
+            <Text style={{ color: theme.colors.text, marginTop: theme.spacing.sm }}>
               Try again
             </Text>
           </TouchableOpacity>
@@ -174,7 +174,7 @@ export function MessageScreen() {
           <MaterialCommunityIcons
             name="tune-variant"
             size={24}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
       </View>
@@ -204,7 +204,7 @@ function formatInboxTime(value?: string) {
 const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.background,
   },
   header: {
     flexDirection: "row",

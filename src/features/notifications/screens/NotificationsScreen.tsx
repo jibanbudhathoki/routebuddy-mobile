@@ -84,7 +84,7 @@ export function NotificationsScreen() {
       </View>
       {notificationsQuery.isLoading ? (
         <View style={styles.state}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.text} />
           <Text style={styles.stateMessage}>Loading notifications...</Text>
         </View>
       ) : notificationsQuery.isError && notifications.length === 0 ? (
@@ -186,7 +186,7 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
   },
   markAllText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "600",
   },

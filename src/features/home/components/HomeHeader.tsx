@@ -39,13 +39,13 @@ export function HomeHeader({
         <MaterialCommunityIcons
           name="map-marker"
           size={17}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
         <Text style={styles.locationText}>{location}</Text>
         <MaterialCommunityIcons
           name="chevron-down"
           size={20}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
       </Pressable>
     </View>
@@ -64,7 +64,7 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "space-between",
   },
   brand: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: "800",
   },

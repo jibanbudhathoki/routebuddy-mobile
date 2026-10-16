@@ -49,7 +49,7 @@ export function BuildTripOrderAddressPicker({
               <MaterialCommunityIcons
                 name="close"
                 size={24}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
             </TouchableOpacity>
           </View>
@@ -76,7 +76,7 @@ export function BuildTripOrderAddressPicker({
                     <MaterialCommunityIcons
                       name="check-circle"
                       size={22}
-                      color={theme.colors.primary}
+                      color={theme.colors.text}
                     />
                   ) : null}
                 </TouchableOpacity>
@@ -116,7 +116,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: theme.spacing.md,
   },
   modalTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: "700",
   },
@@ -157,7 +157,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingTop: theme.spacing.md,
   },
   retryText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "700",
     padding: theme.spacing.xs,

@@ -78,7 +78,7 @@ export function SavedAddressesScreen() {
           Manage delivery addresses for your RouteBuddy orders.
         </Text>
         {isLoading ? (
-          <ActivityIndicator color={theme.colors.primary} style={styles.loading} />
+          <ActivityIndicator color={theme.colors.text} style={styles.loading} />
         ) : error ? (
           <View style={styles.stateCard}>
             <Text style={styles.stateText}>{error}</Text>
@@ -103,7 +103,7 @@ export function SavedAddressesScreen() {
                   <MaterialCommunityIcons
                     name={address.isDefault ? "home" : "map-marker-outline"}
                     size={20}
-                    color={theme.colors.primary}
+                    color={theme.colors.text}
                   />
                   <Text style={styles.addressLabel}>{address.label}</Text>
                   {address.isDefault ? (
@@ -111,7 +111,7 @@ export function SavedAddressesScreen() {
                   ) : null}
                 </View>
                 {busyUid === address.uid ? (
-                  <ActivityIndicator color={theme.colors.primary} />
+                  <ActivityIndicator color={theme.colors.text} />
                 ) : null}
               </View>
               <Text style={styles.recipient}>{address.recipientName}</Text>
@@ -206,7 +206,7 @@ const styles = StyleSheet.create((theme) => ({
   defaultBadge: {
     backgroundColor: theme.colors.primarySoft,
     borderRadius: theme.radius.sm,
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 11,
     overflow: "hidden",
     paddingHorizontal: theme.spacing.xs,
@@ -223,7 +223,7 @@ const styles = StyleSheet.create((theme) => ({
     marginTop: theme.spacing.xs,
     paddingTop: theme.spacing.sm,
   },
-  actionText: { color: theme.colors.primary, fontSize: 14, fontWeight: "600" },
+  actionText: { color: theme.colors.text, fontSize: 14, fontWeight: "600" },
   deleteText: { color: theme.colors.error, fontSize: 14, fontWeight: "600" },
   addButton: {
     alignItems: "center",

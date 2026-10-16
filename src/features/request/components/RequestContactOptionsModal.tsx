@@ -43,7 +43,7 @@ export function RequestContactOptionsModal({
               <MaterialCommunityIcons
                 name="message-processing-outline"
                 size={22}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
             </View>
             <View style={styles.optionCopy}>
@@ -67,7 +67,7 @@ export function RequestContactOptionsModal({
               <MaterialCommunityIcons
                 name="calendar-check-outline"
                 size={22}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
             </View>
             <View style={styles.optionCopy}>
