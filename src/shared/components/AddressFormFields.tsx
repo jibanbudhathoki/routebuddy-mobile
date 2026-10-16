@@ -2,7 +2,7 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
-import type { AddressFormData } from "./AddressFormScreen";
+import type { AddressFormData } from "../address/types/addressForm";
 import { FormInput } from "./FormInput";
 
 interface AddressFormFieldsProps {
