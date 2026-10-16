@@ -16,7 +16,6 @@ import { MessageDialog, type MessageDialogAction } from "../components/MessageDi
 import {
   useDeleteConversation,
   useListMessages,
-  useMarkConversationAsRead,
 } from "../hooks/useMessages";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
@@ -30,7 +29,6 @@ export function MessageScreen() {
 
   const { data: conversations, isLoading, isError, error, refetch } =
     useListMessages();
-  const markAsRead = useMarkConversationAsRead();
   const deleteConversation = useDeleteConversation();
   const [dialog, setDialog] = useState<{
     title: string;
@@ -126,15 +124,6 @@ export function MessageScreen() {
                   id: item.msgId,
                   ...(item.requestId ? { requestUid: item.requestId } : {}),
                 },
-              })
-            }
-            onMarkRead={() =>
-              markAsRead.mutate(item.msgId, {
-                onError: (error) => setDialog({
-                  title: "Unable to mark as read",
-                  message: error instanceof Error ? error.message : "Please try again.",
-                  actions: [{ label: "OK", onPress: () => {} }],
-                }),
               })
             }
             onDelete={() => handleDeleteConversation(item.msgId)}

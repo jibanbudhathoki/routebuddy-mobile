@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { communityService } from "../services/community.service";
 import type {
@@ -11,6 +12,7 @@ const PAGE_SIZE = 50;
 type CommunityListKey = "approved" | "joined" | "submissions";
 
 export function useCommunities() {
+  const queryClient = useQueryClient();
   const [approved, setApproved] = useState<Community[]>([]);
   const [joined, setJoined] = useState<Community[]>([]);
   const [submissions, setSubmissions] = useState<Community[]>([]);
@@ -167,6 +169,9 @@ export function useCommunities() {
     try {
       const message = await communityService.join(community.uid);
       await refresh();
+      await queryClient.invalidateQueries({
+        queryKey: ["communities", "joined"],
+      });
       return { success: true as const, message };
     } catch (failure) {
       const message = getErrorMessage(failure);

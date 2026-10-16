@@ -7,6 +7,7 @@ import type { HomeFilterOption } from "../types/homeFilters";
 interface HomeFilterPickerModalProps {
   visible: boolean;
   title: string;
+  description?: string;
   options: HomeFilterOption[];
   selectedValue: string;
   onSelect: (value: string) => void;
@@ -16,6 +17,7 @@ interface HomeFilterPickerModalProps {
 export function HomeFilterPickerModal({
   visible,
   title,
+  description,
   options,
   selectedValue,
   onSelect,
@@ -53,6 +55,9 @@ export function HomeFilterPickerModal({
               />
             </Pressable>
           </View>
+          {description ? (
+            <Text style={styles.description}>{description}</Text>
+          ) : null}
           <ScrollView
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
@@ -117,6 +122,12 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text,
     fontSize: 16,
     fontWeight: "700",
+  },
+  description: {
+    color: theme.colors.muted,
+    fontSize: 13,
+    lineHeight: 18,
+    paddingVertical: theme.spacing.sm,
   },
   option: {
     alignItems: "center",

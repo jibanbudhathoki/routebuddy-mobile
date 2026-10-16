@@ -15,7 +15,6 @@ export interface MessageListItemProps {
   timestamp: string;
   unreadCount?: number;
   onPress?: () => void;
-  onMarkRead?: () => void;
   onDelete?: () => void;
 }
 
@@ -27,7 +26,6 @@ export function MessageListItem({
   timestamp,
   unreadCount,
   onPress,
-  onMarkRead,
   onDelete,
 }: MessageListItemProps) {
   const { theme } = useUnistyles();
@@ -38,20 +36,6 @@ export function MessageListItem({
   const renderRightActions = (_progress: Animated.AnimatedInterpolation<number>, _dragX: Animated.AnimatedInterpolation<number>) => {
     return (
       <View style={styles.rightActionsContainer}>
-        <TouchableOpacity 
-          accessibilityRole="button"
-          accessibilityLabel="Mark conversation as read"
-          style={[styles.actionButton, styles.readAction]} 
-          onPress={() => {
-            swipeableRef.current?.close();
-            onMarkRead?.();
-          }}
-        >
-          <View style={[styles.actionIcon, styles.readActionIcon]}>
-            <MaterialCommunityIcons name="email-open-outline" size={20} color={theme.colors.onPrimary} />
-          </View>
-          <Text style={styles.actionText}>Mark read</Text>
-        </TouchableOpacity>
         <TouchableOpacity 
           accessibilityRole="button"
           accessibilityLabel="Delete conversation"
@@ -277,14 +261,8 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     marginBottom: 3,
   },
-  readActionIcon: {
-    backgroundColor: theme.colors.primaryRaised,
-  },
   deleteActionIcon: {
     backgroundColor: theme.colors.error,
-  },
-  readAction: {
-    backgroundColor: theme.colors.primary,
   },
   deleteAction: {
     backgroundColor: theme.colors.error,

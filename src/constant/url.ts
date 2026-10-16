@@ -65,7 +65,6 @@ export const apiEndpoints = {
     createConversationForTripOrRequest: "/v1/messages/conversations",
     conversationMessages: "/v1/messages/conversations/:id/messages",
     sendMessage: "/v1/messages/conversations/:id/messages",
-    markAsRead: "/v1/messages/conversations/:id/read",
     deleteConversation: "/v1/messages/conversations/:id",
     deleteMessage: "/v1/messages/messages",
     reactToMessage: "/v1/messages/messages/:id/react",

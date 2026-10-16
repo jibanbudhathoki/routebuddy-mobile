@@ -1,5 +1,5 @@
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -7,7 +7,6 @@ import { getAuthSession } from "../../auth/services/authStorage";
 import {
   useConversationMessages,
   useListMessages,
-  useMarkConversationAsRead,
   useSendConversationMessage,
 } from "../hooks/useMessages";
 import { useChatMessageInteractions } from "../hooks/useChatMessageInteractions";
@@ -75,7 +74,6 @@ export function ChatDetailScreen({
   } = useConversationMessages(conversationId);
   const { data: inbox = [] } = useListMessages();
   const sendMessage = useSendConversationMessage(conversationId);
-  const markAsRead = useMarkConversationAsRead();
   const interactions = useChatMessageInteractions(conversationId);
   const media = useChatMedia({
     conversationId,
@@ -86,8 +84,6 @@ export function ChatDetailScreen({
     },
     onError: (failure) => interactions.setError(failure.message),
   });
-  const markConversationRead = markAsRead.mutate;
-
   const [messageText, setMessageText] = useState("");
   const [currentUserUid, setCurrentUserUid] = useState("");
   const {
@@ -99,20 +95,6 @@ export function ChatDetailScreen({
     dialog,
     setDialog,
   } = interactions;
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!conversationId) return;
-      markConversationRead(conversationId, {
-        onError: (failure) =>
-          interactions.setError(
-            failure instanceof Error
-              ? failure.message
-              : "Unable to mark conversation as read.",
-          ),
-      });
-    }, [conversationId, interactions.setError, markConversationRead]),
-  );
 
   useEffect(() => {
     let isActive = true;
@@ -144,8 +126,6 @@ export function ChatDetailScreen({
       message.senderId !== currentUserUid,
   );
   const otherParticipant = otherParticipantMessage?.sender;
-  const otherParticipantUid =
-    otherParticipant?.uid ?? otherParticipantMessage?.senderId ?? "";
   const currentParticipant = messages.find(
     (message) =>
       message.senderId === "me" || message.senderId === currentUserUid,
@@ -233,7 +213,6 @@ export function ChatDetailScreen({
         conversationId={conversation?.msgId ?? conversationId}
         contextTitle={contextTitle}
         currentUserUid={currentUserUid}
-        otherParticipantUid={otherParticipantUid}
         participantName={participantName}
         participantAvatar={participantAvatar}
         currentUserAvatar={currentParticipant?.photoUrl ?? null}

@@ -23,7 +23,6 @@ interface ChatMessageRowProps {
   message: Message;
   replyMessage?: Message;
   currentUserUid: string;
-  otherParticipantUid: string;
   participantName: string;
   participantAvatar: string | null;
   currentUserAvatar: string | null;
@@ -51,7 +50,6 @@ export function ChatMessageRow({
   message,
   replyMessage,
   currentUserUid,
-  otherParticipantUid,
   participantName,
   participantAvatar,
   currentUserAvatar,
@@ -84,10 +82,6 @@ export function ChatMessageRow({
   const isMine =
     message.senderId === "me" ||
     (Boolean(currentUserUid) && message.senderId === currentUserUid);
-  const isReadByRecipient =
-    isMine &&
-    Boolean(otherParticipantUid) &&
-    message.readBy?.includes(otherParticipantUid) === true;
   const messageText =
     message.type === "text"
       ? message.text
@@ -254,13 +248,6 @@ export function ChatMessageRow({
             <Text style={styles.messageTime}>
               {formatTime(message.createdAt)}
             </Text>
-            {isMine ? (
-              <MaterialCommunityIcons
-                name={isReadByRecipient ? "check-all" : "check"}
-                size={13}
-                color={isReadByRecipient ? theme.colors.text : theme.colors.muted}
-              />
-            ) : null}
           </View>
         </View>
         {isMine ? <Avatar uri={currentUserAvatar} name="You" small /> : null}

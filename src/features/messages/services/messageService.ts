@@ -183,17 +183,6 @@ export const messageService = {
       );
   },
 
-  markConversationAsRead: async (conversationId: string): Promise<void> => {
-    const response = await apiRequest<MessageActionResponse>(
-      apiEndpoints.messages.markAsRead.replace(
-        ":id",
-        encodeURIComponent(conversationId),
-      ),
-      { method: "POST" },
-    );
-    assertActionSuccess(response, "Failed to mark conversation as read.");
-  },
-
   deleteConversation: async (conversationId: string): Promise<void> => {
     const response = await apiRequest<MessageActionResponse>(
       apiEndpoints.messages.deleteConversation.replace(
@@ -268,7 +257,6 @@ function normalizeMessage(
     ),
     replyToUid: message.replyToUid ?? null,
     reactions: message.reactions ?? null,
-    readBy: message.readBy ?? [],
     deletedAt: message.deletedAt ?? null,
     updatedAt: message.updatedAt,
     sender: message.sender ?? null,

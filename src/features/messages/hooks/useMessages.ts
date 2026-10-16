@@ -135,33 +135,6 @@ export const useUploadChatMedia = () =>
     mutationFn: (file: ChatMediaFile) => chatMediaService.upload(file),
   });
 
-export const useMarkConversationAsRead = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: messageService.markConversationAsRead,
-    onSuccess: async (_result, conversationId) => {
-      queryClient.setQueryData(
-        messageKeys.conversations(),
-        (conversations: InboxMessage[] | undefined) =>
-          conversations?.map((conversation) =>
-            conversation.msgId === conversationId
-              ? { ...conversation, unreadCount: 0 }
-              : conversation,
-          ),
-      );
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: messageKeys.conversations(),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: messageKeys.messages(conversationId),
-        }),
-      ]);
-    },
-  });
-};
-
 export const useDeleteConversation = () => {
   const queryClient = useQueryClient();
 
