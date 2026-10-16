@@ -76,7 +76,9 @@ export interface CreateTripOrderPayload {
 export interface CreateTripOrderResponse {
   success: boolean;
   message: string;
-  data: TripOrder;
+  data: Omit<TripOrder, "status"> & {
+    status: "pending" | "open";
+  };
 }
 
 export interface TripOrder {
