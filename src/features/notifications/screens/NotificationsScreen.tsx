@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useState } from "react";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { NotificationItem } from "../components/NotificationItem";
@@ -17,6 +18,16 @@ import {
 } from "../hooks/useNotifications";
 import { AppScreen } from "../../../shared/components/AppScreen";
 import { useToast } from "../../../shared/components/ToastProvider";
+import type { AppNotification } from "../types/notification";
+
+const notificationFilters = [
+  { key: "all", label: "All" },
+  { key: "trip", label: "Trips" },
+  { key: "request", label: "Requests" },
+  { key: "system", label: "System" },
+] as const;
+
+type NotificationFilter = (typeof notificationFilters)[number]["key"];
 
 export function NotificationsScreen() {
   const router = useRouter();
@@ -27,6 +38,10 @@ export function NotificationsScreen() {
   const markAllAsRead = useMarkAllNotificationsAsRead();
   const notifications = notificationsQuery.data ?? [];
   const unreadCount = notifications.filter((item) => !item.isRead).length;
+  const [activeFilter, setActiveFilter] = useState<NotificationFilter>("all");
+  const filteredNotifications = notifications.filter((notification) =>
+    matchesFilter(notification, activeFilter),
+  );
 
   const handleMarkAsRead = (id: string) => {
     markAsRead.mutate(id, {
@@ -52,6 +67,55 @@ export function NotificationsScreen() {
     });
   };
 
+  const handleNotificationPress = (notification: AppNotification) => {
+    if (!notification.isRead) {
+      handleMarkAsRead(notification.id);
+    }
+    const conversationUid = getConversationUid(notification);
+    if (conversationUid) {
+      router.push({
+        pathname: "/chat/[id]",
+        params: { id: conversationUid },
+      });
+    }
+  };
+
+  const renderListHeader = () => (
+    <View style={styles.listHeader}>
+    <View style={styles.filterBar}>
+      {notificationFilters.map((filter) => {
+        const isActive = activeFilter === filter.key;
+        return (
+          <Pressable
+            key={filter.key}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isActive }}
+            onPress={() => setActiveFilter(filter.key)}
+            style={[styles.filterTab, isActive && styles.activeFilterTab]}
+          >
+            <Text
+              style={[
+                styles.filterText,
+                isActive && styles.activeFilterText,
+              ]}
+            >
+              {filter.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+      {notificationsQuery.isError ? (
+        <Text style={styles.inlineError}>
+          Unable to refresh notifications:{" "}
+          {notificationsQuery.error instanceof Error
+            ? notificationsQuery.error.message
+            : "Please try again."}
+        </Text>
+      ) : null}
+    </View>
+  );
+
   return (
     <AppScreen>
       <View style={styles.header}>
@@ -76,7 +140,7 @@ export function NotificationsScreen() {
             onPress={handleMarkAllAsRead}
             style={styles.markAllButton}
           >
-            <Text style={styles.markAllText}>Mark all read</Text>
+            <Text style={styles.markAllText}>Mark all as read</Text>
           </Pressable>
         ) : (
           <View style={styles.headerActionPlaceholder} />
@@ -109,46 +173,46 @@ export function NotificationsScreen() {
         </View>
       ) : (
         <FlatList
-          data={notifications}
+          data={filteredNotifications}
           keyExtractor={(item) => item.id}
           contentContainerStyle={[
             styles.listContent,
-            notifications.length === 0 && styles.emptyListContent,
+            filteredNotifications.length === 0 && styles.emptyListContent,
           ]}
           ItemSeparatorComponent={NotificationSeparator}
           refreshing={notificationsQuery.isRefetching}
           onRefresh={() => void notificationsQuery.refetch()}
-          ListHeaderComponent={
-            notificationsQuery.isError ? (
-              <Text style={styles.inlineError}>
-                Unable to refresh notifications:{" "}
-                {notificationsQuery.error instanceof Error
-                  ? notificationsQuery.error.message
-                  : "Please try again."}
-              </Text>
-            ) : null
-          }
+          ListHeaderComponent={renderListHeader}
           renderItem={({ item }) => (
             <NotificationItem
               notification={item}
               disabled={
-                item.isRead ||
                 markAsRead.isPending ||
                 markAllAsRead.isPending
               }
-              onPress={() => handleMarkAsRead(item.id)}
+              onPress={() => handleNotificationPress(item)}
             />
           )}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <MaterialCommunityIcons
-                name="bell-check-outline"
+                name={
+                  filteredNotifications.length === 0 && notifications.length
+                    ? "filter-outline"
+                    : "bell-check-outline"
+                }
                 size={34}
                 color={theme.colors.muted}
               />
-              <Text style={styles.emptyTitle}>You’re all caught up</Text>
+              <Text style={styles.emptyTitle}>
+                {filteredNotifications.length === 0 && notifications.length
+                  ? "No notifications in this category"
+                  : "You’re all caught up"}
+              </Text>
               <Text style={styles.stateMessage}>
-                New notifications will appear here.
+                {filteredNotifications.length === 0 && notifications.length
+                  ? "Try another filter to see more."
+                  : "New notifications will appear here."}
               </Text>
             </View>
           }
@@ -166,8 +230,7 @@ const styles = StyleSheet.create((theme) => ({
   header: {
     alignItems: "center",
     flexDirection: "row",
-    justifyContent: "space-between",
-    minHeight: 48,
+    minHeight: 52,
     marginBottom: theme.spacing.md,
   },
   backButton: {
@@ -178,30 +241,62 @@ const styles = StyleSheet.create((theme) => ({
   headerTitle: {
     color: theme.colors.text,
     flex: 1,
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 22,
+    fontWeight: "800",
   },
   markAllButton: {
     minHeight: 40,
     justifyContent: "center",
+    paddingLeft: theme.spacing.xs,
   },
   markAllText: {
     color: theme.colors.text,
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 11,
+    fontWeight: "700",
   },
   headerActionPlaceholder: {
     width: 40,
   },
   listContent: {
-    paddingBottom: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
+  },
+  listHeader: {
+    gap: theme.spacing.sm,
   },
   emptyListContent: {
     flexGrow: 1,
-    justifyContent: "center",
   },
   separator: {
-    height: theme.spacing.sm,
+    backgroundColor: theme.colors.border,
+    height: 1,
+  },
+  filterBar: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    flexDirection: "row",
+    gap: theme.spacing.xs,
+    marginBottom: theme.spacing.sm,
+    padding: theme.spacing.xs,
+  },
+  filterTab: {
+    alignItems: "center",
+    borderRadius: theme.radius.lg,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 34,
+    paddingHorizontal: theme.spacing.xs,
+  },
+  activeFilterTab: {
+    backgroundColor: theme.colors.primary,
+  },
+  filterText: {
+    color: theme.colors.muted,
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  activeFilterText: {
+    color: theme.colors.onPrimary,
+    fontWeight: "700",
   },
   state: {
     alignItems: "center",
@@ -235,7 +330,9 @@ const styles = StyleSheet.create((theme) => ({
   },
   emptyState: {
     alignItems: "center",
+    flexGrow: 1,
     gap: theme.spacing.sm,
+    justifyContent: "center",
     padding: theme.spacing.lg,
   },
   emptyTitle: {
@@ -244,3 +341,20 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "700",
   },
 }));
+
+function matchesFilter(
+  notification: AppNotification,
+  filter: NotificationFilter,
+) {
+  if (filter === "all") return true;
+  const type = notification.type.toLowerCase();
+  if (filter === "system") return type === "system";
+  return type === filter;
+}
+
+function getConversationUid(notification: AppNotification) {
+  const conversationUid = notification.data?.conversationUid;
+  return typeof conversationUid === "string" && conversationUid.length > 0
+    ? conversationUid
+    : null;
+}

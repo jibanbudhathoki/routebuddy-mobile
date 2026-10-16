@@ -2,9 +2,11 @@ import { useMemo, useState } from "react";
 import { useRouter } from "expo-router";
 
 import { AppScreen } from "../../../shared/components/AppScreen";
+import { useJoinedCommunities } from "../../communities/hooks/useJoinedCommunities";
 import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
 import { useListAllRequests } from "../../request/hooks/useListAllRequests";
 import { useListAllTrips } from "../../trip/hooks/useListAllTrips";
+import { HomeFilterPickerModal } from "../components/HomeFilterPickerModal";
 import {
   HomeBrowseControls,
   type BrowseMode,
@@ -12,7 +14,6 @@ import {
 import { HomeHeader } from "../components/HomeHeader";
 import { HomeResultsList } from "../components/HomeResultsList";
 import {
-  createDateFilterOptions,
   createTextFilterOptions,
   getFilterDateKey,
   normalizeFilterValue,
@@ -21,12 +22,16 @@ import {
 export function HomeScreen() {
   const router = useRouter();
   const unreadCount = useUnreadNotificationCount();
+  const joinedCommunitiesQuery = useJoinedCommunities();
+  const joinedCommunities = joinedCommunitiesQuery.data ?? [];
+  const [selectedCommunityUid, setSelectedCommunityUid] = useState("");
+  const [isCommunityPickerVisible, setIsCommunityPickerVisible] =
+    useState(false);
   const [mode, setMode] = useState<BrowseMode>("trips");
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [storeFilter, setStoreFilter] = useState("");
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const {
     data: trips,
     error,
@@ -39,6 +44,20 @@ export function HomeScreen() {
     isLoading: areRequestsLoading,
     refetch: refetchRequests,
   } = useListAllRequests(mode === "requests");
+
+  const communityOptions = useMemo(
+    () => [
+      { value: "", label: "All communities" },
+      ...joinedCommunities.map((community) => ({
+        value: community.uid,
+        label: community.name,
+      })),
+    ],
+    [joinedCommunities],
+  );
+  const selectedCommunityName =
+    communityOptions.find((option) => option.value === selectedCommunityUid)
+      ?.label ?? "All communities";
 
   const locationOptions = useMemo(
     () =>
@@ -55,18 +74,6 @@ export function HomeScreen() {
             ]),
         "All locations",
       ),
-    [mode, requests, trips],
-  );
-  const dateOptions = useMemo(
-    () =>
-      mode === "trips"
-        ? createDateFilterOptions(
-            (trips ?? []).map((trip) => trip.departureAt),
-          )
-        : createDateFilterOptions(
-            (requests ?? []).map((request) => request.neededBy),
-            true,
-          ),
     [mode, requests, trips],
   );
   const storeOptions = useMemo(
@@ -112,11 +119,10 @@ export function HomeScreen() {
         matchesLocation &&
         matchesDate &&
         matchesStore &&
-        (!showMoreFilters || trip.availableSeats > 0) &&
         (!query || searchableText.includes(query))
       );
     });
-  }, [dateFilter, locationFilter, search, showMoreFilters, storeFilter, trips]);
+  }, [dateFilter, locationFilter, search, storeFilter, trips]);
 
   const filteredRequests = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -158,21 +164,11 @@ export function HomeScreen() {
     });
   }, [dateFilter, locationFilter, requests, search, storeFilter]);
 
-  const cycleLocation = () => {
-    const currentIndex = locationOptions.findIndex(
-      (option) => option.value === locationFilter,
-    );
-    setLocationFilter(
-      locationOptions[(currentIndex + 1) % locationOptions.length]?.value ?? "",
-    );
-  };
-
   const clearFilters = () => {
     setSearch("");
     setLocationFilter("");
     setDateFilter("");
     setStoreFilter("");
-    setShowMoreFilters(false);
   };
 
   const changeMode = (nextMode: BrowseMode) => {
@@ -187,15 +183,27 @@ export function HomeScreen() {
   return (
     <AppScreen>
       <HomeHeader
-        location={
-          !locationFilter
-            ? (mode === "trips" ? trips?.[0]?.origin : requests?.[0]?.origin) ??
-              "All locations"
-            : locationFilter
-        }
-        onLocationPress={cycleLocation}
+        communityName={selectedCommunityName}
+        onCommunityPress={() => setIsCommunityPickerVisible(true)}
         unreadCount={unreadCount}
         onNotificationsPress={() => router.push("/notifications")}
+      />
+      <HomeFilterPickerModal
+        visible={isCommunityPickerVisible}
+        title="Choose community"
+        description={
+          joinedCommunitiesQuery.isLoading
+            ? "Loading your joined communities..."
+            : joinedCommunitiesQuery.isError
+              ? "Unable to load joined communities. Try again later."
+              : joinedCommunities.length === 0
+                ? "Join an approved community to choose it here."
+                : "Choose one of your joined communities."
+        }
+        options={communityOptions}
+        selectedValue={selectedCommunityUid}
+        onSelect={setSelectedCommunityUid}
+        onClose={() => setIsCommunityPickerVisible(false)}
       />
       <HomeBrowseControls
         mode={mode}
@@ -203,16 +211,13 @@ export function HomeScreen() {
         locationFilter={locationFilter}
         dateFilter={dateFilter}
         storeFilter={storeFilter}
-        showMoreFilters={showMoreFilters}
         locationOptions={locationOptions}
-        dateOptions={dateOptions}
         storeOptions={storeOptions}
         onModeChange={changeMode}
         onSearchChange={setSearch}
         onLocationFilterChange={setLocationFilter}
         onDateFilterChange={setDateFilter}
         onStoreFilterChange={setStoreFilter}
-        onToggleMoreFilters={() => setShowMoreFilters((visible) => !visible)}
       />
       <HomeResultsList
         mode={mode}

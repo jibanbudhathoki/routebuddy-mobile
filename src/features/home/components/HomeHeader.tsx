@@ -4,16 +4,16 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
 
 interface HomeHeaderProps {
-  location: string;
+  communityName: string;
   unreadCount: number;
-  onLocationPress: () => void;
+  onCommunityPress: () => void;
   onNotificationsPress: () => void;
 }
 
 export function HomeHeader({
-  location,
+  communityName,
   unreadCount,
-  onLocationPress,
+  onCommunityPress,
   onNotificationsPress,
 }: HomeHeaderProps) {
   const { theme } = useUnistyles();
@@ -32,16 +32,18 @@ export function HomeHeader({
       </View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Choose location, current location ${location}`}
-        onPress={onLocationPress}
+        accessibilityLabel={`Choose community, selected community ${communityName}`}
+        onPress={onCommunityPress}
         style={styles.locationButton}
       >
         <MaterialCommunityIcons
-          name="map-marker"
+          name="account-group"
           size={17}
           color={theme.colors.text}
         />
-        <Text style={styles.locationText}>{location}</Text>
+        <Text style={styles.locationText} numberOfLines={1}>
+          {communityName}
+        </Text>
         <MaterialCommunityIcons
           name="chevron-down"
           size={20}

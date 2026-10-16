@@ -21,7 +21,6 @@ export interface Message {
   mediaUrl: string | null;
   replyToUid: string | null;
   reactions: MessageReaction[] | Record<string, string> | null;
-  readBy?: string[];
   deletedAt?: string | null;
   updatedAt?: string;
   sender: {
@@ -72,7 +71,6 @@ export interface MessageResponse {
   mediaUrl?: string | null;
   replyToUid?: string | null;
   reactions?: Message["reactions"];
-  readBy?: string[];
   deletedAt?: string | null;
   updatedAt?: string;
   sender?: Message["sender"];

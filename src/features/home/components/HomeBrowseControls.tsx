@@ -5,8 +5,9 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useState } from "react";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
-import { HomeFilterChips } from "./HomeFilterChips";
+import { HomeFiltersModal } from "./HomeFiltersModal";
 import type { HomeFilterOption } from "../types/homeFilters";
 
 export type BrowseMode = "trips" | "requests";
@@ -17,16 +18,13 @@ interface HomeBrowseControlsProps {
   locationFilter: string;
   dateFilter: string;
   storeFilter: string;
-  showMoreFilters: boolean;
   onModeChange: (mode: BrowseMode) => void;
   onSearchChange: (search: string) => void;
   locationOptions: HomeFilterOption[];
-  dateOptions: HomeFilterOption[];
   storeOptions: HomeFilterOption[];
   onLocationFilterChange: (value: string) => void;
   onDateFilterChange: (value: string) => void;
   onStoreFilterChange: (value: string) => void;
-  onToggleMoreFilters: () => void;
 }
 
 export function HomeBrowseControls({
@@ -35,18 +33,16 @@ export function HomeBrowseControls({
   locationFilter,
   dateFilter,
   storeFilter,
-  showMoreFilters,
   locationOptions,
-  dateOptions,
   storeOptions,
   onModeChange,
   onSearchChange,
   onLocationFilterChange,
   onDateFilterChange,
   onStoreFilterChange,
-  onToggleMoreFilters,
 }: HomeBrowseControlsProps) {
   const { theme } = useUnistyles();
+  const [filtersVisible, setFiltersVisible] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -110,7 +106,8 @@ export function HomeBrowseControls({
         </View>
         <Pressable
           accessibilityRole="button"
-          onPress={onToggleMoreFilters}
+          accessibilityLabel="Open filters"
+          onPress={() => setFiltersVisible(true)}
           style={styles.filterButton}
         >
           <MaterialCommunityIcons
@@ -122,32 +119,22 @@ export function HomeBrowseControls({
         </Pressable>
       </View>
 
-      <HomeFilterChips
+      <HomeFiltersModal
+        visible={filtersVisible}
         locationOptions={locationOptions}
-        dateOptions={dateOptions}
         storeOptions={storeOptions}
-        locationFilter={locationFilter}
-        dateFilter={dateFilter}
-        storeFilter={storeFilter}
-        onLocationChange={onLocationFilterChange}
-        onDateChange={onDateFilterChange}
-        onStoreChange={onStoreFilterChange}
+        values={{
+          location: locationFilter,
+          date: dateFilter,
+          store: storeFilter,
+        }}
+        onApply={(values) => {
+          onLocationFilterChange(values.location);
+          onDateFilterChange(values.date);
+          onStoreFilterChange(values.store);
+        }}
+        onClose={() => setFiltersVisible(false)}
       />
-
-      {showMoreFilters && (
-        <View style={styles.moreFilters}>
-          <Text style={styles.moreFiltersText}>
-            {mode === "trips"
-              ? "Showing trips with available spots"
-              : "Showing open requests"}
-          </Text>
-          <MaterialCommunityIcons
-            name="check-circle"
-            size={16}
-            color={theme.colors.text}
-          />
-        </View>
-      )}
     </View>
   );
 }
@@ -213,16 +200,5 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text,
     fontSize: 11,
     fontWeight: "600",
-  },
-  moreFilters: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: theme.spacing.xs,
-    justifyContent: "flex-end",
-    paddingTop: theme.spacing.xs,
-  },
-  moreFiltersText: {
-    color: theme.colors.muted,
-    fontSize: 10,
   },
 }));
