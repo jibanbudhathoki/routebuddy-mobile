@@ -1,5 +1,4 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -9,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { useUnistyles } from "react-native-unistyles";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { z } from "zod";
 
@@ -19,8 +18,9 @@ import type { LocationOption } from "../../../shared/location/types/location";
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 import { PersonalInformationFields } from "../components/PersonalInformationFields";
 import { useProfile } from "../hooks/useProfile";
-import { profileService } from "../services/profile.service";
+import { useProfilePhoto } from "../hooks/useProfilePhoto";
 import { useToast } from "../../../shared/components/ToastProvider";
+import { styles } from "./personalInformationScreen.styles";
 
 const personalInfoSchema = z.object({
   displayName: z
@@ -51,13 +51,16 @@ export function PersonalInformationScreen() {
   const [homeTown, setHomeTown] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const [photoProgress, setPhotoProgress] = useState<
-    "uploading" | "saving" | null
-  >(null);
   const saveInProgress = useRef(false);
-  const photoOperationInProgress = useRef(false);
   const { profile, isLoading, isUpdating, error, updateProfile, refetch } =
     useProfile();
+  const { photoProgress, photoOperationInProgress, handleChangePhoto } =
+    useProfilePhoto({
+      isUpdating,
+      isLoading,
+      isSaveInProgress: () => saveInProgress.current,
+      updateProfile,
+    });
   const {
     cities,
     isLoading: isLoadingCities,
@@ -153,81 +156,6 @@ export function PersonalInformationScreen() {
     } finally {
       saveInProgress.current = false;
       setIsSaving(false);
-    }
-  };
-
-  const handleChangePhoto = async () => {
-    if (
-      photoOperationInProgress.current ||
-      saveInProgress.current ||
-      isUpdating ||
-      isLoading
-    ) {
-      return;
-    }
-
-    photoOperationInProgress.current = true;
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        quality: 0.85,
-      });
-      if (result.canceled) return;
-
-      const asset = result.assets[0];
-      if (!asset) {
-        throw new Error("The selected image could not be read.");
-      }
-      if (!asset.fileSize || asset.fileSize <= 0) {
-        throw new Error("Unable to verify the selected image size.");
-      }
-      if (asset.fileSize > 20 * 1024 * 1024) {
-        throw new Error("Choose an image smaller than 20 MB.");
-      }
-      const mimeType = asset.mimeType?.toLowerCase();
-      const supportedImageTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-        "image/gif",
-      ];
-      if (!mimeType || !supportedImageTypes.includes(mimeType)) {
-        throw new Error("Choose a JPEG, PNG, WebP, or GIF image.");
-      }
-
-      setPhotoProgress("uploading");
-      const uploaded = await profileService.uploadProfilePhoto({
-        uri: asset.uri,
-        fileName: asset.fileName || getProfilePhotoFileName(mimeType),
-        mimeType,
-        size: asset.fileSize,
-      });
-
-      setPhotoProgress("saving");
-      const { success, error: updateError } = await updateProfile({
-        photoUrl: uploaded.photoUrl,
-        photoKey: uploaded.photoKey,
-      });
-      if (!success) {
-        showToast(
-          updateError ??
-            "The photo uploaded, but could not be saved to your profile.",
-          { title: "Profile photo not saved", variant: "error" },
-        );
-        return;
-      }
-
-      showToast("Profile photo updated.", { variant: "success" });
-    } catch (failure) {
-      showToast(
-        failure instanceof Error
-          ? failure.message
-          : "Unable to update your profile photo.",
-        { title: "Photo update failed", variant: "error" },
-      );
-    } finally {
-      photoOperationInProgress.current = false;
-      setPhotoProgress(null);
     }
   };
 
@@ -351,84 +279,4 @@ export function PersonalInformationScreen() {
       />
     </SafeAreaView>
   );
-}
-
-const styles = StyleSheet.create((theme) => ({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.surface,
-  },
-  keyboardAvoid: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  backButton: {},
-  headerTextContainer: {
-    alignItems: "center",
-    marginTop: -24,
-  },
-  title: {
-    color: theme.colors.text,
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  footer: {
-    padding: 16,
-    paddingBottom: 24,
-  },
-  statusCard: {
-    alignItems: "center",
-    flex: 1,
-    gap: theme.spacing.sm,
-    justifyContent: "center",
-    paddingHorizontal: theme.spacing.lg,
-  },
-  statusText: {
-    color: theme.colors.muted,
-    fontSize: 13,
-    textAlign: "center",
-  },
-  errorText: {
-    color: theme.colors.error,
-    flex: 1,
-    fontSize: 12,
-  },
-  inlineError: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-    marginHorizontal: theme.spacing.md,
-    marginTop: theme.spacing.sm,
-  },
-  retryButton: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  retryText: {
-    color: theme.colors.text,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  photoProgress: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-    justifyContent: "center",
-    paddingBottom: theme.spacing.sm,
-  },
-  cityPickerError: {
-    color: theme.colors.error,
-    fontSize: 12,
-    marginHorizontal: theme.spacing.md,
-  },
-}));
-
-function getProfilePhotoFileName(mimeType: string) {
-  const extension = mimeType.split("/")[1]?.replace("jpeg", "jpg") || "img";
-  return `profile-photo.${extension}`;
 }
