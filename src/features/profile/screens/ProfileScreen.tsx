@@ -229,7 +229,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   title: {
     color: theme.colors.text,
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "700",
   },
   errorText: {

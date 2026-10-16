@@ -32,13 +32,13 @@ export function PostedTripSummary({ trip }: PostedTripSummaryProps) {
           <MaterialCommunityIcons
             name="star-four-points"
             size={16}
-            color="#2A9D8F"
+            color={theme.colors.success}
             style={[styles.confetti, { top: 10, left: -20 }]}
           />
           <MaterialCommunityIcons
             name="star-four-points"
             size={10}
-            color="#2A9D8F"
+            color={theme.colors.success}
             style={[styles.confetti, { top: 50, right: -15 }]}
           />
           <MaterialCommunityIcons
@@ -57,7 +57,7 @@ export function PostedTripSummary({ trip }: PostedTripSummaryProps) {
             <MaterialCommunityIcons
               name="check-bold"
               size={40}
-              color="#2A9D8F"
+              color={theme.colors.success}
             />
           </View>
         </View>
@@ -186,9 +186,9 @@ const styles = StyleSheet.create((theme) => ({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#E6F5F3",
+    backgroundColor: theme.colors.successSoft,
     borderWidth: 2,
-    borderColor: "#2A9D8F",
+    borderColor: theme.colors.success,
     justifyContent: "center",
     alignItems: "center",
   },

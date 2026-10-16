@@ -106,14 +106,6 @@ export function TripScreen() {
                 />
                 <Text style={styles.sectionTitle}>Trips Coming Up</Text>
               </View>
-              <View style={styles.viewAll}>
-                <Text style={styles.viewAllText}>View All</Text>
-                <MaterialCommunityIcons
-                  name="chevron-right"
-                  size={18}
-                  color={theme.colors.text}
-                />
-              </View>
             </View>
             {isLoading ? (
               <View style={styles.emptyState}>

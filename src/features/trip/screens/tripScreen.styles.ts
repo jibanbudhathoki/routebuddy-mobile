@@ -13,7 +13,7 @@ export const styles = StyleSheet.create((theme) => ({
   },
   title: {
     color: theme.colors.text,
-    fontSize: 25,
+    fontSize: 24,
     fontWeight: '700',
   },
   segmentControl: {
@@ -59,16 +59,6 @@ export const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text,
     fontSize: 16,
     fontWeight: '700',
-  },
-  viewAll: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-  },
-  viewAllText: {
-    color: theme.colors.text,
-    fontSize: 12,
-    fontWeight: '500',
   },
   tripList: {
     gap: theme.spacing.sm,

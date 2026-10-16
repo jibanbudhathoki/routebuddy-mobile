@@ -110,14 +110,17 @@ export function RequesterAvatar({
   );
 }
 
-function getInitials(name: string) {
-  return name
-    .trim()
+function getInitials(name: string | null | undefined) {
+  const safeName = typeof name === "string" ? name.trim() : "";
+  const initials = safeName
     .split(/\s+/)
+    .filter(Boolean)
     .map((part) => part[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
+
+  return initials || "?";
 }
 
 function formatStatus(status: string) {
