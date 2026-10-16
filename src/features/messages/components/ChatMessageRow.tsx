@@ -117,6 +117,7 @@ export function ChatMessageRow({
           style={[
             styles.messageColumn,
             isMine ? styles.messageColumnMine : styles.messageColumnOther,
+            requestOffer && styles.messageColumnOffer,
           ]}
         >
           {message.deliveryProof && tripOrder ? (
@@ -201,7 +202,7 @@ export function ChatMessageRow({
                 <MaterialCommunityIcons
                   name="check-circle"
                   size={15}
-                  color={theme.colors.primary}
+                  color={theme.colors.text}
                   style={styles.selectedMark}
                 />
               ) : null}
@@ -231,7 +232,7 @@ export function ChatMessageRow({
               <MaterialCommunityIcons
                 name="open-in-new"
                 size={15}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
               <Text style={styles.sharedLinkText}>
                 Open shared {sharedTarget.type}
@@ -257,7 +258,7 @@ export function ChatMessageRow({
               <MaterialCommunityIcons
                 name={isReadByRecipient ? "check-all" : "check"}
                 size={13}
-                color={isReadByRecipient ? theme.colors.primary : theme.colors.muted}
+                color={isReadByRecipient ? theme.colors.text : theme.colors.muted}
               />
             ) : null}
           </View>

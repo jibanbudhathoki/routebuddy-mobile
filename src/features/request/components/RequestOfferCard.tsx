@@ -54,7 +54,7 @@ export function RequestOfferCard({
               <MaterialCommunityIcons
                 name="star"
                 size={13}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
               <Text style={styles.ratingText}>
                 {offer.driver.rating.toFixed(1)}
@@ -78,7 +78,7 @@ export function RequestOfferCard({
         <MaterialCommunityIcons
           name="calendar-clock-outline"
           size={17}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
         <View>
           <Text style={styles.detailLabel}>Proposed delivery by</Text>
@@ -180,7 +180,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 40,
   },
   avatarText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 13,
     fontWeight: "700",
   },
@@ -200,7 +200,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   ratingText: {
     color: theme.colors.muted,
-    fontSize: 10,
+    fontSize: 11,
   },
   statusBadge: {
     borderRadius: theme.radius.sm,
@@ -214,8 +214,8 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.background,
   },
   statusText: {
-    color: theme.colors.primary,
-    fontSize: 10,
+    color: theme.colors.text,
+    fontSize: 11,
     fontWeight: "700",
     textTransform: "capitalize",
   },
@@ -229,11 +229,11 @@ const styles = StyleSheet.create((theme) => ({
   },
   detailLabel: {
     color: theme.colors.muted,
-    fontSize: 10,
+    fontSize: 11,
   },
   detailValue: {
     color: theme.colors.text,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "600",
     marginTop: 2,
   },
@@ -247,7 +247,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   createdAt: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   actions: {
     flexDirection: "row",

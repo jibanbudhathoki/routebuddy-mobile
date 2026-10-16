@@ -11,15 +11,21 @@ import {
 } from "../components/HomeBrowseControls";
 import { HomeHeader } from "../components/HomeHeader";
 import { HomeResultsList } from "../components/HomeResultsList";
+import {
+  createDateFilterOptions,
+  createTextFilterOptions,
+  getFilterDateKey,
+  normalizeFilterValue,
+} from "../utils/homeFilterOptions";
 
 export function HomeScreen() {
   const router = useRouter();
   const unreadCount = useUnreadNotificationCount();
   const [mode, setMode] = useState<BrowseMode>("trips");
   const [search, setSearch] = useState("");
-  const [locationFilter, setLocationFilter] = useState("All locations");
-  const [dateFilter, setDateFilter] = useState("Any date");
-  const [storeFilter, setStoreFilter] = useState("All stores");
+  const [locationFilter, setLocationFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+  const [storeFilter, setStoreFilter] = useState("");
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const {
     data: trips,
@@ -34,20 +40,62 @@ export function HomeScreen() {
     refetch: refetchRequests,
   } = useListAllRequests(mode === "requests");
 
+  const locationOptions = useMemo(
+    () =>
+      createTextFilterOptions(
+        mode === "trips"
+          ? (trips ?? []).flatMap((trip) => [
+              trip.origin,
+              trip.destination,
+            ])
+          : (requests ?? []).flatMap((request) => [
+              request.origin,
+              request.destination,
+              request.deliveryCity,
+            ]),
+        "All locations",
+      ),
+    [mode, requests, trips],
+  );
+  const dateOptions = useMemo(
+    () =>
+      mode === "trips"
+        ? createDateFilterOptions(
+            (trips ?? []).map((trip) => trip.departureAt),
+          )
+        : createDateFilterOptions(
+            (requests ?? []).map((request) => request.neededBy),
+            true,
+          ),
+    [mode, requests, trips],
+  );
+  const storeOptions = useMemo(
+    () =>
+      createTextFilterOptions(
+        mode === "trips"
+          ? (trips ?? []).flatMap((trip) => trip.stores)
+          : (requests ?? []).flatMap((request) => request.stores),
+        "All stores",
+      ),
+    [mode, requests, trips],
+  );
+
   const filteredTrips = useMemo(() => {
     const query = search.trim().toLowerCase();
 
     return (trips ?? []).filter((trip) => {
+      const selectedLocation = normalizeFilterValue(locationFilter);
+      const selectedStore = normalizeFilterValue(storeFilter);
       const matchesLocation =
-        locationFilter === "All locations" ||
-        trip.origin === locationFilter ||
-        trip.destination === locationFilter;
-      const tripDate = formatDepartureDate(trip.departureAt);
-      const matchesDate = dateFilter === "Any date" || tripDate === dateFilter;
+        !selectedLocation ||
+        normalizeFilterValue(trip.origin) === selectedLocation ||
+        normalizeFilterValue(trip.destination) === selectedLocation;
+      const matchesDate =
+        !dateFilter || getFilterDateKey(trip.departureAt) === dateFilter;
       const matchesStore =
-        storeFilter === "All stores" ||
+        !selectedStore ||
         trip.stores.some(
-          (store) => store.toLowerCase() === storeFilter.toLowerCase(),
+          (store) => normalizeFilterValue(store) === selectedStore,
         );
       const searchableText = [
         trip.driver.name,
@@ -74,18 +122,20 @@ export function HomeScreen() {
     const query = search.trim().toLowerCase();
 
     return (requests ?? []).filter((request) => {
+      const selectedLocation = normalizeFilterValue(locationFilter);
+      const selectedStore = normalizeFilterValue(storeFilter);
       const matchesLocation =
-        locationFilter === "All locations" ||
-        request.origin === locationFilter ||
-        request.destination === locationFilter ||
-        request.deliveryCity === locationFilter;
+        !selectedLocation ||
+        normalizeFilterValue(request.origin) === selectedLocation ||
+        normalizeFilterValue(request.destination) === selectedLocation ||
+        normalizeFilterValue(request.deliveryCity) === selectedLocation;
       const matchesDate =
-        dateFilter === "Any date" ||
-        formatRequestFilterDate(request.neededBy) === dateFilter;
+        !dateFilter ||
+        getFilterDateKey(request.neededBy, true) === dateFilter;
       const matchesStore =
-        storeFilter === "All stores" ||
+        !selectedStore ||
         request.stores.some(
-          (store) => store.toLowerCase() === storeFilter.toLowerCase(),
+          (store) => normalizeFilterValue(store) === selectedStore,
         );
       const searchableText = [
         request.requester?.name,
@@ -108,83 +158,37 @@ export function HomeScreen() {
     });
   }, [dateFilter, locationFilter, requests, search, storeFilter]);
 
-  const activeLocations =
-    mode === "trips"
-      ? Array.from(
-          new Set(
-            (trips ?? []).flatMap((trip) => [trip.origin, trip.destination]),
-          ),
-        )
-      : Array.from(
-          new Set(
-            (requests ?? []).flatMap((request) => [
-              request.origin,
-              request.destination,
-              request.deliveryCity,
-            ]),
-          ),
-        );
-  const activeDates =
-    mode === "trips"
-      ? Array.from(
-          new Set(
-            (trips ?? []).map((trip) => formatDepartureDate(trip.departureAt)),
-          ),
-        )
-      : Array.from(
-          new Set(
-            (requests ?? []).map((request) =>
-              formatRequestFilterDate(request.neededBy),
-            ),
-          ),
-        );
-  const activeStores =
-    mode === "trips"
-      ? Array.from(new Set((trips ?? []).flatMap((trip) => trip.stores)))
-      : Array.from(
-          new Set((requests ?? []).flatMap((request) => request.stores)),
-        );
-
   const cycleLocation = () => {
-    const currentIndex = activeLocations.indexOf(locationFilter);
+    const currentIndex = locationOptions.findIndex(
+      (option) => option.value === locationFilter,
+    );
     setLocationFilter(
-      currentIndex < 0 || currentIndex === activeLocations.length - 1
-        ? "All locations"
-        : activeLocations[currentIndex + 1],
-    );
-  };
-
-  const cycleDate = () => {
-    const currentIndex = activeDates.indexOf(dateFilter);
-    setDateFilter(
-      currentIndex < 0 || currentIndex === activeDates.length - 1
-        ? "Any date"
-        : activeDates[currentIndex + 1],
-    );
-  };
-
-  const cycleStore = () => {
-    const currentIndex = activeStores.indexOf(storeFilter);
-    setStoreFilter(
-      currentIndex < 0 || currentIndex === activeStores.length - 1
-        ? "All stores"
-        : activeStores[currentIndex + 1],
+      locationOptions[(currentIndex + 1) % locationOptions.length]?.value ?? "",
     );
   };
 
   const clearFilters = () => {
     setSearch("");
-    setLocationFilter("All locations");
-    setDateFilter("Any date");
-    setStoreFilter("All stores");
+    setLocationFilter("");
+    setDateFilter("");
+    setStoreFilter("");
     setShowMoreFilters(false);
+  };
+
+  const changeMode = (nextMode: BrowseMode) => {
+    if (nextMode !== mode) {
+      setLocationFilter("");
+      setDateFilter("");
+      setStoreFilter("");
+    }
+    setMode(nextMode);
   };
 
   return (
     <AppScreen>
       <HomeHeader
         location={
-          locationFilter === "All locations"
+          !locationFilter
             ? (mode === "trips" ? trips?.[0]?.origin : requests?.[0]?.origin) ??
               "All locations"
             : locationFilter
@@ -200,11 +204,14 @@ export function HomeScreen() {
         dateFilter={dateFilter}
         storeFilter={storeFilter}
         showMoreFilters={showMoreFilters}
-        onModeChange={setMode}
+        locationOptions={locationOptions}
+        dateOptions={dateOptions}
+        storeOptions={storeOptions}
+        onModeChange={changeMode}
         onSearchChange={setSearch}
-        onLocationFilterPress={cycleLocation}
-        onDateFilterPress={cycleDate}
-        onStoreFilterPress={cycleStore}
+        onLocationFilterChange={setLocationFilter}
+        onDateFilterChange={setDateFilter}
+        onStoreFilterChange={setStoreFilter}
         onToggleMoreFilters={() => setShowMoreFilters((visible) => !visible)}
       />
       <HomeResultsList
@@ -223,27 +230,4 @@ export function HomeScreen() {
       />
     </AppScreen>
   );
-}
-
-function formatDepartureDate(departureAt: string) {
-  const departure = new Date(departureAt);
-  if (Number.isNaN(departure.getTime())) return departureAt;
-
-  return departure.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatRequestFilterDate(neededBy: string) {
-  const needed = new Date(neededBy);
-  if (Number.isNaN(needed.getTime())) return neededBy;
-
-  return needed.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  });
 }

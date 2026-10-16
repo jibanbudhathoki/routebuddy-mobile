@@ -28,7 +28,7 @@ export function NotificationBellButton({
       <MaterialCommunityIcons
         name="bell-outline"
         size={22}
-        color={theme.colors.primary}
+        color={theme.colors.text}
       />
       {unreadCount > 0 ? (
         <View accessible={false} style={styles.badge}>

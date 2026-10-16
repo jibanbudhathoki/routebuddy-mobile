@@ -121,7 +121,7 @@ export function EditTripScreen() {
         {isLoading || !trip ? (
           <View style={styles.state}>
             {isLoading ? (
-              <ActivityIndicator color={theme.colors.primary} />
+              <ActivityIndicator color={theme.colors.text} />
             ) : (
               <>
                 <Text style={styles.errorText}>
@@ -201,7 +201,7 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: "center",
   },
   retry: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 13,
     fontWeight: "700",
   },

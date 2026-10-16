@@ -42,7 +42,7 @@ export const styles = StyleSheet.create((theme) => ({
   },
   eyebrow: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "700",
   },
   personName: {
@@ -57,8 +57,8 @@ export const styles = StyleSheet.create((theme) => ({
     paddingVertical: 5,
   },
   statusText: {
-    color: theme.colors.primary,
-    fontSize: 9,
+    color: theme.colors.text,
+    fontSize: 11,
     fontWeight: "700",
   },
   section: {
@@ -76,7 +76,7 @@ export const styles = StyleSheet.create((theme) => ({
   },
   sectionCaption: {
     color: theme.colors.muted,
-    fontSize: 10,
+    fontSize: 11,
   },
   card: {
     backgroundColor: theme.colors.surface,
@@ -95,11 +95,11 @@ export const styles = StyleSheet.create((theme) => ({
   },
   detailLabel: {
     color: theme.colors.muted,
-    fontSize: 10,
+    fontSize: 11,
   },
   detailValue: {
     color: theme.colors.text,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "600",
   },
   person: {
@@ -122,12 +122,12 @@ export const styles = StyleSheet.create((theme) => ({
   },
   storeName: {
     color: theme.colors.text,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "600",
   },
   storeLocation: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   itemRow: {
     alignItems: "center",
@@ -141,28 +141,28 @@ export const styles = StyleSheet.create((theme) => ({
   },
   itemName: {
     color: theme.colors.text,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "600",
   },
   itemDescription: {
     color: theme.colors.muted,
-    fontSize: 10,
+    fontSize: 11,
   },
   itemPrice: {
     color: theme.colors.text,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "600",
   },
   emptyText: {
     color: theme.colors.muted,
-    fontSize: 11,
+    fontSize: 12,
     paddingVertical: theme.spacing.md,
     textAlign: "center",
   },
   notes: {
     color: theme.colors.text,
-    fontSize: 11,
-    lineHeight: 17,
+    fontSize: 12,
+    lineHeight: 18,
     paddingVertical: theme.spacing.sm,
   },
   costRow: {
@@ -182,7 +182,7 @@ export const styles = StyleSheet.create((theme) => ({
     fontWeight: "700",
   },
   totalValue: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "700",
   },

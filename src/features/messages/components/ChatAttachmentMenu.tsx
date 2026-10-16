@@ -66,7 +66,7 @@ export function ChatAttachmentMenu({
                   <MaterialCommunityIcons
                     name={option.icon}
                     size={24}
-                    color={theme.colors.primary}
+                    color={theme.colors.text}
                   />
                 </View>
                 <Text style={styles.optionText}>{option.label}</Text>

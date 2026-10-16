@@ -123,7 +123,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   sectionTitle: {
     color: theme.colors.text,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "700",
   },
   customerRow: {
@@ -145,7 +145,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 42,
   },
   avatarText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "700",
   },
@@ -155,7 +155,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   customerName: {
     color: theme.colors.text,
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "700",
   },
   card: {
@@ -178,8 +178,8 @@ const styles = StyleSheet.create((theme) => ({
   instructionsText: {
     color: theme.colors.muted,
     flex: 1,
-    fontSize: 9,
-    lineHeight: 14,
+    fontSize: 12,
+    lineHeight: 18,
   },
   tripMetrics: {
     alignItems: "center",
@@ -198,11 +198,11 @@ const styles = StyleSheet.create((theme) => ({
   },
   metricTitle: {
     color: theme.colors.muted,
-    fontSize: 8,
+    fontSize: 11,
   },
   metricValue: {
     color: theme.colors.text,
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: "600",
     paddingLeft: 18,
   },

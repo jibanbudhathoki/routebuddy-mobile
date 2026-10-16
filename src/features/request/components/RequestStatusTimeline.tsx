@@ -149,7 +149,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   stepLabel: {
     color: theme.colors.muted,
-    fontSize: 8,
+    fontSize: 10,
     marginTop: theme.spacing.xs,
   },
   currentLabel: {
@@ -158,8 +158,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   stepTime: {
     color: theme.colors.muted,
-    fontSize: 7,
-    lineHeight: 10,
+    fontSize: 10,
+    lineHeight: 14,
     marginBottom: theme.spacing.sm,
     marginTop: 2,
     textAlign: "center",

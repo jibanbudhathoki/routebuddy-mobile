@@ -62,7 +62,7 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "space-between",
   },
   title: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     flex: 1,
     fontSize: 14,
     fontWeight: "700",

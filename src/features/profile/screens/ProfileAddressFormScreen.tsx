@@ -76,7 +76,7 @@ export function ProfileAddressFormScreen({
   if (addressUid && isLoading) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator color={theme.colors.primary} />
+        <ActivityIndicator color={theme.colors.text} />
       </View>
     );
   }
@@ -120,5 +120,5 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.lg,
   },
   errorText: { color: theme.colors.error, fontSize: 14, textAlign: "center" },
-  errorAction: { color: theme.colors.primary, fontSize: 14, fontWeight: "700" },
+  errorAction: { color: theme.colors.text, fontSize: 14, fontWeight: "700" },
 }));

@@ -54,7 +54,7 @@ export function HomeResultsList({
           <MaterialCommunityIcons
             name={isTripsMode ? "car-outline" : "bag-personal-outline"}
             size={18}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.sectionTitle}>
             {isTripsMode ? "Trips near you" : "Open requests near you"}
@@ -205,7 +205,7 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: "center",
   },
   resetFilters: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 11,
     fontWeight: "700",
     marginTop: theme.spacing.xs,

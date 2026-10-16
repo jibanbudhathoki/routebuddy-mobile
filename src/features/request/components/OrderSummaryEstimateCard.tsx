@@ -54,7 +54,7 @@ export function OrderSummaryEstimateCard({
         <MaterialCommunityIcons
           name="information-outline"
           size={20}
-          color={theme.colors.primary}
+          color={theme.colors.text}
           style={styles.disclaimerIcon}
         />
         <Text style={styles.disclaimerText}>
@@ -111,7 +111,7 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.lg,
   },
   summaryTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: theme.spacing.lg,
@@ -168,13 +168,13 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "bold",
   },
   totalSymbol: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: "bold",
     marginRight: 4,
   },
   totalValue: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: "bold",
   },
@@ -189,7 +189,7 @@ const styles = StyleSheet.create((theme) => ({
     marginRight: theme.spacing.sm,
   },
   disclaimerText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     flex: 1,
     fontSize: 12,
     lineHeight: 18,

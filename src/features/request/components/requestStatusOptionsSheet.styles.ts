@@ -96,7 +96,7 @@ export const styles = StyleSheet.create((theme) => ({
     fontSize: 12,
   },
   selectedLabel: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontWeight: "700",
   },
 }));

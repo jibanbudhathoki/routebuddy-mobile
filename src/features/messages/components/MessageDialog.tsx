@@ -119,7 +119,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.error,
   },
   actionText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "600",
   },

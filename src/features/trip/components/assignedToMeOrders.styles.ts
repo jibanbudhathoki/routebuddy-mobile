@@ -33,7 +33,7 @@ export const styles = StyleSheet.create((theme) => ({
     fontSize: 10,
   },
   orderStatus: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 9,
     fontWeight: "600",
   },
@@ -66,7 +66,7 @@ export const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.xs,
   },
   retryText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 11,
     fontWeight: "700",
   },

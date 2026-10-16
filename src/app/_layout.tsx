@@ -39,6 +39,7 @@ export default function RootLayout() {
                       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                       <Stack.Screen name="(modals)/community" options={{ presentation: 'fullScreenModal' }} />
                       <Stack.Screen name="(modals)/saved-addresses" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/notification-preferences" options={{ presentation: 'modal' }} />
                       <Stack.Screen name="(modals)/profile-address" options={{ presentation: 'modal' }} />
                       <Stack.Screen name="request-details" options={{ headerShown: false }} />
                       <Stack.Screen name="edit-trip" options={{ headerShown: false }} />

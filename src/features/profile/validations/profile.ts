@@ -22,7 +22,7 @@ export const profileSummaryResponseSchema = z.object({
   data: profileSummarySchema,
 });
 
-const profileNotificationPreferencesSchema: z.ZodType<ProfileNotificationPreferences> =
+export const profileNotificationPreferencesSchema: z.ZodType<ProfileNotificationPreferences> =
   z.object({
     pushNewTripRequests: z.boolean(),
     pushNewMessages: z.boolean(),
@@ -32,6 +32,12 @@ const profileNotificationPreferencesSchema: z.ZodType<ProfileNotificationPrefere
     emailNotifications: z.boolean(),
     notificationSound: z.boolean(),
   });
+
+export const profileNotificationPreferencesResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string().optional(),
+  data: z.unknown(),
+});
 
 const profileAddressSchema: z.ZodType<ProfileAddress> = z.object({
   uid: z.string(),

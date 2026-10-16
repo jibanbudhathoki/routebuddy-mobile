@@ -87,7 +87,7 @@ export function EditTripFields({
           <MaterialCommunityIcons
             name="information-outline"
             size={17}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.noticeText}>
             Changes you save will be visible to all requesters.
@@ -142,7 +142,7 @@ export function EditTripFields({
               <MaterialCommunityIcons
                 name="minus"
                 size={18}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
             </Pressable>
             <Text style={styles.capacityValue}>{form.capacity}</Text>
@@ -155,7 +155,7 @@ export function EditTripFields({
               <MaterialCommunityIcons
                 name="plus"
                 size={18}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
             </Pressable>
           </View>

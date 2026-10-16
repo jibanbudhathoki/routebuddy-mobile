@@ -41,7 +41,7 @@ export function TripOptionRow({
         <MaterialCommunityIcons
           name={option.icon}
           size={19}
-          color={destructive ? theme.colors.error : theme.colors.primary}
+          color={destructive ? theme.colors.error : theme.colors.text}
         />
       </View>
       <View style={styles.optionCopy}>

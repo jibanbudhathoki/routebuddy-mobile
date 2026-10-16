@@ -190,7 +190,7 @@ export function PaymentSuccessScreen() {
           <MaterialCommunityIcons
             name="close"
             size={28}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
       </View>

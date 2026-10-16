@@ -84,7 +84,7 @@ export function TripOrderDetailsScreen() {
 
         {isLoading ? (
           <View style={styles.state}>
-            <ActivityIndicator color={theme.colors.primary} />
+            <ActivityIndicator color={theme.colors.text} />
             <Text style={styles.stateText}>Loading order details...</Text>
           </View>
         ) : error || !order ? (

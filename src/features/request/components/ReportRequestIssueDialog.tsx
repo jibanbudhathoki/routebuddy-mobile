@@ -79,7 +79,7 @@ export function ReportRequestIssueDialog({
               <MaterialCommunityIcons
                 name="alert-circle-outline"
                 size={24}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
             </View>
             <Text style={styles.title}>Report an issue</Text>

@@ -60,7 +60,12 @@ export const messageService = {
           (item.requestId ? "request" : item.tripId ? "trip" : "direct"),
         avatarUrl: resolveAvatarUrl(item.avatarUrl ?? item.recipientImage),
         timestamp: item.timestamp ?? item.lastMessage?.createdAt ?? item.createdAt,
-        unreadCount: item.unreadCount ?? 0,
+        unreadCount:
+          item.unreadCount ??
+          item.unreadMessagesCount ??
+          item.unreadMessageCount ??
+          item.unreadMessages ??
+          0,
         requestId: item.requestId ?? item.requestUid ?? null,
         tripId: item.tripId ?? null,
       };

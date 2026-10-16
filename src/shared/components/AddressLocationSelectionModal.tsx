@@ -58,7 +58,7 @@ export function AddressLocationSelectionModal({
         {isLoading ? (
           <ActivityIndicator
             size="large"
-            color={theme.colors.primary}
+            color={theme.colors.text}
             style={{ marginTop: theme.spacing.xl }}
           />
         ) : (

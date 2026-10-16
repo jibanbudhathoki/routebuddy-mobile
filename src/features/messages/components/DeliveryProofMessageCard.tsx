@@ -31,7 +31,7 @@ export function DeliveryProofMessageCard({
         <MaterialCommunityIcons
           name={isConfirmed ? "check-decagram" : "package-variant-closed-check"}
           size={19}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
         <View style={styles.headingCopy}>
           <Text style={styles.title}>Delivery proof</Text>
@@ -81,7 +81,7 @@ export function DeliveryProofMessageCard({
           <MaterialCommunityIcons
             name="check-circle"
             size={16}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.confirmedText}>Delivery confirmed</Text>
         </View>

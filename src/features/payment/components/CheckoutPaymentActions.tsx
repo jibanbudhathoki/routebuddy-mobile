@@ -128,7 +128,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 28,
   },
   securityText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     flex: 1,
     fontSize: 13,
     lineHeight: 18,
@@ -164,7 +164,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: theme.spacing.lg,
   },
   secondaryButtonText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "bold",
   },
@@ -180,7 +180,7 @@ const styles = StyleSheet.create((theme) => ({
     opacity: 0.7,
   },
   brandText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontWeight: "bold",
   },
   footerInfoIcon: {
@@ -195,6 +195,6 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: "center",
   },
   termsLink: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
 }));

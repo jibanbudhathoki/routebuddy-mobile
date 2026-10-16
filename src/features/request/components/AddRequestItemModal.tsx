@@ -84,7 +84,7 @@ export function AddRequestItemModal({
               <MaterialCommunityIcons
                 name="close"
                 size={24}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
             </TouchableOpacity>
           </View>
@@ -203,7 +203,7 @@ const styles = StyleSheet.create((theme) => ({
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   closeButton: {
     position: "absolute",
@@ -248,7 +248,7 @@ const styles = StyleSheet.create((theme) => ({
   currencySymbol: {
     fontSize: 16,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     marginRight: theme.spacing.sm,
   },
   input: {

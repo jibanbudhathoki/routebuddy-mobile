@@ -160,6 +160,9 @@ export interface InboxMessageResponse {
   recipientImage?: string | null;
   timestamp?: string;
   unreadCount?: number;
+  unreadMessageCount?: number;
+  unreadMessagesCount?: number;
+  unreadMessages?: number;
   tripId?: string | null;
   requestId?: string | null;
   requestUid?: string | null;

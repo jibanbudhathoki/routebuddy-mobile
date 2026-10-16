@@ -80,7 +80,7 @@ export function MyRequestCard({
           <MaterialCommunityIcons
             name="store-outline"
             size={13}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.metadataText}>
             {stores.length} {stores.length === 1 ? "Store" : "Stores"}
@@ -91,7 +91,7 @@ export function MyRequestCard({
           <MaterialCommunityIcons
             name="account-outline"
             size={13}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.metadataText} numberOfLines={1}>
             {request.driver?.name ?? "Driver pending"}
@@ -102,7 +102,7 @@ export function MyRequestCard({
           <MaterialCommunityIcons
             name="calendar-clock-outline"
             size={13}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.metadataText}>
             By {formatDate(request.latestDeliveryBy)}
@@ -119,7 +119,7 @@ export function MyRequestCard({
         <MaterialCommunityIcons
           name="chevron-right"
           size={17}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
       </Pressable>
     </View>
@@ -277,7 +277,7 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 9,
   },
   costValue: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 15,
     fontWeight: "800",
     marginTop: 3,
@@ -312,7 +312,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 32,
   },
   moreStoresText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 9,
     fontWeight: "700",
   },
@@ -352,7 +352,7 @@ const styles = StyleSheet.create((theme) => ({
     minHeight: 34,
   },
   detailsText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 10,
     fontWeight: "600",
   },

@@ -69,7 +69,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   heading: {
     color: theme.colors.text,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "700",
   },
   countBadge: {
@@ -81,8 +81,8 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: 2,
   },
   countText: {
-    color: theme.colors.primary,
-    fontSize: 10,
+    color: theme.colors.text,
+    fontSize: 11,
     fontWeight: "700",
   },
   emptyCard: {
@@ -96,7 +96,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   emptyText: {
     color: theme.colors.muted,
-    fontSize: 11,
+    fontSize: 12,
     textAlign: "center",
   },
   offerList: {

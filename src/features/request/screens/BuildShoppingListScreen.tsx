@@ -97,7 +97,7 @@ export function BuildShoppingListScreen() {
           <MaterialCommunityIcons
             name="chevron-left"
             size={32}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Build Shopping List</Text>
@@ -166,7 +166,7 @@ const styles = StyleSheet.create((theme) => ({
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   scrollContent: {
     paddingHorizontal: theme.spacing.md,

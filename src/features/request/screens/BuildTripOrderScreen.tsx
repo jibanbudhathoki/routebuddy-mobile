@@ -195,7 +195,7 @@ export function BuildTripOrderScreen() {
           <MaterialCommunityIcons
             name="chevron-left"
             size={30}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Build Shopping List</Text>
@@ -307,7 +307,7 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.xs,
   },
   headerTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: "700",
   },

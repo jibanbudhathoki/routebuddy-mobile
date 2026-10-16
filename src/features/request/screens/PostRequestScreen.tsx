@@ -252,7 +252,7 @@ const styles = StyleSheet.create((theme) => ({
   badgeText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
   },
   infoBanner: {
     flexDirection: "row",

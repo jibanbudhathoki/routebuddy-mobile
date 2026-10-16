@@ -39,7 +39,7 @@ export function ChatDetailHeader({
         <MaterialCommunityIcons
           name="arrow-left"
           size={23}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
       </TouchableOpacity>
       <View style={styles.avatar}>
@@ -75,7 +75,7 @@ export function ChatDetailHeader({
             <MaterialCommunityIcons
               name="close"
               size={22}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
           </TouchableOpacity>
           <Text style={styles.selectionCount}>{selectedCount} selected</Text>
@@ -107,7 +107,7 @@ export function ChatDetailHeader({
           <MaterialCommunityIcons
             name="dots-horizontal"
             size={23}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
       )}
@@ -152,7 +152,7 @@ const styles = StyleSheet.create((theme) => ({
     width: "100%",
   },
   participantName: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "700",
   },
