@@ -1,34 +1,46 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+
 import { storeService } from '../services/store.service';
-import type { Store, GetStoresParams } from '../types/store';
+import type { GetStoresParams } from '../types/store';
 
-export function useStores(initialParams?: GetStoresParams) {
-  const [stores, setStores] = useState<Store[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const referenceDataStaleTime = 5 * 60 * 1000;
+const referenceDataGcTime = 30 * 60 * 1000;
 
-  const fetchStores = useCallback(async (params?: GetStoresParams) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await storeService.getStores(params);
-      setStores(response.data || []);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to fetch stores.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+function normalizeStoreParams(params?: GetStoresParams): GetStoresParams {
+  return {
+    sortOrder: params?.sortOrder,
+    sortBy: params?.sortBy,
+    type: params?.type,
+    provinceUid: params?.provinceUid,
+    cityUid: params?.cityUid,
+    search: params?.search,
+    page: params?.page,
+    limit: params?.limit,
+  };
+}
 
-  useEffect(() => {
-    fetchStores(initialParams);
-  }, [fetchStores, JSON.stringify(initialParams)]);
+export const storeKeys = {
+  all: ['stores'] as const,
+  list: (params?: GetStoresParams) =>
+    [...storeKeys.all, normalizeStoreParams(params)] as const,
+};
+
+export function useStores(params?: GetStoresParams) {
+  const normalizedParams = normalizeStoreParams(params);
+  const query = useQuery({
+    queryKey: storeKeys.list(normalizedParams),
+    queryFn: async () => {
+      const response = await storeService.getStores(normalizedParams);
+      return response.data || [];
+    },
+    staleTime: referenceDataStaleTime,
+    gcTime: referenceDataGcTime,
+  });
 
   return {
-    stores,
-    isLoading,
-    error,
-    refetch: fetchStores,
+    stores: query.data ?? [],
+    isLoading: query.isLoading,
+    error: query.error?.message ?? null,
+    refetch: query.refetch,
   };
 }

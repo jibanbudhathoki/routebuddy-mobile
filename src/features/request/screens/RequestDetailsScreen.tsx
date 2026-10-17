@@ -1,24 +1,49 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
-import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { Pressable, ScrollView, Share, Text, View } from "react-native";
+import { useState } from "react";
+import { useUnistyles } from "react-native-unistyles";
 
 import { AppScreen } from "../../../shared/components/AppScreen";
 import { Button } from "../../../shared/components/Button";
+import { ConfirmationDialog } from "../../../shared/components/ConfirmationDialog";
 import { useToast } from "../../../shared/components/ToastProvider";
+import { useCreateConversation } from "../../messages/hooks/useMessages";
+import { styles } from "../components/requestDetailsScreen.styles";
 import { RequestDetailsOverview } from "../components/RequestDetailsOverview";
+import { RequestOptionsSheet } from "../components/RequestOptionsSheet";
 import { RequestDetailsSummary } from "../components/RequestDetailsSummary";
+import { RequestAssignedDriver } from "../components/RequestAssignedDriver";
+import { RequestOffersList } from "../components/RequestOffersList";
 import { RequestShoppingList } from "../components/RequestShoppingList";
 import { RequestStatusTimeline } from "../components/RequestStatusTimeline";
+import { ReportRequestIssueDialog } from "../components/ReportRequestIssueDialog";
+import { useAcceptRequestOffer } from "../hooks/useRequestOffers";
+import {
+  useCancelRequest,
+  useDeleteRequest,
+  useReportRequestIssue,
+} from "../hooks/useRequestActions";
 import { useRequestDetails } from "../hooks/useRequestDetails";
+import { createSharedDetailLink } from "../../../shared/utils/sharedDetailLink";
+
+type RequestConfirmation = "cancel" | "delete" | null;
 
 export function RequestDetailsScreen() {
   const router = useRouter();
   const { uid } = useLocalSearchParams<{ uid?: string }>();
   const { theme } = useUnistyles();
   const { showToast } = useToast();
+  const [showOptions, setShowOptions] = useState(false);
+  const [showIssueReport, setShowIssueReport] = useState(false);
+  const [confirmation, setConfirmation] = useState<RequestConfirmation>(null);
+  const createConversation = useCreateConversation();
   const requestUid = typeof uid === "string" ? uid : "";
   const { data: request, error, isLoading, refetch } = useRequestDetails(requestUid);
+  const acceptOffer = useAcceptRequestOffer(requestUid);
+  const cancelRequest = useCancelRequest(requestUid);
+  const deleteRequest = useDeleteRequest(requestUid);
+  const reportIssue = useReportRequestIssue(requestUid);
 
   return (
     <AppScreen>
@@ -37,7 +62,20 @@ export function RequestDetailsScreen() {
             />
           </Pressable>
           <Text style={styles.headerTitle}>Request Details</Text>
-          <View style={styles.headerAction} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Request options"
+            accessibilityState={{ disabled: !request }}
+            disabled={!request}
+            onPress={() => setShowOptions(true)}
+            style={styles.headerAction}
+          >
+            <MaterialCommunityIcons
+              name="dots-horizontal"
+              size={22}
+              color={theme.colors.text}
+            />
+          </Pressable>
         </View>
 
         <ScrollView
@@ -70,6 +108,27 @@ export function RequestDetailsScreen() {
           ) : (
             <View style={styles.sections}>
               <RequestDetailsOverview request={request} />
+              {request.status.toLowerCase() === "accepted" && request.driver ? (
+                <RequestAssignedDriver driver={request.driver} />
+              ) : null}
+              <RequestOffersList
+                offers={request.offers ?? []}
+                requestStatus={request.status}
+                acceptingOfferUid={
+                  acceptOffer.isPending ? acceptOffer.variables : undefined
+                }
+                onAccept={(offerUid) =>
+                  acceptOffer.mutate(offerUid, {
+                    onSuccess: () => showToast("Offer accepted."),
+                    onError: (failure) =>
+                      showToast(
+                        failure instanceof Error
+                          ? failure.message
+                          : "Unable to accept this offer.",
+                      ),
+                  })
+                }
+              />
               <RequestStatusTimeline request={request} />
               <RequestShoppingList request={request} />
               <RequestDetailsSummary request={request} />
@@ -81,86 +140,161 @@ export function RequestDetailsScreen() {
           <View style={styles.footer}>
             <Button
               title="Message Driver"
-              onPress={() =>
-                showToast(
-                  request.driver
-                    ? "Messaging is not available yet."
-                    : "A driver has not been assigned to this request yet.",
-                )
-              }
+              loading={createConversation.isPending}
+              onPress={() => void handleMessageDriver()}
             />
           </View>
         ) : null}
       </View>
+      <RequestOptionsSheet
+        visible={showOptions}
+        isCancelling={cancelRequest.isPending}
+        isDeleting={deleteRequest.isPending}
+        isReportingIssue={reportIssue.isPending}
+        canCancel={
+          request
+            ? ["pending", "open"].includes(request.status.toLowerCase())
+            : false
+        }
+        onClose={() => setShowOptions(false)}
+        onShare={() => {
+          setShowOptions(false);
+          void shareRequest();
+        }}
+        onCancelRequest={() => {
+          setShowOptions(false);
+          setConfirmation("cancel");
+        }}
+        onDeleteRequest={() => {
+          setShowOptions(false);
+          setConfirmation("delete");
+        }}
+        onReportIssue={() => {
+          setShowOptions(false);
+          setShowIssueReport(true);
+        }}
+      />
+      <ReportRequestIssueDialog
+        visible={showIssueReport}
+        isSubmitting={reportIssue.isPending}
+        onClose={() => setShowIssueReport(false)}
+        onSubmit={(message) =>
+          reportIssue.mutate(message, {
+            onSuccess: (response) => {
+              setShowIssueReport(false);
+              showToast(response.message || "Issue reported successfully.", {
+                variant: "success",
+              });
+            },
+            onError: (failure) =>
+              showToast(
+                failure instanceof Error
+                  ? failure.message
+                  : "Unable to report this issue.",
+                { title: "Issue report failed", variant: "error" },
+              ),
+          })
+        }
+      />
+      <ConfirmationDialog
+        visible={confirmation !== null}
+        title={confirmation === "cancel" ? "Cancel this request?" : "Delete this request?"}
+        message={
+          confirmation === "cancel"
+            ? "This request can only be cancelled before a driver accepts it."
+            : "This will hide and cancel the request. This action cannot be undone."
+        }
+        icon={confirmation === "cancel" ? "cancel" : "delete-outline"}
+        confirmLabel={
+          confirmation === "cancel" ? "Cancel Request" : "Delete Request"
+        }
+        cancelLabel="Keep Request"
+        isLoading={cancelRequest.isPending || deleteRequest.isPending}
+        destructive
+        onCancel={() => setConfirmation(null)}
+        onConfirm={performConfirmation}
+      />
     </AppScreen>
   );
-}
 
-const styles = StyleSheet.create((theme) => ({
-  screen: {
-    flex: 1,
-  },
-  header: {
-    alignItems: "center",
-    flexDirection: "row",
-    height: 48,
-    justifyContent: "space-between",
-  },
-  headerAction: {
-    alignItems: "center",
-    height: 40,
-    justifyContent: "center",
-    width: 40,
-  },
-  headerTitle: {
-    color: theme.colors.text,
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  content: {
-    gap: theme.spacing.sm,
-    paddingBottom: theme.spacing.md,
-    paddingTop: theme.spacing.xs,
-  },
-  sections: {
-    gap: theme.spacing.sm,
-  },
-  stateCard: {
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.lg,
-  },
-  stateTitle: {
-    color: theme.colors.text,
-    fontSize: 14,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  stateText: {
-    color: theme.colors.muted,
-    fontSize: 11,
-    textAlign: "center",
-  },
-  retryButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.sm,
-    marginTop: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  retryButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  footer: {
-    borderTopColor: theme.colors.border,
-    borderTopWidth: 1,
-    paddingBottom: theme.spacing.xs,
-    paddingTop: theme.spacing.sm,
-  },
-}));
+  async function shareRequest() {
+    if (!request) return;
+    try {
+      const link = createSharedDetailLink("request", request.uid);
+      await Share.share({
+        message: `Request: ${request.origin} to ${request.destination}.\n${link}`,
+        url: link,
+      });
+    } catch (failure) {
+      showToast(
+        failure instanceof Error
+          ? failure.message
+          : "Unable to share this request.",
+      );
+    }
+  }
+
+  async function handleMessageDriver() {
+    if (createConversation.isPending) return;
+    if (!request?.driver?.uid) {
+      showToast("A driver has not been assigned to this request yet.");
+      return;
+    }
+
+    try {
+      const conversation = await createConversation.mutateAsync({
+        requestId: request.uid,
+        userId: request.driver.uid,
+      });
+      router.push({
+        pathname: "/chat/[id]",
+        params: {
+          id: conversation.id,
+          requestUid: request.uid,
+          recipientName: request.driver.name,
+        },
+      });
+    } catch (failure) {
+      showToast(
+        failure instanceof Error
+          ? failure.message
+          : "Unable to start a conversation with the driver.",
+      );
+    }
+  }
+
+  function performConfirmation() {
+    if (confirmation === "cancel") {
+      cancelRequest.mutate(undefined, {
+        onSuccess: (response) => {
+          setConfirmation(null);
+          showToast(response.message || "Request cancelled.", {
+            variant: "success",
+          });
+        },
+        onError: (failure) =>
+          showToast(
+            failure instanceof Error
+              ? failure.message
+              : "Unable to cancel this request.",
+          ),
+      });
+    } else if (confirmation === "delete") {
+      deleteRequest.mutate(undefined, {
+        onSuccess: (response) => {
+          setConfirmation(null);
+          showToast(response.message || "Request deleted.", {
+            variant: "success",
+          });
+          router.back();
+        },
+        onError: (failure) =>
+          showToast(
+            failure instanceof Error
+              ? failure.message
+              : "Unable to delete this request.",
+          ),
+      });
+    }
+  }
+}

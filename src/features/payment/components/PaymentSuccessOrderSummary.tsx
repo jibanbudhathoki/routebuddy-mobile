@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 interface PaymentSuccessOrderSummaryProps {
+  isRequestPublished?: boolean;
   storeName: string;
   storeLogoText: string;
   storeLogoSubText: string;
@@ -17,6 +18,7 @@ interface PaymentSuccessOrderSummaryProps {
 }
 
 export function PaymentSuccessOrderSummary({
+  isRequestPublished = false,
   storeName,
   storeLogoText,
   storeLogoSubText,
@@ -84,7 +86,9 @@ export function PaymentSuccessOrderSummary({
       <SummaryRow label="Estimated Taxes (5%)" value={taxes} showInfo />
       <View style={styles.summaryDivider} />
       <View style={styles.totalRow}>
-        <Text style={styles.totalLabel}>Total Paid</Text>
+        <Text style={styles.totalLabel}>
+          {isRequestPublished ? "Estimated Total" : "Total Paid"}
+        </Text>
         <View style={styles.totalValueContainer}>
           <Text style={styles.totalSymbol}>$</Text>
           <Text style={styles.totalValue}>{total.toFixed(2)}</Text>
@@ -183,7 +187,7 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
   },
   tripCardTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 4,
@@ -262,7 +266,7 @@ const styles = StyleSheet.create((theme) => ({
     marginTop: theme.spacing.xs,
   },
   totalLabel: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "bold",
   },
@@ -271,18 +275,18 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
   },
   totalSymbol: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: "bold",
     marginRight: 4,
   },
   totalValue: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: "bold",
   },
   totalCurrency: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "bold",
     marginLeft: 4,

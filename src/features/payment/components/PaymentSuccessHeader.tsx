@@ -4,6 +4,7 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 interface PaymentSuccessHeaderProps {
   total: number;
+  isRequestPublished?: boolean;
   conversationError: string;
   isCreatingConversation: boolean;
   onRetryConversation: () => void;
@@ -11,6 +12,7 @@ interface PaymentSuccessHeaderProps {
 
 export function PaymentSuccessHeader({
   total,
+  isRequestPublished = false,
   conversationError,
   isCreatingConversation,
   onRetryConversation,
@@ -58,12 +60,15 @@ export function PaymentSuccessHeader({
           style={[styles.sparkle, styles.sparkleMidRight]}
         />
       </View>
-      <Text style={styles.title}>Payment Successful!</Text>
-      <Text style={styles.subtitle}>
-        Your payment of ${total.toFixed(2)} CAD has been received and is securely
-        held in escrow.
+      <Text style={styles.title}>
+        {isRequestPublished ? "Request Published!" : "Payment Successful!"}
       </Text>
-      {conversationError ? (
+      <Text style={styles.subtitle}>
+        {isRequestPublished
+          ? "Your request is live. Drivers can now review it and send you offers."
+          : `Your payment of $${total.toFixed(2)} CAD has been received and is securely held in escrow.`}
+      </Text>
+      {!isRequestPublished && conversationError ? (
         <View style={styles.conversationError}>
           <Text accessibilityRole="alert" style={styles.conversationErrorText}>
             Payment succeeded, but the driver could not be notified:{" "}
@@ -130,7 +135,7 @@ const styles = StyleSheet.create((theme) => ({
     top: 60,
   },
   title: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: theme.spacing.sm,
@@ -158,7 +163,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   conversationRetry: {
     alignSelf: "flex-end",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "700",
     marginTop: theme.spacing.xs,

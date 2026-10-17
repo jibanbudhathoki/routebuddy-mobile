@@ -24,6 +24,16 @@ export function useCreateOrderConversation() {
         requestId,
         userId: driverUid,
       });
+      const existingMessages = await messageService.getConversationMessages(
+        conversation.id,
+      );
+      const alreadySent = existingMessages.some(
+        (existingMessage) =>
+          existingMessage.tripOrderUid === requestId &&
+          existingMessage.tripOrderDriverUid === driverUid,
+      );
+      if (alreadySent) return conversation;
+
       await messageService.sendMessage(conversation.id, {
         content: message,
         type: "text",

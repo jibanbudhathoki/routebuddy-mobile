@@ -25,7 +25,7 @@ export function RequestShoppingList({
             <MaterialCommunityIcons
               name="store-outline"
               size={14}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
             <Text style={styles.storeName}>{store.name}</Text>
           </View>
@@ -72,7 +72,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   count: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   card: {
     backgroundColor: theme.colors.surface,
@@ -91,14 +91,14 @@ const styles = StyleSheet.create((theme) => ({
   },
   storeName: {
     color: theme.colors.text,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "700",
   },
   itemRow: {
     alignItems: "center",
     flexDirection: "row",
     gap: theme.spacing.xs,
-    minHeight: 34,
+    minHeight: 42,
   },
   itemDivider: {
     borderBottomColor: theme.colors.border,
@@ -107,24 +107,24 @@ const styles = StyleSheet.create((theme) => ({
   itemName: {
     color: theme.colors.text,
     flex: 1.15,
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: "600",
   },
   itemDescription: {
     color: theme.colors.muted,
     flex: 1,
-    fontSize: 8,
+    fontSize: 11,
   },
   itemPrice: {
     color: theme.colors.text,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "700",
     textAlign: "right",
     width: 60,
   },
   empty: {
     color: theme.colors.muted,
-    fontSize: 10,
+    fontSize: 12,
     paddingVertical: theme.spacing.md,
     textAlign: "center",
   },

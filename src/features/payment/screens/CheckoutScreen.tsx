@@ -16,11 +16,17 @@ import { useStores } from "../../../shared/store/hooks/useStores";
 import { calculateEstimate } from "../../../shared/utils/pricing";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { useStripe } from "@stripe/stripe-react-native";
+import { useToast } from "../../../shared/components/ToastProvider";
+import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
+import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
 
 export function CheckoutScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { postId } = useLocalSearchParams<{ postId: string }>();
+  const { postId, clearRequestDraft } = useLocalSearchParams<{
+    postId: string;
+    clearRequestDraft?: string;
+  }>();
   const { theme } = useUnistyles();
   const { requestData } = useRequestCreation();
   const [nameOnCard, setNameOnCard] = useState("");
@@ -36,6 +42,8 @@ export function CheckoutScreen() {
     error: paymentError,
   } = usePayment();
   const { confirmPayment } = useStripe();
+  const { showToast } = useToast();
+  const unreadCount = useUnreadNotificationCount();
 
   useEffect(() => {
     let isMounted = true;
@@ -115,7 +123,6 @@ export function CheckoutScreen() {
                 billingDetails: { name: nameOnCard },
               },
             };
-
         const { error: stripeError } = await confirmPayment(
           clientSecret,
           paymentData as any,
@@ -127,13 +134,19 @@ export function CheckoutScreen() {
 
         router.push({
           pathname: "/(modals)/request/payment-success",
-          params: { orderUid: postId },
+          params: {
+            orderUid: postId,
+            clearRequestDraft:
+              clearRequestDraft === "true" ? "true" : undefined,
+          },
         });
       } else {
         throw new Error("Unable to retrieve payment client secret.");
       }
     } catch (error) {
-      console.error("Payment Error:", error);
+      showToast(
+        error instanceof Error ? error.message : "Unable to complete payment.",
+      );
     }
   };
 
@@ -155,22 +168,14 @@ export function CheckoutScreen() {
           <MaterialCommunityIcons
             name="chevron-left"
             size={32}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Checkout & Payment</Text>
-        <TouchableOpacity style={styles.headerButton}>
-          <View>
-            <MaterialCommunityIcons
-              name="bell-outline"
-              size={28}
-              color={theme.colors.primary}
-            />
-            <View style={styles.notificationBadge}>
-              <Text style={styles.notificationText}>3</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
+        <NotificationBellButton
+          unreadCount={unreadCount}
+          onPress={() => router.push("/notifications")}
+        />
       </View>
 
       <ScrollView
@@ -258,26 +263,8 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.xs,
   },
   headerTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 20,
-    fontWeight: "bold",
-  },
-  notificationBadge: {
-    alignItems: "center",
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.surface,
-    borderRadius: 10,
-    borderWidth: 2,
-    height: 18,
-    justifyContent: "center",
-    position: "absolute",
-    right: -4,
-    top: -4,
-    width: 18,
-  },
-  notificationText: {
-    color: theme.colors.surface,
-    fontSize: 10,
     fontWeight: "bold",
   },
   scrollContent: {
@@ -307,7 +294,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: 4,
   },
   errorBannerText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 13,
   },
 }));

@@ -17,6 +17,50 @@ export interface CreateRequestPayload {
   items: RequestItem[];
 }
 
+export interface CreateOpenRequestApiPayload {
+  stores: string[];
+  items: Array<{
+    item: string;
+    description: string;
+    estimatePrice: number;
+  }>;
+  deliveryAddress: string;
+  deliveryCityUid: string;
+  neededBy: string;
+  latestDeliveryBy: string;
+  notes: string;
+}
+
+export interface CreateOpenRequestResponse {
+  success: boolean;
+  message: string;
+  data: {
+    postId: string;
+    status: "pending" | "open";
+    totalItems: number;
+    totalCost: string;
+  };
+}
+
+export interface CancelRequestResponse {
+  success: boolean;
+  message: string;
+  data: RequestDetailsResponse;
+}
+
+export interface DeleteRequestResponse {
+  success?: boolean;
+  message: string;
+}
+
+export interface ReportRequestIssuePayload {
+  message: string;
+}
+
+export interface ReportRequestIssueResponse {
+  message: string;
+}
+
 export interface CreateTripOrderPayload {
   tripUid: string;
   stores: string[];
@@ -32,7 +76,9 @@ export interface CreateTripOrderPayload {
 export interface CreateTripOrderResponse {
   success: boolean;
   message: string;
-  data: TripOrder;
+  data: Omit<TripOrder, "status"> & {
+    status: "pending" | "open";
+  };
 }
 
 export interface TripOrder {
@@ -50,7 +96,7 @@ export interface TripOrder {
   total: string;
   paymentIntentId: string | null;
   captureBefore: string | null;
-  deliveryProof: string | null;
+  deliveryProof: RequestDeliveryProof | string | null;
   issue: string | null;
   rating: number | null;
   status: string;
@@ -119,6 +165,17 @@ export interface ListMyRequestsResponse {
 
 export interface ListAllRequestsResponse extends ListMyRequestsResponse {}
 
+export interface AssignedRequestListItem extends MyRequestListItem {}
+
+export interface ListMyAssignedRequestsResponse {
+  success: boolean;
+  message: string;
+  data: AssignedRequestListItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface RequestDetailsResponse {
   uid: string;
   kind: string;
@@ -134,7 +191,7 @@ export interface RequestDetailsResponse {
   total: string | null;
   paymentIntentId: string | null;
   captureBefore: string | null;
-  deliveryProof: string | null;
+  deliveryProof: RequestDeliveryProof | string | null;
   issue: string | null;
   rating: number | null;
   status: string;
@@ -153,7 +210,8 @@ export interface RequestDetailsResponse {
   requester: {
     uid: string;
     photoUrl?: string | null;
-    name: string;
+    name?: string;
+    fName?: string;
   };
   deliveryLocation: AddressLocation;
   driver: {
@@ -161,8 +219,68 @@ export interface RequestDetailsResponse {
     photoUrl?: string | null;
     name: string;
   } | null;
-  trip: unknown | null;
-  offers: unknown[];
+  trip: {
+    uid: string;
+    origin: string;
+    destination: string;
+  } | null;
+  offers: RequestOffer[];
   origin: string;
   destination: string;
+}
+
+export type RequestDeliveryStatus = "shopping" | "delivering" | "delivered";
+
+export interface RequestDeliveryProof {
+  receiptUrl?: string | null;
+  itemPhotoUrls?: string[];
+  note?: string | null;
+}
+
+export interface AddRequestDeliveryProofPayload {
+  itemPhotoUrls: string[];
+  note?: string;
+}
+
+export interface DeliveryProofPhoto {
+  uri: string;
+  fileName: string;
+  mimeType: string;
+  size?: number;
+}
+
+export interface RequestOffer {
+  uid: string;
+  driver: {
+    uid: string;
+    name?: string;
+    fName?: string;
+    photoUrl?: string | null;
+    photoKey?: string | null;
+    rating?: number | null;
+  };
+  message: string;
+  proposedLatestBy: string;
+  status: string;
+  createdAt?: string;
+}
+
+export interface SubmitRequestOfferPayload {
+  proposedLatestBy: string;
+  message?: string;
+}
+
+export interface SubmitRequestOfferResponse {
+  success: boolean;
+  message: string;
+  data: SubmittedRequestOffer;
+}
+
+export interface SubmittedRequestOffer {
+  uid: string;
+  message?: string;
+  proposedLatestBy?: string;
+  status?: string;
+  createdAt?: string;
+  driver?: RequestOffer["driver"];
 }

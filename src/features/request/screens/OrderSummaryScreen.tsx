@@ -14,46 +14,68 @@ import { useCities } from "../../../shared/city/hooks/useCities";
 import { useStores } from "../../../shared/store/hooks/useStores";
 import { calculateEstimate } from "../../../shared/utils/pricing";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
+import { useToast } from "../../../shared/components/ToastProvider";
+import { validateOpenRequest } from "../validations/openRequest";
+import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
+import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
 
 export function OrderSummaryScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useUnistyles();
+  const unreadCount = useUnreadNotificationCount();
+  const { showToast } = useToast();
   const { requestData, updateRequestData } = useRequestCreation();
   const { createRequest, isLoading: isCreatingRequest } = useCreateRequest();
   const items = requestData.items || [];
   const estimate = calculateEstimate(items);
 
   const handleContinue = async () => {
+    const validation = validateOpenRequest({
+      stores: requestData.stores ?? [],
+      items: (requestData.items ?? []).map((item) => ({
+        item: item.name,
+        description: item.description ?? "",
+        estimatePrice:
+          typeof item.estimatedPrice === "string" &&
+          item.estimatedPrice.trim()
+          ? Number(item.estimatedPrice)
+          : Number.NaN,
+      })),
+      deliveryAddress: requestData.deliveryAddress ?? "",
+      deliveryCityUid: requestData.deliveryCityUid ?? "",
+      neededBy: requestData.dayNeeded ?? "",
+      latestDeliveryBy: requestData.latestDeliveryTime ?? "",
+      notes: requestData.itemsInstructions ?? "",
+    });
+    if (!validation.isValid) {
+      showToast(validation.error);
+      return;
+    }
+
     try {
-      const payload = {
-        stores: requestData.stores || [],
-        items: (requestData.items || []).map((item) => ({
-          item: item.name,
-          description: item.description,
-          estimatePrice: parseFloat(item.estimatedPrice) || 0,
-        })),
-        deliveryAddress: requestData.deliveryAddress || "",
-        deliveryCityUid: requestData.deliveryCityUid || "",
-        neededBy: requestData.dayNeeded || new Date().toISOString(),
-        latestDeliveryBy:
-          requestData.latestDeliveryTime || new Date().toISOString(),
-        notes: requestData.itemsInstructions || "",
-      };
-      const response: any = await createRequest(payload);
+      const response = await createRequest(validation.data);
 
       if (response?.data?.status === "pending") {
         router.push({
           pathname: "/(modals)/request/checkout",
-          params: { postId: response.data.postId },
+          params: { postId: response.data.postId, clearRequestDraft: "true" },
         });
-      } else if (response?.success || response?.data?.status === "open") {
-        router.push("/(modals)/request/payment-success");
+      } else if (response.data.status === "open") {
+        router.push({
+          pathname: "/(modals)/request/payment-success",
+          params: {
+            resultType: "request-published",
+            clearRequestDraft: "true",
+          },
+        });
       } else {
-        throw new Error(response?.message || "Failed to create request");
+        showToast(response.message || "Failed to create request.");
       }
     } catch (error) {
-      console.error("Failed to create request:", error);
+      showToast(
+        error instanceof Error ? error.message : "Failed to create request.",
+      );
     }
   };
 
@@ -98,22 +120,14 @@ export function OrderSummaryScreen() {
           <MaterialCommunityIcons
             name="chevron-left"
             size={32}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Your Items</Text>
-        <TouchableOpacity style={styles.headerButton}>
-          <View>
-            <MaterialCommunityIcons
-              name="bell-outline"
-              size={28}
-              color={theme.colors.primary}
-            />
-            <View style={styles.notificationBadge}>
-              <Text style={styles.notificationText}>3</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
+        <NotificationBellButton
+          unreadCount={unreadCount}
+          onPress={() => router.push("/notifications")}
+        />
       </View>
 
       <ScrollView
@@ -172,26 +186,8 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.xs,
   },
   headerTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 20,
-    fontWeight: "bold",
-  },
-  notificationBadge: {
-    alignItems: "center",
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.surface,
-    borderRadius: 10,
-    borderWidth: 2,
-    height: 18,
-    justifyContent: "center",
-    position: "absolute",
-    right: -4,
-    top: -4,
-    width: 18,
-  },
-  notificationText: {
-    color: theme.colors.surface,
-    fontSize: 10,
     fontWeight: "bold",
   },
   scrollContent: {
@@ -199,7 +195,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: theme.spacing.md,
   },
   subtitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     marginBottom: theme.spacing.lg,
     marginTop: theme.spacing.xs,

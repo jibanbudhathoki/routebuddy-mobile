@@ -171,7 +171,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 48,
   },
   driverInitials: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 15,
     fontWeight: "700",
   },

@@ -1,12 +1,20 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View, Share } from "react-native";
-import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  Share,
+} from "react-native";
+import { useUnistyles } from "react-native-unistyles";
 
 import { AppScreen } from "../../../shared/components/AppScreen";
 import { Button } from "../../../shared/components/Button";
 import { useToast } from "../../../shared/components/ToastProvider";
+import { styles } from "../components/tripDetailsScreen.styles";
 import { DeleteTripConfirmationModal } from "../components/DeleteTripConfirmationModal";
 import { TripDetailsContent } from "../components/TripDetailsContent";
 import {
@@ -15,6 +23,11 @@ import {
 } from "../components/TripOptionsSheet";
 import { useDeleteTrip } from "../hooks/useDeleteTrip";
 import { useTripDetails } from "../hooks/useTripDetails";
+import { useTripOrders } from "../hooks/useTripOrders";
+import { useToggleTripOrders } from "../hooks/useToggleTripOrders";
+import { useUpdateTripStatus } from "../hooks/useUpdateTripStatus";
+import type { TripOrder, TripStatus } from "../types/trip";
+import { createSharedDetailLink } from "../../../shared/utils/sharedDetailLink";
 
 export function TripDetailsScreen() {
   const router = useRouter();
@@ -25,7 +38,15 @@ export function TripDetailsScreen() {
   const { showToast } = useToast();
   const tripUid = typeof uid === "string" ? uid : "";
   const deleteTripMutation = useDeleteTrip();
+  const toggleTripOrders = useToggleTripOrders();
+  const updateTripStatus = useUpdateTripStatus();
   const { data: trip, error, isLoading, refetch } = useTripDetails(tripUid);
+  const {
+    data: orders = [],
+    error: ordersError,
+    isLoading: isLoadingOrders,
+    refetch: refetchOrders,
+  } = useTripOrders(tripUid);
 
   return (
     <AppScreen>
@@ -91,14 +112,27 @@ export function TripDetailsScreen() {
               </View>
             </View>
           ) : (
-            <TripDetailsContent trip={trip} />
+            <TripDetailsContent
+              trip={trip}
+              orders={orders}
+              isLoadingOrders={isLoadingOrders}
+              ordersError={ordersError}
+              onRetryOrders={() => void refetchOrders()}
+              onSelectOrder={openOrderDetails}
+            />
           )}
         </ScrollView>
 
         <View style={styles.footer}>
           <Button
             title="Start Shopping"
-            onPress={() => {}}
+            onPress={() =>
+              router.push({
+                pathname: "/trip-shopping/[uid]",
+                params: { uid: tripUid },
+              })
+            }
+            disabled={!tripUid}
             style={styles.startButton}
           />
           <View style={styles.buttonIcon}>
@@ -113,7 +147,13 @@ export function TripDetailsScreen() {
       <TripOptionsSheet
         visible={showOptions}
         acceptsNewOrders={trip?.status.toLowerCase() === "open"}
+        isUpdatingOrderAvailability={toggleTripOrders.isPending}
+        tripStatus={trip?.status ?? ""}
+        isUpdatingTripStatus={updateTripStatus.isPending}
+        pendingTripStatus={updateTripStatus.variables?.payload.status}
         onClose={() => setShowOptions(false)}
+        onToggleOrderAvailability={toggleOrderAvailability}
+        onUpdateTripStatus={submitTripStatus}
         onSelect={handleTripOption}
       />
       <DeleteTripConfirmationModal
@@ -131,8 +171,10 @@ export function TripDetailsScreen() {
 
     if (action === "share") {
       try {
+        const link = createSharedDetailLink("trip", trip.uid);
         await Share.share({
-          message: `Trip: ${trip.origin} to ${trip.destination}, departing ${formatDate(trip.departureAt)}.`,
+          message: `Trip: ${trip.origin} to ${trip.destination}, departing ${formatDate(trip.departureAt)}.\n${link}`,
+          url: link,
         });
       } catch {
         showToast("Unable to share this trip.");
@@ -145,15 +187,99 @@ export function TripDetailsScreen() {
       return;
     }
 
+    if (action === "cancel") {
+      confirmCancelTrip();
+      return;
+    }
+
+    if (action === "edit") {
+      router.push({
+        pathname: "/edit-trip",
+        params: { uid: trip.uid },
+      });
+      return;
+    }
+
     const messages: Record<
-      Exclude<TripOptionAction, "share" | "delete">,
+      Exclude<TripOptionAction, "share" | "delete" | "edit" | "cancel">,
       string
     > = {
-      edit: "Editing trips is not available yet.",
-      "close-orders": "Trip order settings are not saved yet.",
-      cancel: "Trip cancellation is not available yet.",
+      "close-orders": "Use the switch to update new order availability.",
     };
     showToast(messages[action]);
+  }
+
+  function openOrderDetails(order: TripOrder) {
+    router.push({
+      pathname: "/trip-order/[uid]",
+      params: { uid: order.uid, tripUid },
+    });
+  }
+
+  function toggleOrderAvailability(closed: boolean) {
+    if (!tripUid || toggleTripOrders.isPending) return;
+
+    toggleTripOrders.mutate(
+      { uid: tripUid, closed },
+      {
+        onSuccess: (response) => {
+          showToast(
+            response.message ||
+              (closed
+                ? "New orders are closed for this trip."
+                : "This trip is open for new orders."),
+            { variant: "success" },
+          );
+        },
+        onError: (toggleError) => {
+          showToast(
+            toggleError instanceof Error
+              ? toggleError.message
+              : "Unable to update order availability.",
+          );
+        },
+      },
+    );
+  }
+
+  function confirmCancelTrip() {
+    Alert.alert(
+      "Cancel this trip?",
+      "This will cancel the trip and notify its requesters. This action cannot be undone.",
+      [
+        { text: "Keep Trip", style: "cancel" },
+        {
+          text: "Cancel Trip",
+          style: "destructive",
+          onPress: () => submitTripStatus("cancelled"),
+        },
+      ],
+    );
+  }
+
+  function submitTripStatus(status: TripStatus) {
+    if (!tripUid || updateTripStatus.isPending) return;
+
+    updateTripStatus.mutate(
+      { uid: tripUid, payload: { status } },
+      {
+        onSuccess: (response) => {
+          setShowOptions(false);
+          showToast(
+            response.message ||
+              `Trip status updated to ${status.replace(/_/g, " ")}.`,
+            { variant: "success" },
+          );
+        },
+        onError: (statusError) => {
+          showToast(
+            statusError instanceof Error
+              ? statusError.message
+              : "Unable to update trip status.",
+          );
+        },
+      },
+    );
   }
 
   function confirmDeleteTrip() {
@@ -184,79 +310,3 @@ function formatDate(value: string) {
     year: "numeric",
   });
 }
-
-const styles = StyleSheet.create((theme) => ({
-  screen: {
-    flex: 1,
-  },
-  header: {
-    alignItems: "center",
-    flexDirection: "row",
-    height: 42,
-    justifyContent: "space-between",
-  },
-  headerAction: {
-    alignItems: "center",
-    height: 36,
-    justifyContent: "center",
-    width: 36,
-  },
-  headerTitle: {
-    color: theme.colors.text,
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  stateContent: {
-    gap: theme.spacing.sm,
-    paddingBottom: theme.spacing.md,
-    paddingTop: theme.spacing.sm,
-  },
-  footer: {
-    paddingBottom: theme.spacing.xs,
-    paddingTop: theme.spacing.xs,
-  },
-  startButton: {
-    minHeight: 48,
-  },
-  buttonIcon: {
-    left: 0,
-    pointerEvents: "none",
-    position: "absolute",
-    top: 0,
-    height: 48,
-    justifyContent: "center",
-    paddingLeft: theme.spacing.lg,
-  },
-  stateCard: {
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.lg,
-  },
-  stateTitle: {
-    color: theme.colors.text,
-    fontSize: 15,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  stateText: {
-    color: theme.colors.muted,
-    fontSize: 12,
-    textAlign: "center",
-  },
-  retryButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.sm,
-    marginTop: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  retryButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 12,
-    fontWeight: "600",
-  },
-}));

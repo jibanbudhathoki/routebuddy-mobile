@@ -9,29 +9,50 @@ export interface Address {
   label: string;
   recipientName: string;
   line1: string;
-  line2?: string;
-  city: AddressLocation['city'];
-  province: AddressLocation['province'];
+  line2?: string | null;
+  cityUid: string;
+  provinceUid: string;
   postalCode: string;
-  country: AddressLocation['country'];
-  phone?: string;
-  notes?: string;
+  countryUid: string;
+  city?: AddressLocation['city'] | null;
+  province?: AddressLocation['province'] | null;
+  country?: AddressLocation['country'] | null;
+  phone?: string | null;
+  notes?: string | null;
   isDefault: boolean;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateAddressDto {
   label: string;
   recipientName: string;
   line1: string;
-  line2?: string;
+  line2?: string | null;
   cityUid: string;
   provinceUid: string;
   postalCode: string;
   countryUid: string;
-  phone?: string;
-  notes?: string;
+  phone?: string | null;
+  notes?: string | null;
   isDefault?: boolean;
 }
 
-export interface UpdateAddressDto extends Partial<CreateAddressDto> {}
+export type UpdateAddressDto = Partial<CreateAddressDto>;
+
+export interface AddressMutationResponse {
+  uid: string;
+  label?: string;
+  recipientName?: string;
+  line1?: string;
+  line2?: string | null;
+  cityUid?: string;
+  provinceUid?: string;
+  postalCode?: string;
+  countryUid?: string;
+  phone?: string | null;
+  notes?: string | null;
+  isDefault?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}

@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
-import { View, Text, TouchableOpacity, Image, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { Image } from 'expo-image';
 import type { ImageSourcePropType } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -14,7 +15,6 @@ export interface MessageListItemProps {
   timestamp: string;
   unreadCount?: number;
   onPress?: () => void;
-  onMarkRead?: () => void;
   onDelete?: () => void;
 }
 
@@ -26,34 +26,28 @@ export function MessageListItem({
   timestamp,
   unreadCount,
   onPress,
-  onMarkRead,
   onDelete,
 }: MessageListItemProps) {
   const { theme } = useUnistyles();
-
   const swipeableRef = useRef<Swipeable>(null);
+  const unreadMessages = unreadCount ?? 0;
+  const isUnread = unreadMessages > 0;
 
   const renderRightActions = (_progress: Animated.AnimatedInterpolation<number>, _dragX: Animated.AnimatedInterpolation<number>) => {
     return (
       <View style={styles.rightActionsContainer}>
         <TouchableOpacity 
-          style={[styles.actionButton, styles.readAction]} 
-          onPress={() => {
-            swipeableRef.current?.close();
-            onMarkRead?.();
-          }}
-        >
-          <MaterialCommunityIcons name="email-open-outline" size={24} color={theme.colors.onPrimary} />
-          <Text style={styles.actionText}>Read</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
+          accessibilityRole="button"
+          accessibilityLabel="Delete conversation"
           style={[styles.actionButton, styles.deleteAction]}
           onPress={() => {
             swipeableRef.current?.close();
             onDelete?.();
           }}
         >
-          <MaterialCommunityIcons name="trash-can-outline" size={24} color={theme.colors.onPrimary} />
+          <View style={[styles.actionIcon, styles.deleteActionIcon]}>
+            <MaterialCommunityIcons name="trash-can-outline" size={20} color={theme.colors.onPrimary} />
+          </View>
           <Text style={styles.actionText}>Delete</Text>
         </TouchableOpacity>
       </View>
@@ -68,52 +62,100 @@ export function MessageListItem({
       rightThreshold={40}
     >
       <TouchableOpacity
-      style={styles.container}
-      onPress={onPress}
-      activeOpacity={0.7}
-      disabled={!onPress}
-    >
-      <View style={styles.avatarContainer}>
-        {avatarUrl ? (
-          <Image
-            source={typeof avatarUrl === 'string' ? { uri: avatarUrl } : avatarUrl}
-            style={styles.avatar}
-          />
-        ) : (
-          <View style={[styles.avatar, styles.avatarFallback]}>
-            <MaterialCommunityIcons name="account" size={32} color={theme.colors.surface} />
-          </View>
-        )}
-      </View>
-      <View style={styles.contentContainer}>
-        <View style={styles.headerRow}>
-          <Text style={styles.name} numberOfLines={1}>{name}</Text>
-          <Text style={styles.timestamp}>{timestamp}</Text>
-        </View>
-        <Text style={styles.tripInfo} numberOfLines={1}>{tripInfo}</Text>
-        <View style={styles.previewRow}>
-          <Text style={styles.messagePreview} numberOfLines={1}>
-            {messagePreview}
-          </Text>
-          {unreadCount ? (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>{unreadCount}</Text>
+        accessibilityRole="button"
+        accessibilityLabel={`${name}${isUnread ? `, ${unreadMessages} unread messages` : ""}. ${messagePreview}`}
+        style={[styles.container, isUnread && styles.unreadContainer]}
+        onPress={onPress}
+        activeOpacity={0.7}
+        disabled={!onPress}
+      >
+        <View style={styles.avatarContainer}>
+          {avatarUrl ? (
+            <Image
+              source={
+                typeof avatarUrl === "string" ? { uri: avatarUrl } : avatarUrl
+              }
+              style={styles.avatar}
+              contentFit="cover"
+            />
+          ) : (
+            <View style={[styles.avatar, styles.avatarFallback]}>
+              <MaterialCommunityIcons
+                name="account"
+                size={32}
+                color={theme.colors.surface}
+              />
             </View>
-          ) : null}
+          )}
+          {isUnread ? <View style={styles.unreadDot} /> : null}
         </View>
-      </View>
-    </TouchableOpacity>
+        <View style={styles.contentContainer}>
+          <View style={styles.headerRow}>
+            <Text
+              style={[styles.name, isUnread && styles.unreadName]}
+              numberOfLines={1}
+            >
+              {name}
+            </Text>
+            <Text style={[styles.timestamp, isUnread && styles.unreadTimestamp]}>
+              {timestamp}
+            </Text>
+          </View>
+          <Text style={styles.tripInfo} numberOfLines={1}>
+            {tripInfo}
+          </Text>
+          <View style={styles.previewRow}>
+            <Text
+              style={[
+                styles.messagePreview,
+                isUnread && styles.unreadMessagePreview,
+              ]}
+              numberOfLines={1}
+            >
+              {messagePreview}
+            </Text>
+            {isUnread ? (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadText}>
+                  {unreadMessages > 99 ? "99+" : unreadMessages}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+      </TouchableOpacity>
     </Swipeable>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
   container: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
+    alignItems: "center",
     backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    marginBottom: theme.spacing.sm,
+    minHeight: 86,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+  },
+  unreadContainer: {
+    backgroundColor: theme.colors.primarySoft,
+    borderColor: theme.colors.primary,
+    borderLeftWidth: 4,
+  },
+  unreadDot: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.surface,
+    borderRadius: 5,
+    borderWidth: 2,
+    height: 12,
+    position: "absolute",
+    right: -2,
+    top: -2,
+    width: 12,
   },
   avatarContainer: {
     marginRight: theme.spacing.md,
@@ -146,10 +188,17 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text,
     flex: 1,
   },
+  unreadName: {
+    fontWeight: "800",
+  },
   timestamp: {
     fontSize: 13,
     color: theme.colors.muted,
     marginLeft: theme.spacing.sm,
+  },
+  unreadTimestamp: {
+    color: theme.colors.text,
+    fontWeight: "600",
   },
   tripInfo: {
     fontSize: 12,
@@ -166,14 +215,18 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.muted,
     flex: 1,
   },
+  unreadMessagePreview: {
+    color: theme.colors.text,
+    fontWeight: "600",
+  },
   unreadBadge: {
     backgroundColor: theme.colors.primary,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    borderRadius: theme.radius.md,
+    minWidth: 28,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: theme.spacing.xs,
     marginLeft: theme.spacing.sm,
   },
   unreadText: {
@@ -184,23 +237,39 @@ const styles = StyleSheet.create((theme) => ({
   rightActionsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: theme.spacing.xs,
+    gap: theme.spacing.xs,
   },
   actionButton: {
-    width: 70,
-    height: '100%',
+    width: 78,
+    height: 72,
+    borderRadius: theme.radius.md,
     justifyContent: 'center',
     alignItems: 'center',
+    marginVertical: theme.spacing.xs,
+    elevation: 3,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4,
   },
-  readAction: {
-  backgroundColor: theme.colors.primary,
+  actionIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 3,
+  },
+  deleteActionIcon: {
+    backgroundColor: theme.colors.error,
   },
   deleteAction: {
     backgroundColor: theme.colors.error,
   },
   actionText: {
     color: theme.colors.onPrimary,
-    fontSize: 12,
-    marginTop: 4,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
   },
 }));

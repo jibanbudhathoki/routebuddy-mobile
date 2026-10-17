@@ -135,7 +135,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: theme.spacing.md,
   },
   sectionTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: theme.spacing.md,

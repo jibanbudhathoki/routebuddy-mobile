@@ -4,6 +4,13 @@ export interface MessageReaction {
   [userUid: string]: string | undefined;
 }
 
+export interface ChatDeliveryProof {
+  requestUid: string;
+  driverUid: string;
+  itemPhotoUrls: string[];
+  note?: string;
+}
+
 export interface Message {
   id: string;
   conversationUid?: string;
@@ -14,7 +21,6 @@ export interface Message {
   mediaUrl: string | null;
   replyToUid: string | null;
   reactions: MessageReaction[] | Record<string, string> | null;
-  readBy?: string[];
   deletedAt?: string | null;
   updatedAt?: string;
   sender: {
@@ -22,6 +28,27 @@ export interface Message {
     displayName: string;
     photoUrl: string | null;
   } | null;
+  requestOffer?: {
+    requestUid: string;
+    offerUid: string;
+  };
+  tripOrderUid?: string;
+  tripOrderDriverUid?: string;
+  deliveryProof?: ChatDeliveryProof;
+}
+
+export interface ChatRequestOffer {
+  uid: string;
+  driverUid: string;
+  message: string;
+  proposedLatestBy: string;
+  status: string;
+}
+
+export interface ChatTripOrder {
+  uid: string;
+  status: string;
+  driverUid: string;
 }
 
 export interface MessageListResponse {
@@ -44,7 +71,6 @@ export interface MessageResponse {
   mediaUrl?: string | null;
   replyToUid?: string | null;
   reactions?: Message["reactions"];
-  readBy?: string[];
   deletedAt?: string | null;
   updatedAt?: string;
   sender?: Message["sender"];
@@ -111,10 +137,13 @@ export interface InboxMessage {
   msgId: string;
   recipientName: string;
   latestMsg: string;
+  latestMsgIsOwn?: boolean;
   contextType: string;
   avatarUrl?: string | null;
   timestamp?: string;
   unreadCount?: number;
+  requestId?: string | null;
+  tripId?: string | null;
 }
 
 export interface InboxMessageResponse {
@@ -122,15 +151,24 @@ export interface InboxMessageResponse {
   uid?: string;
   recipientName?: string;
   latestMsg?: string;
+  latestMsgType?: Message["type"];
+  latestMsgSenderUid?: string;
   contextType?: string;
   avatarUrl?: string | null;
+  recipientImage?: string | null;
   timestamp?: string;
   unreadCount?: number;
+  unreadMessageCount?: number;
+  unreadMessagesCount?: number;
+  unreadMessages?: number;
   tripId?: string | null;
   requestId?: string | null;
+  requestUid?: string | null;
   lastMessage?: {
     content?: string;
+    type?: Message["type"];
     senderUid?: string;
+    senderId?: string;
     createdAt?: string;
   } | null;
   createdAt?: string;

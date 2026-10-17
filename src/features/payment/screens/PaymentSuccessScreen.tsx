@@ -1,7 +1,13 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  BackHandler,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
@@ -12,6 +18,7 @@ import { useCities } from "../../../shared/city/hooks/useCities";
 import { useStores } from "../../../shared/store/hooks/useStores";
 import { calculateEstimate } from "../../../shared/utils/pricing";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
+import { createTripOrderMessage } from "../../messages/utils/requestOfferMessage";
 
 export function PaymentSuccessScreen() {
   const insets = useSafeAreaInsets();
@@ -19,11 +26,18 @@ export function PaymentSuccessScreen() {
   const { orderUid: routeOrderUid } =
     useLocalSearchParams<{ orderUid?: string }>();
   const orderUid = typeof routeOrderUid === "string" ? routeOrderUid : "";
+  const { resultType, clearRequestDraft } = useLocalSearchParams<{
+    resultType?: string;
+    clearRequestDraft?: string;
+  }>();
+  const isRequestPublished = resultType === "request-published";
+  const shouldClearRequestDraft = clearRequestDraft === "true";
   const { theme } = useUnistyles();
   const {
     requestData,
     tripOrderConversation,
     setTripOrderConversation,
+    resetRequestData,
   } = useRequestCreation();
   const {
     mutateAsync: createOrderConversation,
@@ -59,24 +73,48 @@ export function PaymentSuccessScreen() {
     const itemLines = tripOrderConversation.items.map((item) => {
       const description = item.description ? ` (${item.description})` : "";
       const price = Number(item.estimatedPrice);
-      const priceText = Number.isFinite(price) ? ` — $${price.toFixed(2)}` : "";
+      const priceText = Number.isFinite(price) ? ` — $${formatCurrency(price)}` : "";
       return `• ${item.name}${description}${priceText}`;
     });
-    const message = [
-      `Payment successful for order ${tripOrderConversation.orderUid}.`,
+    const paymentMessage = [
+      "NEW PAID SHOPPING ORDER",
+      "",
+      `Status: Awaiting driver acceptance`,
+      `Trip: ${tripOrderConversation.origin} → ${tripOrderConversation.destination}`,
+      `Store${tripOrderConversation.storeNames.length === 1 ? "" : "s"}: ${tripOrderConversation.storeNames.join(", ") || "Not specified"}`,
+      `Deliver to: ${tripOrderConversation.deliveryCity}${tripOrderConversation.deliveryProvince ? `, ${tripOrderConversation.deliveryProvince}` : ""}`,
+      `Needed by: ${formatDateTime(tripOrderConversation.neededBy)}`,
+      `Latest delivery: ${formatDateTime(tripOrderConversation.latestDeliveryBy)}`,
       "",
       "Shopping list:",
-      ...itemLines,
+      ...(itemLines.length ? itemLines : ["• No items listed"]),
+      tripOrderConversation.notes.trim()
+        ? `\nRequester notes: ${tripOrderConversation.notes.trim()}`
+        : "",
       "",
-      `Estimated total: $${tripOrderConversation.total} CAD`,
-    ].join("\n");
+      "Payment breakdown:",
+      `• Items subtotal: $${formatCurrency(tripOrderConversation.itemSubtotal)} CAD`,
+      `• Service fee: $${formatCurrency(tripOrderConversation.serviceFee)} CAD`,
+      `• Driver fee: $${formatCurrency(tripOrderConversation.driverFee)} CAD`,
+      `• Platform fee: $${formatCurrency(tripOrderConversation.platformFee)} CAD`,
+      `• Tax: $${formatCurrency(tripOrderConversation.tax)} CAD`,
+      `• Total paid: $${formatCurrency(tripOrderConversation.total)} CAD`,
+      "",
+      "Payment is secured. Please review the list and accept or reject the order.",
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     try {
       await createOrderConversation({
         tripId: tripOrderConversation.tripUid,
         requestId: tripOrderConversation.orderUid,
         driverUid: tripOrderConversation.driverUid,
-        message,
+        message: createTripOrderMessage(
+          tripOrderConversation.orderUid,
+          tripOrderConversation.driverUid,
+          paymentMessage,
+        ),
       });
       setConversationError("");
       setTripOrderConversation(null);
@@ -114,6 +152,23 @@ export function PaymentSuccessScreen() {
     void startDriverConversation();
   };
 
+  const handleGoHome = useCallback(() => {
+    if (shouldClearRequestDraft) resetRequestData();
+    router.dismissAll();
+  }, [resetRequestData, router, shouldClearRequestDraft]);
+
+  useEffect(() => {
+    if (!shouldClearRequestDraft) return;
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        handleGoHome();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [handleGoHome, shouldClearRequestDraft]);
+
   return (
     <View
       style={[
@@ -130,12 +185,12 @@ export function PaymentSuccessScreen() {
           accessibilityRole="button"
           accessibilityLabel="Close payment confirmation"
           style={styles.headerButton}
-          onPress={() => router.dismissAll()}
+          onPress={handleGoHome}
         >
           <MaterialCommunityIcons
             name="close"
             size={28}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
       </View>
@@ -145,6 +200,7 @@ export function PaymentSuccessScreen() {
         showsVerticalScrollIndicator={false}
       >
         <PaymentSuccessDetails
+          isRequestPublished={isRequestPublished}
           storeName={storeName}
           storeLogoText={storeLogoText}
           storeLogoSubText={storeLogoSubText}
@@ -159,7 +215,7 @@ export function PaymentSuccessScreen() {
           conversationError={conversationError}
           isCreatingConversation={isCreatingConversation}
           onRetryConversation={retryDriverConversation}
-          onGoHome={() => router.dismissAll()}
+          onGoHome={handleGoHome}
         />
       </ScrollView>
     </View>
@@ -169,6 +225,21 @@ export function PaymentSuccessScreen() {
 function formatProvince(province?: string | { name: string }) {
   const name = typeof province === "string" ? province : province?.name;
   return name ? `, ${name}` : "";
+}
+
+function formatCurrency(value: string | number) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount.toFixed(2) : "Not available";
+}
+
+function formatDateTime(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "Not specified"
+    : date.toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
 }
 
 const styles = StyleSheet.create((theme) => ({

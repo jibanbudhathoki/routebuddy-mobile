@@ -26,18 +26,19 @@ export function PrimaryButton({ title, loading, style, ...props }: PrimaryButton
 
 const styles = StyleSheet.create((theme) => ({
   button: {
-    backgroundColor: theme.colors.primary,
-    height: 56,
-    borderRadius: 12,
-    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.sm,
+    justifyContent: 'center',
+    minHeight: 56,
+    paddingHorizontal: theme.spacing.lg,
   },
   buttonDisabled: {
-    backgroundColor: theme.colors.muted,
+    opacity: 0.5,
   },
   text: {
     color: theme.colors.onPrimary,
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
   },
 }));

@@ -19,16 +19,21 @@ export default function AddAddressModal() {
         label: data.label,
         recipientName: data.fullName,
         line1: data.address,
-        line2: data.aptSuiteUnit,
+        line2: data.aptSuiteUnit.trim() || null,
         cityUid: data.cityUid,
         provinceUid: data.provinceUid,
+        countryUid: data.countryUid,
         postalCode: data.postalCode,
-        countryUid: "country_b5a5c0a2-dfe1-4850-b946-da93c6ffe9aa", // Default to Nepal
-        notes: data.notes,
+        phone: data.phone.trim() || null,
+        notes: data.notes.trim() || null,
+        isDefault: data.isDefault,
       });
       router.back();
-    } catch (error: any) {
-      Alert.alert("Error", error?.message || "Failed to save address");
+    } catch (error: unknown) {
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "Failed to save address",
+      );
     } finally {
       setIsSaving(false);
     }

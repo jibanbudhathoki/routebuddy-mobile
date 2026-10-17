@@ -60,7 +60,7 @@ export function HomeTripCard({ trip }: HomeTripCardProps) {
             <MaterialCommunityIcons
               name="check-circle"
               size={13}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
             <Text style={styles.statusText}>
               {trip.status.replace(/[_-]+/g, " ")}
@@ -71,7 +71,7 @@ export function HomeTripCard({ trip }: HomeTripCardProps) {
           <MaterialCommunityIcons
             name="account-multiple"
             size={12}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.spotsText}>
             {trip.availableSeats} of {trip.capacity} spots remaining
@@ -125,7 +125,7 @@ export function HomeTripCard({ trip }: HomeTripCardProps) {
               <MaterialCommunityIcons
                 name="storefront-outline"
                 size={14}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
               <Text style={styles.storeName} numberOfLines={2}>
                 {store}
@@ -178,7 +178,7 @@ export function HomeTripCard({ trip }: HomeTripCardProps) {
           <MaterialCommunityIcons
             name="share-variant"
             size={17}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </Pressable>
       </View>
@@ -215,7 +215,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 38,
   },
   avatarInitials: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "700",
   },
@@ -236,7 +236,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   statusText: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
     textTransform: "capitalize",
   },
   spotsBadge: {
@@ -249,8 +249,8 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: 5,
   },
   spotsText: {
-    color: theme.colors.primary,
-    fontSize: 8,
+    color: theme.colors.text,
+    fontSize: 10,
     fontWeight: "600",
   },
   routeRow: {
@@ -278,7 +278,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   scheduleText: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   storeRow: {
     flexDirection: "row",
@@ -300,7 +300,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   storeName: {
     color: theme.colors.text,
-    fontSize: 7,
+    fontSize: 9,
     fontWeight: "600",
     textAlign: "center",
   },
@@ -309,8 +309,8 @@ const styles = StyleSheet.create((theme) => ({
     width: 34,
   },
   moreStoresText: {
-    color: theme.colors.primary,
-    fontSize: 9,
+    color: theme.colors.text,
+    fontSize: 10,
     fontWeight: "700",
   },
   cardFooter: {
@@ -326,24 +326,24 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.spacing.xs,
   },
   feeAmount: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 15,
     fontWeight: "800",
   },
   feeLabel: {
     color: theme.colors.muted,
-    fontSize: 8,
+    fontSize: 10,
   },
   price: {
     color: theme.colors.text,
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: "600",
     marginLeft: theme.spacing.xs,
   },
   detailsButton: {
     alignItems: "center",
     backgroundColor: theme.colors.primary,
-    borderRadius: 6,
+    borderRadius: theme.radius.sm,
     flexDirection: "row",
     gap: 2,
     justifyContent: "center",
@@ -352,13 +352,13 @@ const styles = StyleSheet.create((theme) => ({
   },
   detailsText: {
     color: theme.colors.onPrimary,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "600",
   },
   shareButton: {
     alignItems: "center",
     borderColor: theme.colors.primary,
-    borderRadius: 6,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
     height: 32,
     justifyContent: "center",

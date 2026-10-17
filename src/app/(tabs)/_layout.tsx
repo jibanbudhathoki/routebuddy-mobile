@@ -163,7 +163,7 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: "500",
   },
   addButton: {
-    backgroundColor: "#0B2447",
+    backgroundColor: theme.colors.primary,
     width: 56,
     height: 56,
     borderRadius: 28,

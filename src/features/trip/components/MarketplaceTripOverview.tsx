@@ -133,14 +133,14 @@ const styles = StyleSheet.create((theme) => ({
     width: 6,
   },
   statusText: {
-    color: theme.colors.primary,
-    fontSize: 9,
+    color: theme.colors.text,
+    fontSize: 11,
     fontWeight: "600",
     textTransform: "capitalize",
   },
   tripCode: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   storeHeader: {
     alignItems: "center",
@@ -167,7 +167,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   routeSubtitle: {
     color: theme.colors.text,
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "500",
   },
   inlineMetadata: {
@@ -179,7 +179,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   inlineMetadataText: {
     color: theme.colors.muted,
-    fontSize: 8,
+    fontSize: 11,
     marginRight: theme.spacing.xs,
   },
 }));

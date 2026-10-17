@@ -6,10 +6,11 @@ import type { RequestDetailsResponse } from "../types/request";
 import { formatRequestDate, formatRequestTime } from "../utils/requestFormatters";
 
 const statusSteps = [
-  { label: "Placed", icon: "check" },
+  { label: "Open", icon: "text-box-outline" },
+  { label: "Accepted", icon: "handshake-outline" },
   { label: "Shopping", icon: "cart-outline" },
   { label: "Delivering", icon: "car-outline" },
-  { label: "Completed", icon: "flag-checkered" },
+  { label: "Delivered", icon: "flag-checkered" },
 ] as const;
 
 export function RequestStatusTimeline({
@@ -76,12 +77,15 @@ export function RequestStatusTimeline({
 
 function getCurrentStep(status: string) {
   switch (status.toLowerCase()) {
-    case "shopping":
+    case "accepted":
       return 1;
-    case "delivering":
+    case "shopping":
       return 2;
-    case "completed":
+    case "delivering":
       return 3;
+    case "delivered":
+    case "completed":
+      return 4;
     default:
       return 0;
   }
@@ -145,7 +149,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   stepLabel: {
     color: theme.colors.muted,
-    fontSize: 8,
+    fontSize: 10,
     marginTop: theme.spacing.xs,
   },
   currentLabel: {
@@ -154,8 +158,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   stepTime: {
     color: theme.colors.muted,
-    fontSize: 7,
-    lineHeight: 10,
+    fontSize: 10,
+    lineHeight: 14,
     marginBottom: theme.spacing.sm,
     marginTop: 2,
     textAlign: "center",

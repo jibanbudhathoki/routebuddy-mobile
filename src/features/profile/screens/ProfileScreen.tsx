@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   ScrollView,
   View,
   Text,
   TouchableOpacity,
   ActivityIndicator,
-  ActionSheetIOS,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -23,22 +21,24 @@ import {
 } from "../../auth/services/deviceToken";
 import { deviceTokenStorage } from "../../../shared/storage/deviceTokenStorage";
 import { getAuthSession } from "../../auth/services/authStorage";
-import { useProfile } from "../hooks/useProfile";
-import { UnistylesRuntime } from "react-native-unistyles";
+import { useProfileSummary } from "../hooks/useProfileSummary";
 import { useToast } from "../../../shared/components/ToastProvider";
-
 import { AppearanceModal } from "../components/AppearanceModal";
 import { LogoutConfirmationModal } from "../components/LogoutConfirmationModal";
+import { AppReviewPrompt } from "../../appReview/components/AppReviewPrompt";
+import { useSubmitAppReview } from "../../appReview/hooks/useSubmitAppReview";
 
 export function ProfileScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const { profile, isLoading } = useProfile();
+  const { summary, isLoading, error, refetch } = useProfileSummary();
   const { theme } = useUnistyles();
   const [isAppearanceModalVisible, setAppearanceModalVisible] = useState(false);
   const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isAppReviewVisible, setAppReviewVisible] = useState(false);
+  const submitAppReview = useSubmitAppReview();
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -85,6 +85,24 @@ export function ProfileScreen() {
     setAppearanceModalVisible(true);
   };
 
+  const handleSubmitAppReview = async (rating: number, comment?: string) => {
+    try {
+      await submitAppReview.mutateAsync({ rating, comment });
+      setAppReviewVisible(false);
+      showToast("Thank you for reviewing RouteBuddy.", {
+        title: "Review submitted",
+        variant: "success",
+      });
+    } catch (failure) {
+      showToast(
+        failure instanceof Error
+          ? failure.message
+          : "Unable to submit your review. Please try again.",
+        { title: "Review not submitted", variant: "error" },
+      );
+    }
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView edges={["top", "left", "right"]} style={styles.container}>
@@ -95,25 +113,28 @@ export function ProfileScreen() {
     );
   }
 
-  const nameParts = profile?.displayName
-    ? profile.displayName.split(" ")
-    : ["User", "Name"];
-  const firstName = nameParts[0] || "User";
-  const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "N";
+  if (error || !summary) {
+    return (
+      <SafeAreaView edges={["top", "left", "right"]} style={styles.container}>
+        <View style={styles.topBar}>
+          <Text style={styles.title}>Profile</Text>
+        </View>
+        <View style={styles.center}>
+          <Text style={styles.errorText}>
+            {error ?? "Profile summary is unavailable."}
+          </Text>
+          <TouchableOpacity accessibilityRole="button" onPress={() => void refetch()}>
+            <Text style={styles.retryText}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.container}>
       <View style={styles.topBar}>
         <Text style={styles.title}>Profile</Text>
-        <TouchableOpacity
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <MaterialCommunityIcons
-            name="cog-outline"
-            size={26}
-            color={theme.colors.text}
-          />
-        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -121,9 +142,9 @@ export function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         <ProfileHeader
-          firstName={firstName}
-          lastName={lastName}
-          photoUrl={profile?.photoUrl}
+          displayName={summary.displayName}
+          rating={summary.rating}
+          photoUrl={summary.photoUrl}
         />
 
         <ProfileSection title="ACCOUNT">
@@ -137,12 +158,14 @@ export function ProfileScreen() {
           <ProfileMenuItem
             iconName="account-group-outline"
             title="Community"
-            subtitle="Edit preferences"
+            subtitle="Browse and join communities"
+            onPress={() => router.push("/(modals)/community")}
           />
           <ProfileMenuItem
             iconName="map-marker-outline"
             title="Saved Addresses"
             subtitle="View your saved addresses"
+            onPress={() => router.push("/(modals)/saved-addresses")}
           />
           <ProfileMenuItem
             iconName="credit-card-outline"
@@ -171,14 +194,16 @@ export function ProfileScreen() {
             onPress={handleAppearancePress}
           />
           <ProfileMenuItem
-            iconName="bell-outline"
-            title="Notifications"
-            subtitle="Manage your preferences"
+            iconName="tune-variant"
+            title="Notification Preferences"
+            subtitle="Choose which alerts you receive"
+            onPress={() => router.push("/(modals)/notification-preferences")}
           />
           <ProfileMenuItem
-            iconName="help-circle-outline"
-            title="Help & Support"
-            subtitle="FAQs, contact support"
+            iconName="star-outline"
+            title="Review App"
+            subtitle="Rate your experience"
+            onPress={() => setAppReviewVisible(true)}
           />
           <ProfileMenuItem
             iconName="logout"
@@ -214,12 +239,20 @@ export function ProfileScreen() {
         visible={isAppearanceModalVisible}
         onClose={() => setAppearanceModalVisible(false)}
       />
-
       <LogoutConfirmationModal
         visible={isLogoutModalVisible}
         isLoggingOut={isLoggingOut}
         onCancel={() => setLogoutModalVisible(false)}
         onConfirm={handleLogout}
+      />
+
+      <AppReviewPrompt
+        visible={isAppReviewVisible}
+        isSubmitting={submitAppReview.isPending}
+        onClose={() => setAppReviewVisible(false)}
+        onSubmit={(rating, comment) =>
+          void handleSubmitAppReview(rating, comment)
+        }
       />
     </SafeAreaView>
   );
@@ -245,7 +278,18 @@ const styles = StyleSheet.create((theme) => ({
   },
   title: {
     color: theme.colors.text,
-    fontSize: 26,
+    fontSize: 24,
+    fontWeight: "700",
+  },
+  errorText: {
+    color: theme.colors.error,
+    fontSize: 14,
+    marginBottom: theme.spacing.md,
+    textAlign: "center",
+  },
+  retryText: {
+    color: theme.colors.text,
+    fontSize: 15,
     fontWeight: "700",
   },
   scrollContent: {

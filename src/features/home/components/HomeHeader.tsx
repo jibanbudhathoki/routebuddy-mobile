@@ -1,16 +1,19 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
 
 interface HomeHeaderProps {
-  location: string;
-  onLocationPress: () => void;
+  communityName: string;
+  unreadCount: number;
+  onCommunityPress: () => void;
   onNotificationsPress: () => void;
 }
 
 export function HomeHeader({
-  location,
-  onLocationPress,
+  communityName,
+  unreadCount,
+  onCommunityPress,
   onNotificationsPress,
 }: HomeHeaderProps) {
   const { theme } = useUnistyles();
@@ -22,36 +25,29 @@ export function HomeHeader({
           <Text style={styles.brand}>Route Buddy</Text>
           <Text style={styles.community}>Community</Text>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Notifications"
+        <NotificationBellButton
+          unreadCount={unreadCount}
           onPress={onNotificationsPress}
-          style={styles.notificationButton}
-        >
-          <MaterialCommunityIcons
-            name="bell-outline"
-            size={22}
-            color={theme.colors.primary}
-          />
-          <View style={styles.notificationDot} />
-        </Pressable>
+        />
       </View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Choose location, current location ${location}`}
-        onPress={onLocationPress}
+        accessibilityLabel={`Choose community, selected community ${communityName}`}
+        onPress={onCommunityPress}
         style={styles.locationButton}
       >
         <MaterialCommunityIcons
-          name="map-marker"
+          name="account-group"
           size={17}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
-        <Text style={styles.locationText}>{location}</Text>
+        <Text style={styles.locationText} numberOfLines={1}>
+          {communityName}
+        </Text>
         <MaterialCommunityIcons
           name="chevron-down"
           size={20}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
       </Pressable>
     </View>
@@ -70,7 +66,7 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "space-between",
   },
   brand: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: "800",
   },
@@ -78,23 +74,6 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.muted,
     fontSize: 10,
     marginTop: 2,
-  },
-  notificationButton: {
-    alignItems: "center",
-    height: 36,
-    justifyContent: "center",
-    width: 36,
-  },
-  notificationDot: {
-    backgroundColor: theme.colors.secondary,
-    borderColor: theme.colors.surface,
-    borderRadius: 4,
-    borderWidth: 1,
-    height: 8,
-    position: "absolute",
-    right: 4,
-    top: 4,
-    width: 8,
   },
   locationButton: {
     alignItems: "center",

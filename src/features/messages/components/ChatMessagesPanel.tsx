@@ -1,9 +1,20 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useMemo } from "react";
-import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
-import type { Message } from "../types/message.types";
+import type {
+  ChatRequestOffer,
+  ChatTripOrder,
+  Message,
+} from "../types/message.types";
+import { useChatMessageListScroll } from "../hooks/useChatMessageListScroll";
 import { ChatMessageRow } from "./ChatMessageRow";
 import { ConversationSummaryCard } from "./ConversationSummaryCard";
 
@@ -19,13 +30,30 @@ interface ChatMessagesPanelProps {
   participantName: string;
   participantAvatar: string | null;
   currentUserAvatar: string | null;
+  requestUid?: string;
+  requesterUid?: string;
+  orderDriverUid?: string;
+  requestOffers: ChatRequestOffer[];
+  tripOrder?: ChatTripOrder;
+  isAcceptingOffer: boolean;
+  isAcceptingOrder: boolean;
+  canConfirmDelivery: boolean;
+  isConfirmingDelivery: boolean;
+  deliveryConfirmed: boolean;
+  onAcceptOffer: (offerUid: string) => void;
+  onAcceptOrder: (orderUid: string) => void;
+  onConfirmDelivery: (requestUid: string) => void;
   selectedMessageIds: string[];
+  selectionMode: boolean;
   isLoading: boolean;
   isError: boolean;
   error?: Error | null;
   onRetry: () => void;
   onMessagePress: (message: Message) => void;
   onMessageLongPress: (message: Message) => void;
+  onMessageDoubleTap: (message: Message) => void;
+  onMessageSwipeReply: (message: Message) => void;
+  onInteractionAreaTouch: () => void;
 }
 
 export function ChatMessagesPanel({
@@ -36,16 +64,35 @@ export function ChatMessagesPanel({
   participantName,
   participantAvatar,
   currentUserAvatar,
+  requestUid,
+  requesterUid,
+  orderDriverUid,
+  requestOffers,
+  tripOrder,
+  isAcceptingOffer,
+  isAcceptingOrder,
+  canConfirmDelivery,
+  isConfirmingDelivery,
+  deliveryConfirmed,
+  onAcceptOffer,
+  onAcceptOrder,
+  onConfirmDelivery,
   selectedMessageIds,
+  selectionMode,
   isLoading,
   isError,
   error,
   onRetry,
   onMessagePress,
   onMessageLongPress,
+  onMessageDoubleTap,
+  onMessageSwipeReply,
+  onInteractionAreaTouch,
 }: ChatMessagesPanelProps) {
   const { theme } = useUnistyles();
   const items = useMemo(() => buildChatItems(messages), [messages]);
+  const { listRef, onScroll, onLayout, onContentSizeChange } =
+    useChatMessageListScroll<ChatListItem>();
 
   const renderItem = ({ item }: { item: ChatListItem }) => {
     if (item.kind === "date") {
@@ -60,6 +107,21 @@ export function ChatMessagesPanel({
     const replyMessage = message.replyToUid
       ? messages.find((candidate) => candidate.id === message.replyToUid)
       : undefined;
+    const requestOffer = findRequestOffer(
+      message,
+      requestUid,
+      requestOffers,
+    );
+    const matchedTripOrder =
+      message.tripOrderUid
+        ? tripOrder?.uid === message.tripOrderUid
+          ? tripOrder
+          : {
+              uid: message.tripOrderUid,
+              status: "pending",
+              driverUid: message.tripOrderDriverUid ?? "",
+            }
+        : undefined;
 
     return (
       <ChatMessageRow
@@ -70,27 +132,51 @@ export function ChatMessagesPanel({
         participantAvatar={participantAvatar}
         currentUserAvatar={currentUserAvatar}
         selected={selectedMessageIds.includes(message.id)}
+        selectionMode={selectionMode}
+        requestOffer={requestOffer}
+        tripOrder={matchedTripOrder}
+        showRequestOfferActions={Boolean(
+          currentUserUid && requesterUid && currentUserUid === requesterUid,
+        )}
+        showTripOrderActions={
+          Boolean(
+            currentUserUid &&
+              orderDriverUid &&
+              currentUserUid === orderDriverUid,
+          )
+        }
+        isAcceptingOffer={isAcceptingOffer}
+        isAcceptingOrder={isAcceptingOrder}
+        canConfirmDelivery={canConfirmDelivery}
+        isConfirmingDelivery={isConfirmingDelivery}
+        deliveryConfirmed={deliveryConfirmed}
+        onAcceptOffer={onAcceptOffer}
+        onAcceptOrder={onAcceptOrder}
+        onConfirmDelivery={onConfirmDelivery}
         onPress={() => onMessagePress(message)}
         onLongPress={() => onMessageLongPress(message)}
+        onDoubleTap={() => onMessageDoubleTap(message)}
+        onSwipeReply={() => onMessageSwipeReply(message)}
       />
     );
   };
 
   return (
     <FlatList
+      ref={listRef}
+      style={styles.messageList}
       data={items}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
       ListHeaderComponent={
         <ConversationSummaryCard
           contextTitle={contextTitle}
-          contextId={conversationId}
         />
       }
       ListEmptyComponent={
         <View style={styles.emptyState}>
           {isLoading ? (
-            <ActivityIndicator color={theme.colors.primary} />
+            <ActivityIndicator color={theme.colors.text} />
           ) : isError ? (
             <>
               <Text style={styles.emptyText}>
@@ -113,7 +199,43 @@ export function ChatMessagesPanel({
       }
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
+      onTouchStart={onInteractionAreaTouch}
+      onScroll={onScroll}
+      onLayout={onLayout}
+      onContentSizeChange={onContentSizeChange}
+      scrollEventThrottle={16}
     />
+  );
+}
+
+function findRequestOffer(
+  message: Message,
+  requestUid: string | undefined,
+  offers: ChatRequestOffer[],
+) {
+  if (offers.length === 0 || message.type !== "text") return;
+  if (
+    message.requestOffer &&
+    (!requestUid || message.requestOffer.requestUid === requestUid)
+  ) {
+    const referencedOffer = offers.find(
+      (offer) => offer.uid === message.requestOffer?.offerUid,
+    );
+    if (referencedOffer) return referencedOffer;
+  }
+
+  const messageText = message.text.trimStart().toLowerCase();
+  const isOfferNotice =
+    messageText.startsWith("delivery offer") ||
+    messageText.includes("proposed delivery by:") ||
+    messageText.includes("accept this offer");
+  if (!isOfferNotice) {
+    return;
+  }
+  return offers.find(
+    (offer) =>
+      offer.driverUid === message.senderId &&
+      offer.status.toLowerCase() === "pending",
   );
 }
 
@@ -155,6 +277,9 @@ function formatDateDivider(date: Date) {
 }
 
 const styles = StyleSheet.create((theme) => ({
+  messageList: {
+    flex: 1,
+  },
   listContent: {
     flexGrow: 1,
     paddingBottom: theme.spacing.md,
@@ -185,7 +310,7 @@ const styles = StyleSheet.create((theme) => ({
     textAlign: "center",
   },
   retryText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 13,
     fontWeight: "700",
     marginTop: theme.spacing.sm,

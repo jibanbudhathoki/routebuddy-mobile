@@ -11,7 +11,19 @@ export interface CreateTripRequest {
   deliveryLatestBy: string;
   capacity: number;
   price?: number;
-  notes: string;
+  notes: string | null;
+}
+
+export interface UpdateTripPayload {
+  originCityUid?: string;
+  destinationCityUid?: string;
+  stores?: string[];
+  departureAt?: string;
+  orderCutoffAt?: string;
+  deliveryLatestBy?: string;
+  capacity?: number;
+  price?: number;
+  notes?: string | null;
 }
 
 export interface ListMyTripsResponse {
@@ -41,7 +53,7 @@ export interface TripDetailsResponse {
   deliveryLatestBy: string;
   capacity: number;
   availableSeats: number;
-  price: string;
+  price: string | null;
   notes: string;
   status: string;
   createdAt: string;
@@ -60,6 +72,71 @@ export interface TripDetailsResponse {
   };
   origin: string;
   destination: string;
+}
+
+export interface TripOrder {
+  uid: string;
+  neededBy: string;
+  latestDeliveryBy: string;
+  status: string;
+  totalCost: string;
+  deliveryCity: string;
+  origin: string;
+  destination: string;
+  stores: string[];
+  requester: {
+    name: string;
+    photoUrl: string | null;
+  };
+  driver: {
+    name: string;
+    photoUrl: string | null;
+  } | null;
+}
+
+export interface ListTripOrdersResponse {
+  success: boolean;
+  message: string;
+  data: TripOrder[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface ToggleTripOrdersPayload {
+  closed: boolean;
+}
+
+export const TRIP_STATUSES = [
+  "shopping",
+  "delivering",
+  "delivered",
+  "completed",
+  "cancelled",
+] as const;
+
+export type TripStatus = (typeof TRIP_STATUSES)[number];
+
+export interface UpdateTripStatusPayload {
+  status: TripStatus;
+}
+
+export interface ToggleTripOrdersResponse {
+  success: boolean;
+  message: string;
+  data: TripDetailsResponse;
+}
+
+export interface UpdateTripStatusResponse {
+  success: boolean;
+  message: string;
+  data: TripDetailsResponse;
+}
+
+export interface UpdateTripResponse {
+  success: boolean;
+  message: string;
+  data: TripDetailsResponse;
 }
 
 export interface ListAllTripsResponse {

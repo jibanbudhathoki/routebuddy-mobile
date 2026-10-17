@@ -1,34 +1,42 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+
 import { cityService } from '../services/city.service';
-import type { City, GetCitiesParams } from '../types/city';
+import type { GetCitiesParams } from '../types/city';
 
-export function useCities(initialParams?: GetCitiesParams) {
-  const [cities, setCities] = useState<City[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const referenceDataStaleTime = 5 * 60 * 1000;
+const referenceDataGcTime = 30 * 60 * 1000;
 
-  const fetchCities = useCallback(async (params?: GetCitiesParams) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await cityService.getCities(params);
-      setCities(response.data || []);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to fetch cities.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+function normalizeCityParams(params?: GetCitiesParams): GetCitiesParams {
+  return {
+    provinceUid: params?.provinceUid,
+    search: params?.search,
+    page: params?.page,
+    limit: params?.limit,
+  };
+}
 
-  useEffect(() => {
-    fetchCities(initialParams);
-  }, [fetchCities, JSON.stringify(initialParams)]);
+export const cityKeys = {
+  all: ['cities'] as const,
+  list: (params?: GetCitiesParams) =>
+    [...cityKeys.all, normalizeCityParams(params)] as const,
+};
+
+export function useCities(params?: GetCitiesParams) {
+  const normalizedParams = normalizeCityParams(params);
+  const query = useQuery({
+    queryKey: cityKeys.list(normalizedParams),
+    queryFn: async () => {
+      const response = await cityService.getCities(normalizedParams);
+      return response.data || [];
+    },
+    staleTime: referenceDataStaleTime,
+    gcTime: referenceDataGcTime,
+  });
 
   return {
-    cities,
-    isLoading,
-    error,
-    refetch: fetchCities,
+    cities: query.data ?? [],
+    isLoading: query.isLoading,
+    error: query.error?.message ?? null,
+    refetch: query.refetch,
   };
 }

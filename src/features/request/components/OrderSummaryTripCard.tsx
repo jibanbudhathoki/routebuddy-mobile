@@ -119,7 +119,7 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
   },
   tripCardTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 4,

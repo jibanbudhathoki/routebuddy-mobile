@@ -114,7 +114,7 @@ export function BuildTripOrderScreen() {
       updateRequestData({
         stores: validation.data.stores,
         deliveryAddress: selectedAddress.uid,
-        deliveryCityUid: selectedAddress.city.uid,
+        deliveryCityUid: selectedAddress.cityUid,
         itemsInstructions: notes.trim(),
         dayNeeded: trip.departureAt,
         latestDeliveryTime: trip.deliveryLatestBy,
@@ -131,6 +131,19 @@ export function BuildTripOrderScreen() {
           estimatedPrice: item.estimatePrice,
         })),
         total: response.data.total,
+        itemSubtotal: response.data.itemSubtotal,
+        serviceFee: response.data.serviceFee,
+        driverFee: response.data.driverFee,
+        platformFee: response.data.platformFee,
+        tax: response.data.tax,
+        notes: response.data.notes || notes.trim(),
+        neededBy: response.data.neededBy,
+        latestDeliveryBy: response.data.latestDeliveryBy,
+        storeNames: response.data.stores.map((store) => store.name),
+        origin: response.data.trip?.origin ?? trip.origin,
+        destination: response.data.trip?.destination ?? trip.destination,
+        deliveryCity: response.data.deliveryLocation.city.name,
+        deliveryProvince: response.data.deliveryLocation.province.name,
       });
 
       if (response.data.status === "pending") {
@@ -182,7 +195,7 @@ export function BuildTripOrderScreen() {
           <MaterialCommunityIcons
             name="chevron-left"
             size={30}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Build Shopping List</Text>
@@ -294,7 +307,7 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.xs,
   },
   headerTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 20,
     fontWeight: "700",
   },

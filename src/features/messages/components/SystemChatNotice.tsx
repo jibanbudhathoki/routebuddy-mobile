@@ -14,7 +14,7 @@ export function SystemChatNotice({ message }: { message: Message }) {
           <MaterialCommunityIcons
             name="information-outline"
             size={19}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </View>
         <View style={styles.copy}>
@@ -60,7 +60,7 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
   },
   title: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "700",
     marginBottom: 3,

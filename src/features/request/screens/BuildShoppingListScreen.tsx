@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
+import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { useCities } from "../../../shared/city/hooks/useCities";
 import { useStores } from "../../../shared/store/hooks/useStores";
@@ -19,11 +20,13 @@ import { RequestItemsEditor } from "../components/RequestItemsEditor";
 import { RequestTripPreviewCard } from "../components/RequestTripPreviewCard";
 import { useRequestCreation } from "../context/RequestCreationContext";
 import type { RequestItem } from "../types/request";
+import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
 
 export function BuildShoppingListScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useUnistyles();
+  const unreadCount = useUnreadNotificationCount();
   const { requestData, updateRequestData } = useRequestCreation();
   const { stores } = useStores({ limit: 100 });
   const { cities } = useCities();
@@ -94,20 +97,14 @@ export function BuildShoppingListScreen() {
           <MaterialCommunityIcons
             name="chevron-left"
             size={32}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Build Shopping List</Text>
-        <View style={styles.headerButton}>
-          <MaterialCommunityIcons
-            name="bell-outline"
-            size={28}
-            color={theme.colors.primary}
-          />
-          <View style={styles.notificationBadge}>
-            <Text style={styles.notificationText}>3</Text>
-          </View>
-        </View>
+        <NotificationBellButton
+          unreadCount={unreadCount}
+          onPress={() => router.push("/notifications")}
+        />
       </View>
 
       <ScrollView
@@ -169,25 +166,7 @@ const styles = StyleSheet.create((theme) => ({
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: theme.colors.primary,
-  },
-  notificationBadge: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    backgroundColor: theme.colors.primary,
-    borderRadius: 10,
-    width: 18,
-    height: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: theme.colors.surface,
-  },
-  notificationText: {
-    color: theme.colors.onPrimary,
-    fontSize: 10,
-    fontWeight: "bold",
+    color: theme.colors.text,
   },
   scrollContent: {
     paddingHorizontal: theme.spacing.md,

@@ -49,7 +49,7 @@ export function HomeRequestCard({ request }: HomeRequestCardProps) {
             <MaterialCommunityIcons
               name="checkbox-blank-circle"
               size={9}
-              color={theme.colors.primary}
+              color={theme.colors.text}
             />
             <Text style={styles.statusText}>
               {request.status.replace(/[_-]+/g, " ")}
@@ -65,7 +65,7 @@ export function HomeRequestCard({ request }: HomeRequestCardProps) {
         <MaterialCommunityIcons
           name="arrow-right"
           size={16}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
         <Text style={styles.route} numberOfLines={1}>
           {request.destination}
@@ -110,7 +110,7 @@ export function HomeRequestCard({ request }: HomeRequestCardProps) {
               <MaterialCommunityIcons
                 name="storefront-outline"
                 size={17}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
               <Text style={styles.storeName} numberOfLines={2}>
                 {store}
@@ -181,7 +181,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 38,
   },
   avatarInitials: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     fontWeight: "700",
   },
@@ -201,7 +201,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   statusText: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
     textTransform: "capitalize",
   },
   routeRow: {
@@ -230,7 +230,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   scheduleText: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   storeRow: {
     flexDirection: "row",
@@ -242,14 +242,14 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     backgroundColor: theme.colors.background,
     borderRadius: 6,
-    height: 46,
+    height: 50,
     justifyContent: "center",
     paddingHorizontal: theme.spacing.xs,
-    width: 46,
+    width: 50,
   },
   storeName: {
     color: theme.colors.text,
-    fontSize: 6,
+    fontSize: 9,
     fontWeight: "700",
     marginTop: 2,
     textAlign: "center",
@@ -258,7 +258,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.primarySoft,
   },
   moreStoresText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 10,
     fontWeight: "700",
   },
@@ -269,7 +269,7 @@ const styles = StyleSheet.create((theme) => ({
     marginTop: theme.spacing.sm,
   },
   totalCost: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     flex: 1,
     fontSize: 13,
     fontWeight: "800",
@@ -278,7 +278,7 @@ const styles = StyleSheet.create((theme) => ({
   detailsButton: {
     alignItems: "center",
     backgroundColor: theme.colors.primary,
-    borderRadius: 6,
+    borderRadius: theme.radius.sm,
     flexDirection: "row",
     gap: theme.spacing.xs,
     justifyContent: "center",
@@ -287,7 +287,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   detailsText: {
     color: theme.colors.onPrimary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "700",
   },
 }));

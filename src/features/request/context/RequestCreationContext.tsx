@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useState,
+  ReactNode,
+} from "react";
 import type { CreateRequestPayload, RequestItem } from "../types/request";
 
 interface RequestCreationContextType {
@@ -15,6 +21,19 @@ export interface TripOrderConversationData {
   driverUid: string;
   items: RequestItem[];
   total: string;
+  itemSubtotal: string;
+  serviceFee: string;
+  driverFee: string;
+  platformFee: string;
+  tax: string;
+  notes: string;
+  neededBy: string;
+  latestDeliveryBy: string;
+  storeNames: string[];
+  origin: string;
+  destination: string;
+  deliveryCity: string;
+  deliveryProvince: string;
 }
 
 const RequestCreationContext = createContext<RequestCreationContextType | undefined>(
@@ -38,7 +57,7 @@ export function RequestCreationProvider({ children }: { children: ReactNode }) {
     setRequestData((prev) => ({ ...prev, ...newData }));
   };
 
-  const resetRequestData = () => {
+  const resetRequestData = useCallback(() => {
     setTripOrderConversation(null);
     setRequestData({
       stores: [],
@@ -49,7 +68,7 @@ export function RequestCreationProvider({ children }: { children: ReactNode }) {
       latestDeliveryTime: "",
       items: [],
     });
-  };
+  }, []);
 
   return (
     <RequestCreationContext.Provider

@@ -1,12 +1,14 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   Pressable,
-  ScrollView,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { useState } from "react";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { HomeFiltersModal } from "./HomeFiltersModal";
+import type { HomeFilterOption } from "../types/homeFilters";
 
 export type BrowseMode = "trips" | "requests";
 
@@ -16,13 +18,13 @@ interface HomeBrowseControlsProps {
   locationFilter: string;
   dateFilter: string;
   storeFilter: string;
-  showMoreFilters: boolean;
   onModeChange: (mode: BrowseMode) => void;
   onSearchChange: (search: string) => void;
-  onLocationFilterPress: () => void;
-  onDateFilterPress: () => void;
-  onStoreFilterPress: () => void;
-  onToggleMoreFilters: () => void;
+  locationOptions: HomeFilterOption[];
+  storeOptions: HomeFilterOption[];
+  onLocationFilterChange: (value: string) => void;
+  onDateFilterChange: (value: string) => void;
+  onStoreFilterChange: (value: string) => void;
 }
 
 export function HomeBrowseControls({
@@ -31,15 +33,16 @@ export function HomeBrowseControls({
   locationFilter,
   dateFilter,
   storeFilter,
-  showMoreFilters,
+  locationOptions,
+  storeOptions,
   onModeChange,
   onSearchChange,
-  onLocationFilterPress,
-  onDateFilterPress,
-  onStoreFilterPress,
-  onToggleMoreFilters,
+  onLocationFilterChange,
+  onDateFilterChange,
+  onStoreFilterChange,
 }: HomeBrowseControlsProps) {
   const { theme } = useUnistyles();
+  const [filtersVisible, setFiltersVisible] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -103,7 +106,8 @@ export function HomeBrowseControls({
         </View>
         <Pressable
           accessibilityRole="button"
-          onPress={onToggleMoreFilters}
+          accessibilityLabel="Open filters"
+          onPress={() => setFiltersVisible(true)}
           style={styles.filterButton}
         >
           <MaterialCommunityIcons
@@ -115,77 +119,23 @@ export function HomeBrowseControls({
         </Pressable>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filters}
-      >
-        <FilterChip
-          icon="map-marker"
-          label={locationFilter}
-          onPress={onLocationFilterPress}
-        />
-        <FilterChip
-          icon="calendar-blank-outline"
-          label={dateFilter}
-          onPress={onDateFilterPress}
-        />
-        <FilterChip
-          icon="store-outline"
-          label={storeFilter}
-          onPress={onStoreFilterPress}
-        />
-      </ScrollView>
-
-      {showMoreFilters && (
-        <View style={styles.moreFilters}>
-          <Text style={styles.moreFiltersText}>
-            {mode === "trips"
-              ? "Showing trips with available spots"
-              : "Showing open requests"}
-          </Text>
-          <MaterialCommunityIcons
-            name="check-circle"
-            size={16}
-            color={theme.colors.primary}
-          />
-        </View>
-      )}
+      <HomeFiltersModal
+        visible={filtersVisible}
+        locationOptions={locationOptions}
+        storeOptions={storeOptions}
+        values={{
+          location: locationFilter,
+          date: dateFilter,
+          store: storeFilter,
+        }}
+        onApply={(values) => {
+          onLocationFilterChange(values.location);
+          onDateFilterChange(values.date);
+          onStoreFilterChange(values.store);
+        }}
+        onClose={() => setFiltersVisible(false)}
+      />
     </View>
-  );
-}
-
-function FilterChip({
-  icon,
-  label,
-  onPress,
-}: {
-  icon: keyof typeof MaterialCommunityIcons.glyphMap;
-  label: string;
-  onPress: () => void;
-}) {
-  const { theme } = useUnistyles();
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={styles.filterChip}
-    >
-      <MaterialCommunityIcons
-        name={icon}
-        size={14}
-        color={theme.colors.primary}
-      />
-      <Text style={styles.filterChipText} numberOfLines={1}>
-        {label}
-      </Text>
-      <MaterialCommunityIcons
-        name="chevron-down"
-        size={16}
-        color={theme.colors.text}
-      />
-    </Pressable>
   );
 }
 
@@ -212,7 +162,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   tabText: {
     color: theme.colors.muted,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "500",
   },
   selectedTabText: {
@@ -237,7 +187,7 @@ const styles = StyleSheet.create((theme) => ({
   input: {
     color: theme.colors.text,
     flex: 1,
-    fontSize: 10,
+    fontSize: 13,
     paddingVertical: 0,
   },
   filterButton: {
@@ -248,40 +198,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   filterButtonText: {
     color: theme.colors.text,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "600",
-  },
-  filters: {
-    gap: theme.spacing.xs,
-    paddingTop: theme.spacing.sm,
-  },
-  filterChip: {
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: theme.spacing.xs,
-    height: 32,
-    maxWidth: 136,
-    paddingHorizontal: theme.spacing.sm,
-  },
-  filterChipText: {
-    color: theme.colors.text,
-    fontSize: 10,
-    fontWeight: "500",
-    flexShrink: 1,
-  },
-  moreFilters: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: theme.spacing.xs,
-    justifyContent: "flex-end",
-    paddingTop: theme.spacing.xs,
-  },
-  moreFiltersText: {
-    color: theme.colors.muted,
-    fontSize: 10,
   },
 }));

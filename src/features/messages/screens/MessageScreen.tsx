@@ -16,18 +16,19 @@ import { MessageDialog, type MessageDialogAction } from "../components/MessageDi
 import {
   useDeleteConversation,
   useListMessages,
-  useMarkConversationAsRead,
 } from "../hooks/useMessages";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
+import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
+import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
 
 export function MessageScreen() {
   const { theme } = useUnistyles();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const unreadCount = useUnreadNotificationCount();
 
   const { data: conversations, isLoading, isError, error, refetch } =
     useListMessages();
-  const markAsRead = useMarkConversationAsRead();
   const deleteConversation = useDeleteConversation();
   const [dialog, setDialog] = useState<{
     title: string;
@@ -63,7 +64,7 @@ export function MessageScreen() {
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.text} />
         </View>
       );
     }
@@ -79,7 +80,7 @@ export function MessageScreen() {
               : "Failed to load conversations"}
           </Text>
           <TouchableOpacity accessibilityRole="button" onPress={() => refetch()}>
-            <Text style={{ color: theme.colors.primary, marginTop: theme.spacing.sm }}>
+            <Text style={{ color: theme.colors.text, marginTop: theme.spacing.sm }}>
               Try again
             </Text>
           </TouchableOpacity>
@@ -116,14 +117,13 @@ export function MessageScreen() {
             messagePreview={item.latestMsg || "No messages yet"}
             timestamp={formatInboxTime(item.timestamp)}
             unreadCount={item.unreadCount}
-            onPress={() => router.push(`/chat/${item.msgId}`)}
-            onMarkRead={() =>
-              markAsRead.mutate(item.msgId, {
-                onError: (error) => setDialog({
-                  title: "Unable to mark as read",
-                  message: error instanceof Error ? error.message : "Please try again.",
-                  actions: [{ label: "OK", onPress: () => {} }],
-                }),
+            onPress={() =>
+              router.push({
+                pathname: "/chat/[id]",
+                params: {
+                  id: item.msgId,
+                  ...(item.requestId ? { requestUid: item.requestId } : {}),
+                },
               })
             }
             onDelete={() => handleDeleteConversation(item.msgId)}
@@ -139,16 +139,10 @@ export function MessageScreen() {
     <View style={[styles.container, { paddingTop: getTopSafeAreaInset(insets.top) }]}>
       <View style={styles.header}>
         <Text style={styles.title}>Messages</Text>
-        <TouchableOpacity style={styles.notificationBtn}>
-          <MaterialCommunityIcons
-            name="bell-outline"
-            size={28}
-            color={theme.colors.primary}
-          />
-          <View style={styles.badgeContainer}>
-            <Text style={styles.badgeText}>3</Text>
-          </View>
-        </TouchableOpacity>
+        <NotificationBellButton
+          unreadCount={unreadCount}
+          onPress={() => router.push("/notifications")}
+        />
       </View>
 
       <View style={styles.searchContainer}>
@@ -165,13 +159,6 @@ export function MessageScreen() {
             }
           />
         </View>
-        <TouchableOpacity style={styles.filterBtn}>
-          <MaterialCommunityIcons
-            name="tune-variant"
-            size={24}
-            color={theme.colors.primary}
-          />
-        </TouchableOpacity>
       </View>
 
       {renderContent()}
@@ -199,7 +186,7 @@ function formatInboxTime(value?: string) {
 const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.background,
   },
   header: {
     flexDirection: "row",
@@ -210,32 +197,9 @@ const styles = StyleSheet.create((theme) => ({
     paddingBottom: theme.spacing.sm,
   },
   title: {
-    fontSize: 32,
-    fontWeight: "800",
+    fontSize: 24,
+    fontWeight: "700",
     color: theme.colors.text,
-  },
-  notificationBtn: {
-    position: "relative",
-    padding: theme.spacing.xs,
-  },
-  badgeContainer: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    backgroundColor: theme.colors.error,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 4,
-    borderWidth: 2,
-    borderColor: theme.colors.surface,
-  },
-  badgeText: {
-    color: theme.colors.onPrimary,
-    fontSize: 10,
-    fontWeight: "bold",
   },
   searchContainer: {
     flexDirection: "row",
@@ -246,16 +210,6 @@ const styles = StyleSheet.create((theme) => ({
   searchBarWrapper: {
     flex: 1,
     marginRight: theme.spacing.sm,
-  },
-  filterBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: theme.colors.surface,
   },
   listContent: {
     paddingHorizontal: theme.spacing.lg,

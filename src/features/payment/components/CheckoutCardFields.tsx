@@ -91,7 +91,7 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: theme.spacing.md,
   },
   fieldLabel: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 12,
     marginBottom: 8,
   },

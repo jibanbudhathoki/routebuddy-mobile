@@ -152,7 +152,7 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.primary,
     borderRadius: 4,
     color: theme.colors.onPrimary,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "700",
     overflow: "hidden",
     paddingHorizontal: 6,
@@ -176,7 +176,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   departureText: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   metaDivider: {
     backgroundColor: theme.colors.border,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   mutedLabel: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   earningsValue: {
     color: theme.colors.text,
@@ -250,13 +250,13 @@ const styles = StyleSheet.create((theme) => ({
   },
   timelineLabel: {
     color: theme.colors.text,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "600",
     marginTop: theme.spacing.xs,
   },
   timelineTime: {
     color: theme.colors.muted,
-    fontSize: 8,
+    fontSize: 11,
     marginBottom: theme.spacing.sm,
     marginTop: 2,
   },

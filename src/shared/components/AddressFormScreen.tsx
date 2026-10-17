@@ -1,7 +1,4 @@
-import React, { useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -11,80 +8,30 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
-import { useCities } from "../city/hooks/useCities";
-import { City } from "../city/types/city";
 import { getTopSafeAreaInset } from "../utils/safeArea";
-import { AddressCitySelectionModal } from "./AddressCitySelectionModal";
+import { AddressLocationSelectionModal } from "./AddressLocationSelectionModal";
 import { AddressFormFields } from "./AddressFormFields";
 import { PrimaryButton } from "./PrimaryButton";
+import { useAddressForm } from "../address/hooks/useAddressForm";
+import type { AddressFormData } from "../address/types/addressForm";
 
-export interface AddressFormData {
-  label: string;
-  fullName: string;
-  address: string;
-  aptSuiteUnit: string;
-  cityName: string;
-  cityUid: string;
-  provinceUid: string;
-  postalCode: string;
-  notes: string;
-}
+export type { AddressFormData } from "../address/types/addressForm";
 
 interface AddressFormScreenProps {
   onSave: (data: AddressFormData) => void;
   isLoading?: boolean;
-}
-
-const EMPTY_ADDRESS: AddressFormData = {
-  label: "",
-  fullName: "",
-  address: "",
-  aptSuiteUnit: "",
-  cityName: "",
-  cityUid: "",
-  provinceUid: "",
-  postalCode: "",
-  notes: "",
-};
-
-function useAddressForm() {
-  const [formData, setFormData] = useState<AddressFormData>(EMPTY_ADDRESS);
-  const [isCityModalVisible, setCityModalVisible] = useState(false);
-  const { cities, isLoading: isLoadingCities } = useCities();
-
-  const updateField = (field: keyof AddressFormData, value: string) => {
-    setFormData((previous) => ({ ...previous, [field]: value }));
-  };
-
-  const selectCity = (city: City) => {
-    setFormData((previous) => ({
-      ...previous,
-      cityName: city.name,
-      cityUid: city.uid,
-      provinceUid:
-        typeof city.province === "object" ? city.province?.uid || "" : "",
-    }));
-    setCityModalVisible(false);
-  };
-
-  return {
-    formData,
-    updateField,
-    cities,
-    isLoadingCities,
-    isCityModalVisible,
-    openCityModal: () => setCityModalVisible(true),
-    closeCityModal: () => setCityModalVisible(false),
-    selectCity,
-  };
+  initialData?: AddressFormData;
+  title?: string;
 }
 
 function AddressFormHeader({
   topInset,
   onClose,
+  title,
 }: {
   topInset: number;
   onClose: () => void;
+  title: string;
 }) {
   const { theme } = useUnistyles();
 
@@ -97,7 +44,7 @@ function AddressFormHeader({
           color={theme.colors.text}
         />
       </TouchableOpacity>
-      <Text style={styles.headerTitle}>Add New Address</Text>
+      <Text style={styles.headerTitle}>{title}</Text>
       <TouchableOpacity style={styles.headerButton} onPress={onClose}>
         <MaterialCommunityIcons
           name="close"
@@ -127,19 +74,31 @@ function AddressFormFooter({
   bottomInset,
   isLoading,
   onSave,
+  buttonTitle,
 }: {
   formData: AddressFormData;
   bottomInset: number;
   isLoading: boolean;
   onSave: () => void;
+  buttonTitle: string;
 }) {
   const { theme } = useUnistyles();
   const isSaveDisabled =
-    !formData.label ||
-    !formData.fullName ||
-    !formData.address ||
-    !formData.postalCode ||
+    !formData.label.trim() ||
+    !formData.fullName.trim() ||
+    !formData.address.trim() ||
+    !formData.postalCode.trim() ||
     !formData.cityUid ||
+    !formData.provinceUid ||
+    !formData.countryUid ||
+    formData.label.trim().length > 50 ||
+    formData.fullName.trim().length > 100 ||
+    formData.address.trim().length > 200 ||
+    formData.aptSuiteUnit.trim().length > 100 ||
+    formData.postalCode.trim().length < 3 ||
+    formData.postalCode.trim().length > 20 ||
+    formData.phone.trim().length > 20 ||
+    formData.notes.trim().length > 150 ||
     isLoading;
 
   return (
@@ -150,7 +109,7 @@ function AddressFormFooter({
       ]}
     >
       <PrimaryButton
-        title="Save Address"
+        title={buttonTitle}
         onPress={onSave}
         disabled={isSaveDisabled}
         loading={isLoading}
@@ -162,6 +121,8 @@ function AddressFormFooter({
 export function AddressFormScreen({
   onSave,
   isLoading = false,
+  initialData,
+  title = "Add New Address",
 }: AddressFormScreenProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -169,21 +130,23 @@ export function AddressFormScreen({
     formData,
     updateField,
     cities,
+    countries,
+    provinces,
+    selectionType,
+    setSelectionType,
+    isLoadingCountries,
+    isLoadingProvinces,
     isLoadingCities,
-    isCityModalVisible,
-    openCityModal,
-    closeCityModal,
-    selectCity,
-  } = useAddressForm();
+    isLoadingOptions,
+    selectLocation,
+  } = useAddressForm(initialData);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <View style={styles.container}>
       <AddressFormHeader
         topInset={insets.top}
         onClose={() => router.back()}
+        title={title}
       />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -193,7 +156,19 @@ export function AddressFormScreen({
         <AddressFormFields
           formData={formData}
           updateField={updateField}
-          onOpenCityPicker={openCityModal}
+          onSelectCountry={() =>
+            !isLoadingCountries && setSelectionType("country")
+          }
+          onSelectProvince={() =>
+            formData.countryUid &&
+            !isLoadingProvinces &&
+            setSelectionType("province")
+          }
+          onSelectCity={() =>
+            formData.provinceUid &&
+            !isLoadingCities &&
+            setSelectionType("city")
+          }
         />
       </ScrollView>
       <AddressFormFooter
@@ -201,16 +176,30 @@ export function AddressFormScreen({
         bottomInset={insets.bottom}
         isLoading={isLoading}
         onSave={() => onSave(formData)}
+        buttonTitle={initialData ? "Update Address" : "Save Address"}
       />
-      <AddressCitySelectionModal
-        visible={isCityModalVisible}
+      <AddressLocationSelectionModal
+        visible={selectionType !== null}
         topInset={insets.top}
-        cities={cities}
-        isLoading={isLoadingCities}
-        onClose={closeCityModal}
-        onSelect={selectCity}
+        title={
+          selectionType === "country"
+            ? "Select Country"
+            : selectionType === "province"
+              ? "Select Province"
+              : "Select City"
+        }
+        options={
+          selectionType === "country"
+            ? countries
+            : selectionType === "province"
+              ? provinces
+              : cities
+        }
+        isLoading={isLoadingOptions}
+        onClose={() => setSelectionType(null)}
+        onSelect={selectLocation}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

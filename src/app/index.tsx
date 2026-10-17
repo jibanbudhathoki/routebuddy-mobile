@@ -3,8 +3,10 @@ import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { getAuthSession } from '../features/auth/services/authStorage';
 import { getRefreshToken } from '../features/auth/services/authStorage';
+import { useUnistyles } from 'react-native-unistyles';
 
 export default function Index() {
+  const { theme } = useUnistyles();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -42,8 +44,8 @@ export default function Index() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF' }}>
-        <ActivityIndicator size="large" color="#0B2447" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background }}>
+        <ActivityIndicator size="large" color={theme.colors.text} />
       </View>
     );
   }

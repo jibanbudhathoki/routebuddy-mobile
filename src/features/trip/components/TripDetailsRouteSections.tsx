@@ -86,7 +86,7 @@ function RouteStop({ label, location }: { label: string; location: string }) {
       <MaterialCommunityIcons
         name="map-marker"
         size={17}
-        color={theme.colors.primary}
+        color={theme.colors.text}
       />
       <View>
         <Text style={styles.stopLabel}>{label}</Text>
@@ -96,13 +96,17 @@ function RouteStop({ label, location }: { label: string; location: string }) {
   );
 }
 
-function getInitials(name: string) {
-  return name
+function getInitials(name: string | null | undefined) {
+  const safeName = typeof name === "string" ? name.trim() : "";
+  const initials = safeName
     .split(/\s+/)
+    .filter(Boolean)
     .map((part) => part[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
+
+  return initials || "?";
 }
 
 const styles = StyleSheet.create((theme) => ({
@@ -111,7 +115,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   sectionTitle: {
     color: theme.colors.text,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "700",
   },
   card: {
@@ -152,12 +156,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   storeName: {
     color: theme.colors.text,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "600",
   },
   storeItems: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   routeCard: {
     alignItems: "center",
@@ -176,12 +180,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   stopLabel: {
     color: theme.colors.text,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "600",
   },
   stopLocation: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 12,
     marginTop: 2,
   },
   mapButton: {
@@ -196,7 +200,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   mapButtonText: {
     color: theme.colors.text,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "500",
   },
 }));

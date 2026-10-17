@@ -1,21 +1,26 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Share, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { AppScreen } from "../../../shared/components/AppScreen";
+import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
 import { useToast } from "../../../shared/components/ToastProvider";
 import { MarketplaceTripDetailsActions } from "../components/MarketplaceTripDetailsActions";
 import { MarketplaceTripDetailsHeader } from "../components/MarketplaceTripDetailsHeader";
 import { MarketplaceTripInformation } from "../components/MarketplaceTripInformation";
 import { MarketplaceTripOverview } from "../components/MarketplaceTripOverview";
 import { MarketplaceTripRouteCard } from "../components/MarketplaceTripRouteCard";
+import { useCreateConversation } from "../../messages/hooks/useMessages";
 import { useTripDetails } from "../hooks/useTripDetails";
+import { createSharedDetailLink } from "../../../shared/utils/sharedDetailLink";
 
 export function MarketplaceTripDetailsScreen() {
   const router = useRouter();
   const { uid } = useLocalSearchParams<{ uid?: string }>();
   const { theme } = useUnistyles();
   const { showToast } = useToast();
+  const unreadCount = useUnreadNotificationCount();
+  const createConversation = useCreateConversation();
   const tripUid = typeof uid === "string" ? uid : "";
   const { data: trip, error, isLoading, refetch } = useTripDetails(tripUid);
 
@@ -23,10 +28,10 @@ export function MarketplaceTripDetailsScreen() {
     <AppScreen>
       <View style={styles.screen}>
         <MarketplaceTripDetailsHeader
+          unreadCount={unreadCount}
           onBack={() => router.back()}
-          onNotificationsPress={() =>
-            showToast("Notifications are not available yet.")
-          }
+          onNotificationsPress={() => router.push("/notifications")}
+          onSharePress={() => void shareTrip()}
         />
         <ScrollView
           contentContainerStyle={styles.content}
@@ -61,14 +66,58 @@ export function MarketplaceTripDetailsScreen() {
                 params: { tripUid: trip.uid },
               })
             }
-            onMessageDriver={() =>
-              showToast("Driver messaging is not available yet.")
-            }
+            onMessageDriver={() => void handleMessageDriver()}
+            isMessagingDriver={createConversation.isPending}
           />
         ) : null}
       </View>
     </AppScreen>
   );
+
+  async function handleMessageDriver() {
+    if (createConversation.isPending) {
+      return;
+    }
+    if (!trip?.driver.uid) {
+      showToast("Driver details are unavailable for this trip.");
+      return;
+    }
+
+    try {
+      const conversation = await createConversation.mutateAsync({
+        tripId: trip.uid,
+        userId: trip.driver.uid,
+      });
+      router.push({
+        pathname: "/chat/[id]",
+        params: {
+          id: conversation.id,
+          recipientName: trip.driver.name,
+        },
+      });
+    } catch (failure) {
+      showToast(
+        failure instanceof Error
+          ? failure.message
+          : "Unable to start a conversation with the driver.",
+      );
+    }
+  }
+
+  async function shareTrip() {
+    if (!trip) return;
+    try {
+      const link = createSharedDetailLink("trip", trip.uid);
+      await Share.share({
+        message: `Trip: ${trip.origin} to ${trip.destination}, departing ${new Date(trip.departureAt).toLocaleString()}.\n${link}`,
+        url: link,
+      });
+    } catch (failure) {
+      showToast(
+        failure instanceof Error ? failure.message : "Unable to share this trip.",
+      );
+    }
+  }
 }
 
 function TripDetailsState({

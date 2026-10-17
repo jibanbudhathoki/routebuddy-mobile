@@ -50,7 +50,7 @@ export function OrderSummaryItemsList({
               <MaterialCommunityIcons
                 name="trash-can-outline"
                 size={22}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
             </TouchableOpacity>
           </View>
@@ -65,7 +65,7 @@ export function OrderSummaryItemsList({
         <MaterialCommunityIcons
           name="plus-circle-outline"
           size={20}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
         <Text style={styles.addAnotherText}>Add another item</Text>
       </TouchableOpacity>
@@ -99,7 +99,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 32,
   },
   itemNumberText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "bold",
   },
@@ -108,7 +108,7 @@ const styles = StyleSheet.create((theme) => ({
     marginRight: theme.spacing.sm,
   },
   itemName: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 2,
@@ -126,7 +126,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 60,
   },
   priceSymbol: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "bold",
     marginRight: 4,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: theme.spacing.md,
   },
   addAnotherText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "bold",
     marginLeft: theme.spacing.sm,

@@ -14,6 +14,11 @@ import {
   SendMessageData,
 } from "../types/message.types";
 import { apiEndpoints } from "../../../constant/url";
+import { getAuthSession } from "../../auth/services/authStorage";
+import { formatMessagePreview } from "../utils/messagePreview";
+import { parseRequestOfferMessage } from "../utils/requestOfferMessage";
+import { resolveAvatarUrl } from "../utils/resolveAvatarUrl";
+import { getConversationParticipantAvatar } from "../utils/conversationAvatar";
 
 export const messageService = {
   listMessages: async (): Promise<InboxMessage[]> => {
@@ -26,23 +31,80 @@ export const messageService = {
     if (!Array.isArray(response.data)) {
       throw new Error("The messages response did not include a conversation list.");
     }
-    return response.data.map((item) => {
+    const session = await getAuthSession();
+    const conversations = response.data.map((item) => {
       const msgId = item.msgId ?? item.uid;
       if (!msgId) {
         throw new Error("A conversation in the response did not include an ID.");
       }
+      const latestMsg = item.latestMsg ?? item.lastMessage?.content ?? "";
+      const latestMsgType = item.latestMsgType ?? item.lastMessage?.type;
+      const latestMsgSenderUid =
+        item.latestMsgSenderUid ??
+        item.lastMessage?.senderUid ??
+        item.lastMessage?.senderId;
+      const latestMsgIsOwn = Boolean(
+        session?.user.id && latestMsgSenderUid === session.user.id,
+      );
       return {
         msgId,
         recipientName: item.recipientName ?? "Conversation",
-        latestMsg: item.latestMsg ?? item.lastMessage?.content ?? "",
+        latestMsg: formatMessagePreview(
+          latestMsg,
+          latestMsgType,
+          latestMsgIsOwn,
+        ),
+        latestMsgIsOwn,
         contextType:
           item.contextType ??
           (item.requestId ? "request" : item.tripId ? "trip" : "direct"),
-        avatarUrl: item.avatarUrl ?? null,
+        avatarUrl: resolveAvatarUrl(item.avatarUrl ?? item.recipientImage),
         timestamp: item.timestamp ?? item.lastMessage?.createdAt ?? item.createdAt,
-        unreadCount: item.unreadCount ?? 0,
+        unreadCount:
+          item.unreadCount ??
+          item.unreadMessagesCount ??
+          item.unreadMessageCount ??
+          item.unreadMessages ??
+          0,
+        requestId: item.requestId ?? item.requestUid ?? null,
+        tripId: item.tripId ?? null,
       };
     });
+
+    const conversationsMissingAvatars = conversations.filter(
+      (conversation) => !conversation.avatarUrl,
+    );
+    const avatarResults = await Promise.allSettled(
+      conversationsMissingAvatars.map(async (conversation) => ({
+        conversationId: conversation.msgId,
+        avatarUrl: await getConversationParticipantAvatar(
+          session?.user.id ?? "",
+          () => messageService.getConversationMessages(conversation.msgId),
+        ),
+      })),
+    );
+    const avatarByConversationId = new Map<string, string>();
+    avatarResults.forEach((result, index) => {
+      if (result.status === "fulfilled" && result.value.avatarUrl) {
+        avatarByConversationId.set(
+          result.value.conversationId,
+          result.value.avatarUrl,
+        );
+      } else if (result.status === "rejected") {
+        console.warn(
+          `Unable to load participant photo for conversation ${conversationsMissingAvatars[index]?.msgId}.`,
+          result.reason,
+        );
+      }
+    });
+
+    return conversations.map((conversation) => ({
+      ...conversation,
+      avatarUrl:
+        conversation.avatarUrl ??
+        avatarByConversationId.get(conversation.msgId) ??
+        null,
+    }));
   },
 
   createConversation: async (
@@ -121,17 +183,6 @@ export const messageService = {
       );
   },
 
-  markConversationAsRead: async (conversationId: string): Promise<void> => {
-    const response = await apiRequest<MessageActionResponse>(
-      apiEndpoints.messages.markAsRead.replace(
-        ":id",
-        encodeURIComponent(conversationId),
-      ),
-      { method: "POST" },
-    );
-    assertActionSuccess(response, "Failed to mark conversation as read.");
-  },
-
   deleteConversation: async (conversationId: string): Promise<void> => {
     const response = await apiRequest<MessageActionResponse>(
       apiEndpoints.messages.deleteConversation.replace(
@@ -184,22 +235,52 @@ function normalizeMessage(
     throw new Error("The message response did not include a message ID.");
   }
 
+  const parsedOfferMessage = parseRequestOfferMessage(
+    message.text ?? message.content ?? "",
+  );
+
   return {
     id,
     conversationUid:
       message.conversationUid ?? message.conversationId ?? conversationUid,
     senderId: message.senderId ?? message.senderUid ?? null,
-    text: message.text ?? message.content ?? "",
+    text: parsedOfferMessage.visibleMessage,
+    requestOffer: parsedOfferMessage.requestOffer,
+    tripOrderUid: parsedOfferMessage.tripOrderUid,
+    tripOrderDriverUid: parsedOfferMessage.tripOrderDriverUid,
+    deliveryProof: parsedOfferMessage.deliveryProof,
     createdAt: message.createdAt,
     type: message.type,
-    mediaUrl: message.mediaUrl ?? null,
+    mediaUrl: resolveMessageMediaUrl(
+      message.type,
+      message.mediaUrl ?? message.content ?? message.text,
+    ),
     replyToUid: message.replyToUid ?? null,
     reactions: message.reactions ?? null,
-    readBy: message.readBy ?? [],
     deletedAt: message.deletedAt ?? null,
     updatedAt: message.updatedAt,
     sender: message.sender ?? null,
   };
+}
+
+function resolveMessageMediaUrl(
+  type: Message["type"],
+  value: string | undefined,
+) {
+  if ((type !== "image" && type !== "voice") || !value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+
+  const baseUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/+$/, "");
+  if (!baseUrl) return null;
+  const path = value.startsWith("/") ? value : `/${value}`;
+  if (/^\/(?:v\d+\/)?media\//i.test(path)) {
+    return `${baseUrl.replace(/\/v\d+\/?$/i, "")}${path}`;
+  }
+  const key = value
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `${baseUrl.replace(/\/v\d+\/?$/i, "")}/v1/media/${key}`;
 }
 
 function assertActionSuccess(

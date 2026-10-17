@@ -1,8 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRef, useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -46,37 +44,35 @@ export function VerifyResetCodeScreen({
 
   return (
     <AppScreen>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      <ScrollView
         style={styles.screen}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+        <Pressable
+          accessibilityLabel="Back"
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={onBack}
+          style={styles.backButton}
         >
-          <Pressable
-            accessibilityLabel="Back"
-            accessibilityRole="button"
-            hitSlop={12}
-            onPress={onBack}
-            style={styles.backButton}
-          >
+          <MaterialCommunityIcons
+            name="arrow-left"
+            size={26}
+            color={styles.icon.color}
+          />
+        </Pressable>
+
+        <View style={styles.card}>
+          <View style={styles.emailIconCircle}>
             <MaterialCommunityIcons
-              name="arrow-left"
-              size={26}
+              name="email-outline"
+              size={38}
               color={styles.icon.color}
             />
-          </Pressable>
+          </View>
 
-          <View style={styles.card}>
-            <View style={styles.emailIconCircle}>
-              <MaterialCommunityIcons
-                name="email-outline"
-                size={38}
-                color={styles.icon.color}
-              />
-            </View>
 
             <Text style={styles.title}>Verify your email</Text>
             <Text style={styles.description}>
@@ -201,8 +197,7 @@ export function VerifyResetCodeScreen({
               style={styles.verifyButton}
             />
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </ScrollView>
     </AppScreen>
   );
 }

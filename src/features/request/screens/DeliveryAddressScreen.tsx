@@ -10,6 +10,7 @@ import { useAddresses } from "../../../shared/address/hooks/useAddresses";
 import { Address } from "../../../shared/address/types/address";
 import { ActivityIndicator } from "react-native";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
+import { useToast } from "../../../shared/components/ToastProvider";
 
 const getAddressIcon = (label: string) => {
   const lowercaseLabel = label.toLowerCase();
@@ -23,6 +24,7 @@ export function DeliveryAddressScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme } = useUnistyles();
+  const { showToast } = useToast();
 
   const { requestData, updateRequestData } = useRequestCreation();
   const { addresses, isLoading } = useAddresses();
@@ -72,13 +74,22 @@ export function DeliveryAddressScreen() {
         {isLoading ? (
           <ActivityIndicator
             size="large"
-            color={theme.colors.primary}
+            color={theme.colors.text}
             style={{ marginVertical: theme.spacing.xl }}
           />
         ) : (
           addresses.map((addr) => {
             const isSelected = selectedAddress === addr.uid;
-            const formattedAddress = `${addr.line1}${addr.line2 ? `, ${addr.line2}` : ""}\n${addr.city?.name}, ${addr.province?.name}`;
+            const locality = [addr.city?.name, addr.province?.name]
+              .filter(Boolean)
+              .join(", ");
+            const formattedAddress = [
+              [addr.line1, addr.line2].filter(Boolean).join(", "),
+              locality,
+              addr.postalCode,
+            ]
+              .filter(Boolean)
+              .join("\n");
 
             return (
               <TouchableOpacity
@@ -143,14 +154,21 @@ export function DeliveryAddressScreen() {
       <View style={styles.footer}>
         <PrimaryButton
           title="Continue"
+          disabled={isLoading}
           onPress={() => {
-            if (selectedAddress) {
-              const selectedAddrObj = addresses.find(a => a.uid === selectedAddress);
-              updateRequestData({ 
-                deliveryAddress: selectedAddress,
-                deliveryCityUid: selectedAddrObj?.city?.uid || ""
-              });
+            if (!selectedAddress) {
+              showToast("Please select a delivery address.");
+              return;
             }
+            const selectedAddrObj = addresses.find((a) => a.uid === selectedAddress);
+            if (!selectedAddrObj?.cityUid) {
+              showToast("The selected address does not have a delivery city.");
+              return;
+            }
+            updateRequestData({
+              deliveryAddress: selectedAddress,
+              deliveryCityUid: selectedAddrObj.cityUid,
+            });
             router.back();
           }}
         />

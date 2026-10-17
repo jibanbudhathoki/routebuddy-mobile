@@ -17,10 +17,11 @@ export function usePayment() {
         paymentMethodId,
       );
       return response;
-    } catch (err: any) {
-      const message = err?.message || "Failed to initiate payment.";
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to initiate payment.";
       setError(message);
-      throw new Error(message);
+      throw err instanceof Error ? err : new Error(message);
     } finally {
       setIsInitializing(false);
     }

@@ -2,19 +2,23 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
-import type { AddressFormData } from "./AddressFormScreen";
+import type { AddressFormData } from "../address/types/addressForm";
 import { FormInput } from "./FormInput";
 
 interface AddressFormFieldsProps {
   formData: AddressFormData;
-  updateField: (field: keyof AddressFormData, value: string) => void;
-  onOpenCityPicker: () => void;
+  updateField: (field: keyof AddressFormData, value: string | boolean) => void;
+  onSelectCountry: () => void;
+  onSelectProvince: () => void;
+  onSelectCity: () => void;
 }
 
 export function AddressFormFields({
   formData,
   updateField,
-  onOpenCityPicker,
+  onSelectCountry,
+  onSelectProvince,
+  onSelectCity,
 }: AddressFormFieldsProps) {
   const { theme } = useUnistyles();
 
@@ -26,6 +30,7 @@ export function AddressFormFields({
         placeholder="e.g. Home, Work"
         value={formData.label}
         onChangeText={(text) => updateField("label", text)}
+        maxLength={50}
       />
       <FormInput
         label="Full Name"
@@ -33,6 +38,31 @@ export function AddressFormFields({
         placeholder="e.g. John Smith"
         value={formData.fullName}
         onChangeText={(text) => updateField("fullName", text)}
+        maxLength={100}
+      />
+      <LocationSelector
+        label="Country"
+        value={formData.countryName}
+        placeholder="Select country"
+        onPress={onSelectCountry}
+      />
+      <LocationSelector
+        label="Province / State"
+        value={formData.provinceName}
+        placeholder={
+          formData.countryUid ? "Select province or state" : "Select a country first"
+        }
+        disabled={!formData.countryUid}
+        onPress={onSelectProvince}
+      />
+      <LocationSelector
+        label="City"
+        value={formData.cityName}
+        placeholder={
+          formData.provinceUid ? "Select city" : "Select a province first"
+        }
+        disabled={!formData.provinceUid}
+        onPress={onSelectCity}
       />
       <FormInput
         label="Address"
@@ -40,6 +70,7 @@ export function AddressFormFields({
         placeholder="e.g. 123 Main St"
         value={formData.address}
         onChangeText={(text) => updateField("address", text)}
+        maxLength={200}
       />
       <FormInput
         label="Apt, Suite, Unit (optional)"
@@ -47,42 +78,24 @@ export function AddressFormFields({
         placeholder="e.g. Unit 5"
         value={formData.aptSuiteUnit}
         onChangeText={(text) => updateField("aptSuiteUnit", text)}
+        maxLength={100}
       />
-      <View style={styles.inputWrapper}>
-        <Text style={styles.inputLabel}>City</Text>
-        <TouchableOpacity
-          style={styles.dropdownContainer}
-          activeOpacity={0.7}
-          onPress={onOpenCityPicker}
-        >
-          <MaterialCommunityIcons
-            name="map-marker-outline"
-            size={20}
-            color={theme.colors.text}
-            style={styles.inputIcon}
-          />
-          <Text
-            style={[
-              styles.dropdownText,
-              !formData.cityName && styles.dropdownPlaceholder,
-            ]}
-          >
-            {formData.cityName || "Select city"}
-          </Text>
-          <MaterialCommunityIcons
-            name="chevron-down"
-            size={24}
-            color={theme.colors.text}
-            style={styles.dropdownChevron}
-          />
-        </TouchableOpacity>
-      </View>
       <FormInput
         label="Postal Code"
         icon="mailbox-outline"
         placeholder="e.g. M4B 1B3"
         value={formData.postalCode}
         onChangeText={(text) => updateField("postalCode", text)}
+        maxLength={20}
+      />
+      <FormInput
+        label="Phone (optional)"
+        icon="phone-outline"
+        placeholder="Recipient phone number"
+        value={formData.phone}
+        onChangeText={(text) => updateField("phone", text)}
+        maxLength={20}
+        keyboardType="phone-pad"
       />
       <View style={styles.textAreaWrapper}>
         <FormInput
@@ -99,6 +112,71 @@ export function AddressFormFields({
         />
         <Text style={styles.charCount}>{formData.notes.length}/150</Text>
       </View>
+      <TouchableOpacity
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: formData.isDefault }}
+        style={styles.defaultAddressRow}
+        onPress={() => updateField("isDefault", !formData.isDefault)}
+      >
+        <MaterialCommunityIcons
+          name={formData.isDefault ? "checkbox-marked" : "checkbox-blank-outline"}
+          size={22}
+          color={formData.isDefault ? theme.colors.text : theme.colors.muted}
+        />
+        <Text style={styles.defaultAddressText}>Set as default address</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function LocationSelector({
+  label,
+  value,
+  placeholder,
+  disabled = false,
+  onPress,
+}: {
+  label: string;
+  value: string;
+  placeholder: string;
+  disabled?: boolean;
+  onPress: () => void;
+}) {
+  const { theme } = useUnistyles();
+
+  return (
+    <View style={styles.inputWrapper}>
+      <Text style={styles.inputLabel}>{label}</Text>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${value || placeholder}`}
+        accessibilityState={{ disabled }}
+        style={[styles.dropdownContainer, disabled && styles.dropdownDisabled]}
+        activeOpacity={0.7}
+        disabled={disabled}
+        onPress={onPress}
+      >
+        <MaterialCommunityIcons
+          name="map-marker-outline"
+          size={20}
+          color={disabled ? theme.colors.muted : theme.colors.text}
+          style={styles.inputIcon}
+        />
+        <Text
+          style={[
+            styles.dropdownText,
+            !value && styles.dropdownPlaceholder,
+          ]}
+        >
+          {value || placeholder}
+        </Text>
+        <MaterialCommunityIcons
+          name="chevron-down"
+          size={24}
+          color={disabled ? theme.colors.muted : theme.colors.text}
+          style={styles.dropdownChevron}
+        />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -126,6 +204,9 @@ const styles = StyleSheet.create((theme) => ({
     height: 56,
     backgroundColor: theme.colors.surface,
   },
+  dropdownDisabled: {
+    backgroundColor: theme.colors.primarySoft,
+  },
   inputIcon: {
     marginRight: 10,
   },
@@ -142,6 +223,16 @@ const styles = StyleSheet.create((theme) => ({
   },
   textAreaWrapper: {
     position: "relative",
+  },
+  defaultAddressRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
+  },
+  defaultAddressText: {
+    color: theme.colors.text,
+    fontSize: 14,
   },
   charCount: {
     position: "absolute",

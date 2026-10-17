@@ -44,7 +44,7 @@ export function MarketplaceTripInformation({
         <MaterialCommunityIcons
           name="shield-check"
           size={19}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
       </View>
 
@@ -107,7 +107,7 @@ function SummaryColumn({
       <MaterialCommunityIcons
         name={icon}
         size={16}
-        color={theme.colors.primary}
+        color={theme.colors.text}
       />
       <Text style={styles.summaryTitle} numberOfLines={2}>
         {title}
@@ -145,7 +145,7 @@ function InfoCard({
         <MaterialCommunityIcons
           name={icon}
           size={16}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
         <Text style={styles.sectionTitle}>{title}</Text>
         {showInfo ? (
@@ -197,7 +197,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 44,
   },
   driverInitials: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 13,
     fontWeight: "700",
   },
@@ -207,7 +207,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   cardEyebrow: {
     color: theme.colors.muted,
-    fontSize: 8,
+    fontSize: 11,
   },
   driverName: {
     color: theme.colors.text,
@@ -216,7 +216,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   driverAvailability: {
     color: theme.colors.muted,
-    fontSize: 8,
+    fontSize: 11,
   },
   summaryCard: {
     alignItems: "stretch",
@@ -243,18 +243,18 @@ const styles = StyleSheet.create((theme) => ({
   },
   summaryTitle: {
     color: theme.colors.muted,
-    fontSize: 7,
+    fontSize: 11,
     textAlign: "center",
   },
   summaryValue: {
     color: theme.colors.text,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "700",
     textAlign: "center",
   },
   summaryDetail: {
     color: theme.colors.text,
-    fontSize: 8,
+    fontSize: 11,
     textAlign: "center",
   },
   infoCard: {
@@ -273,17 +273,17 @@ const styles = StyleSheet.create((theme) => ({
   sectionTitle: {
     color: theme.colors.text,
     flex: 1,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "700",
   },
   infoValue: {
     color: theme.colors.text,
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: "600",
   },
   infoText: {
     color: theme.colors.muted,
-    fontSize: 8,
-    lineHeight: 12,
+    fontSize: 11,
+    lineHeight: 16,
   },
 }));

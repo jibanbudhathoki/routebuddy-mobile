@@ -1,15 +1,20 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
 
 interface MarketplaceTripDetailsHeaderProps {
   onBack: () => void;
+  unreadCount: number;
   onNotificationsPress: () => void;
+  onSharePress: () => void;
 }
 
 export function MarketplaceTripDetailsHeader({
   onBack,
+  unreadCount,
   onNotificationsPress,
+  onSharePress,
 }: MarketplaceTripDetailsHeaderProps) {
   const { theme } = useUnistyles();
 
@@ -28,21 +33,24 @@ export function MarketplaceTripDetailsHeader({
         />
       </Pressable>
       <Text style={styles.headerTitle}>Trip Details</Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Notifications"
-        onPress={onNotificationsPress}
-        style={styles.headerAction}
-      >
-        <MaterialCommunityIcons
-          name="bell-outline"
-          size={21}
-          color={theme.colors.text}
+      <View style={styles.headerActions}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Share trip"
+          onPress={onSharePress}
+          style={styles.headerAction}
+        >
+          <MaterialCommunityIcons
+            name="share-variant-outline"
+            size={20}
+            color={theme.colors.text}
+          />
+        </Pressable>
+        <NotificationBellButton
+          unreadCount={unreadCount}
+          onPress={onNotificationsPress}
         />
-        <View style={styles.notificationBadge}>
-          <Text style={styles.notificationBadgeText}>3</Text>
-        </View>
-      </Pressable>
+      </View>
     </View>
   );
 }
@@ -61,27 +69,15 @@ const styles = StyleSheet.create((theme) => ({
     position: "relative",
     width: 36,
   },
+  headerActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    width: 76,
+  },
   headerTitle: {
     color: theme.colors.text,
     fontSize: 16,
-    fontWeight: "700",
-  },
-  notificationBadge: {
-    alignItems: "center",
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.surface,
-    borderRadius: 8,
-    borderWidth: 1,
-    height: 16,
-    justifyContent: "center",
-    position: "absolute",
-    right: 0,
-    top: 0,
-    width: 16,
-  },
-  notificationBadgeText: {
-    color: theme.colors.onPrimary,
-    fontSize: 8,
     fontWeight: "700",
   },
 }));

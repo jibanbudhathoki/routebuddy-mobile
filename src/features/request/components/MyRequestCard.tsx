@@ -15,8 +15,8 @@ export function MyRequestCard({
 }: MyRequestCardProps) {
   const { theme } = useUnistyles();
   const stores = request.stores ?? [];
-  const neededDate = formatUtcDate(request.neededBy);
-  const neededTime = formatUtcTime(request.neededBy);
+  const neededDate = formatDate(request.neededBy);
+  const neededTime = formatTime(request.neededBy);
   const totalCost = request.totalCost ?? "-";
   const status = request.status.replace(/[_-]+/g, " ").toUpperCase();
 
@@ -80,7 +80,7 @@ export function MyRequestCard({
           <MaterialCommunityIcons
             name="store-outline"
             size={13}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.metadataText}>
             {stores.length} {stores.length === 1 ? "Store" : "Stores"}
@@ -91,7 +91,7 @@ export function MyRequestCard({
           <MaterialCommunityIcons
             name="account-outline"
             size={13}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.metadataText} numberOfLines={1}>
             {request.driver?.name ?? "Driver pending"}
@@ -102,10 +102,10 @@ export function MyRequestCard({
           <MaterialCommunityIcons
             name="calendar-clock-outline"
             size={13}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.metadataText}>
-            By {formatUtcDate(request.latestDeliveryBy)}
+            By {formatDate(request.latestDeliveryBy)}
           </Text>
         </View>
       </View>
@@ -119,7 +119,7 @@ export function MyRequestCard({
         <MaterialCommunityIcons
           name="chevron-right"
           size={17}
-          color={theme.colors.primary}
+          color={theme.colors.text}
         />
       </Pressable>
     </View>
@@ -175,24 +175,22 @@ function StoreTag({ name, index }: { name: string; index: number }) {
   );
 }
 
-function formatUtcDate(value: string) {
+function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
   return date.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
-    timeZone: "UTC",
   });
 }
 
-function formatUtcTime(value: string) {
+function formatTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
   return date.toLocaleTimeString(undefined, {
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "UTC",
   });
 }
 
@@ -279,7 +277,7 @@ const styles = StyleSheet.create((theme) => ({
     fontSize: 9,
   },
   costValue: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 15,
     fontWeight: "800",
     marginTop: 3,
@@ -314,7 +312,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 32,
   },
   moreStoresText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 9,
     fontWeight: "700",
   },
@@ -354,7 +352,7 @@ const styles = StyleSheet.create((theme) => ({
     minHeight: 34,
   },
   detailsText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 10,
     fontWeight: "600",
   },

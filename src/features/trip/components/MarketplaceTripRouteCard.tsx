@@ -38,7 +38,7 @@ export function MarketplaceTripRouteCard({
           <MaterialCommunityIcons
             name="store-outline"
             size={16}
-            color={theme.colors.primary}
+            color={theme.colors.text}
           />
           <Text style={styles.sideStoreLabel}>Store</Text>
           <Text style={styles.sideStoreName} numberOfLines={2}>
@@ -159,7 +159,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   routePointLabel: {
     color: theme.colors.text,
-    fontSize: 9,
+    fontSize: 11,
   },
   routePointLocation: {
     color: theme.colors.text,
@@ -174,15 +174,15 @@ const styles = StyleSheet.create((theme) => ({
   },
   routeStoreName: {
     color: theme.colors.text,
-    fontSize: 9,
+    fontSize: 11,
   },
   routeStoreAddress: {
     color: theme.colors.muted,
-    fontSize: 8,
+    fontSize: 11,
   },
   routePointAddress: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   sideStoreCard: {
     alignItems: "flex-start",
@@ -196,11 +196,11 @@ const styles = StyleSheet.create((theme) => ({
   },
   sideStoreLabel: {
     color: theme.colors.muted,
-    fontSize: 8,
+    fontSize: 11,
   },
   sideStoreName: {
     color: theme.colors.text,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: "600",
   },
 }));

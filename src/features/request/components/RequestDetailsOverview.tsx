@@ -12,7 +12,8 @@ export function RequestDetailsOverview({
 }) {
   const { theme } = useUnistyles();
   const store = request.stores?.[0];
-  const requesterName = request.requester?.name || "Requester";
+  const requesterName =
+    request.requester?.name ?? request.requester?.fName ?? "Requester";
 
   return (
     <View style={styles.card}>
@@ -98,7 +99,7 @@ function MetaItem({ icon, label }: { icon: string; label: string }) {
       <MaterialCommunityIcons
         name={icon as keyof typeof MaterialCommunityIcons.glyphMap}
         size={13}
-        color={theme.colors.primary}
+        color={theme.colors.text}
       />
       <Text style={styles.metaText} numberOfLines={1}>
         {label}
@@ -167,7 +168,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   logoLabel: {
     color: theme.colors.onPrimary,
-    fontSize: 6,
+    fontSize: 10,
     fontWeight: "700",
   },
   requestInfo: {
@@ -177,7 +178,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   requesterName: {
     color: theme.colors.text,
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "700",
   },
   routeRow: {
@@ -189,7 +190,7 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text,
     flex: 1,
     flexShrink: 1,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "600",
   },
   dateRows: {
@@ -202,7 +203,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   dateText: {
     color: theme.colors.muted,
-    fontSize: 8,
+    fontSize: 11,
   },
   total: {
     alignItems: "flex-end",
@@ -210,10 +211,10 @@ const styles = StyleSheet.create((theme) => ({
   },
   totalLabel: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 11,
   },
   totalAmount: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 14,
     fontWeight: "800",
     marginTop: 3,
@@ -238,7 +239,7 @@ const styles = StyleSheet.create((theme) => ({
   metaText: {
     color: theme.colors.text,
     flexShrink: 1,
-    fontSize: 8,
+    fontSize: 11,
   },
   divider: {
     backgroundColor: theme.colors.border,

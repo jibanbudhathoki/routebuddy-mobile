@@ -10,10 +10,7 @@ import type {
 } from "../types/payment.types";
 
 export const paymentService = {
-  /**
-   * POST /api/v1/payments/intent
-   * Create a payment intent for a direct transaction
-   */
+
   createPaymentIntent: async (
     data: CreatePaymentIntentRequest,
   ): Promise<PaymentIntentResponse> => {
@@ -45,27 +42,25 @@ export const paymentService = {
     return [];
   },
 
-  /**
-   * POST /api/v1/payments/checkout
-   * Checkout an accepted or pending request and pre-authorize payment via Stripe.
-   * If a saved card is selected, send its paymentMethodId.
-   */
   initiateCheckout: async (
     requestSlug: string,
     paymentMethodId?: string,
   ): Promise<CheckoutResponse> => {
-    return apiRequest<CheckoutResponse>(apiEndpoints.payments.checkout, {
-      method: "POST",
-      body: paymentMethodId
-        ? { requestSlug, paymentMethodId }
-        : { requestSlug },
-    });
+    const response = await apiRequest<CheckoutResponse>(
+      apiEndpoints.payments.checkout,
+      {
+        method: "POST",
+        body: paymentMethodId
+          ? { requestSlug, paymentMethodId }
+          : { requestSlug },
+      },
+    );
+    if (!response?.data?.clientSecret) {
+      throw new Error("The checkout response did not include payment details.");
+    }
+    return response;
   },
 
-  /**
-   * POST /api/v1/payments/confirm-delivery
-   * Confirm delivery, capture pre-authorized payment, and credit driver wallet
-   */
   confirmDelivery: async (
     requestSlug: string,
   ): Promise<ConfirmDeliveryResponse> => {
@@ -78,10 +73,7 @@ export const paymentService = {
     );
   },
 
-  /**
-   * GET /api/v1/payments/{id}
-   * Get a specific payment transaction detail by ID
-   */
+
   getPaymentById: async (id: string): Promise<PaymentDetail> => {
     const endpoint = apiEndpoints.payments.paymentDetail.replace(
       ":id",

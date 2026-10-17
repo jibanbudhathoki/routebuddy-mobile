@@ -127,7 +127,7 @@ const styles = StyleSheet.create((theme) => ({
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.text,
     marginBottom: 4,
   },
   route: {

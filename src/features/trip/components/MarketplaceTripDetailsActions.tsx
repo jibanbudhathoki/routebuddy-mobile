@@ -1,15 +1,17 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 interface MarketplaceTripDetailsActionsProps {
   onBuildShoppingList: () => void;
   onMessageDriver: () => void;
+  isMessagingDriver?: boolean;
 }
 
 export function MarketplaceTripDetailsActions({
   onBuildShoppingList,
   onMessageDriver,
+  isMessagingDriver = false,
 }: MarketplaceTripDetailsActionsProps) {
   const { theme } = useUnistyles();
 
@@ -30,14 +32,24 @@ export function MarketplaceTripDetailsActions({
       <Pressable
         accessibilityRole="button"
         onPress={onMessageDriver}
-        style={styles.secondaryButton}
+        disabled={isMessagingDriver}
+        style={[
+          styles.secondaryButton,
+          isMessagingDriver && styles.disabledButton,
+        ]}
       >
-        <MaterialCommunityIcons
-          name="message-outline"
-          size={17}
-          color={theme.colors.primary}
-        />
-        <Text style={styles.secondaryButtonText}>Message Driver</Text>
+        {isMessagingDriver ? (
+          <ActivityIndicator size="small" color={theme.colors.text} />
+        ) : (
+          <MaterialCommunityIcons
+            name="message-outline"
+            size={17}
+            color={theme.colors.text}
+          />
+        )}
+        <Text style={styles.secondaryButtonText}>
+          {isMessagingDriver ? "Opening Conversation..." : "Message Driver"}
+        </Text>
       </Pressable>
     </View>
   );
@@ -61,7 +73,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   primaryButtonText: {
     color: theme.colors.onPrimary,
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "700",
   },
   secondaryButton: {
@@ -75,9 +87,12 @@ const styles = StyleSheet.create((theme) => ({
     height: 36,
     justifyContent: "center",
   },
+  disabledButton: {
+    opacity: 0.65,
+  },
   secondaryButtonText: {
-    color: theme.colors.primary,
-    fontSize: 10,
+    color: theme.colors.text,
+    fontSize: 12,
     fontWeight: "600",
   },
 }));

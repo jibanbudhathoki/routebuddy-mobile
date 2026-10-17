@@ -58,7 +58,7 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing.md,
   },
   summaryTitle: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 18,
     fontWeight: "700",
     marginBottom: theme.spacing.md,
@@ -85,7 +85,7 @@ const styles = StyleSheet.create((theme) => ({
     marginVertical: theme.spacing.sm,
   },
   totalText: {
-    color: theme.colors.primary,
+    color: theme.colors.text,
     fontSize: 16,
     fontWeight: "700",
   },

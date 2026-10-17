@@ -4,7 +4,12 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as Notifications from "expo-notifications";
 import { useEffect, useState } from "react";
-import { Platform, View, ActivityIndicator } from "react-native";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  View,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { getApp } from "@react-native-firebase/app";
 import { getMessaging, onTokenRefresh } from "@react-native-firebase/messaging";
@@ -90,124 +95,71 @@ export default function RootLayout() {
               <TripCreationProvider>
                 <ToastProvider>
                   <DeviceTokenRefreshListener />
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen
-                      name="(auth)"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="(tabs)"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="request-details"
-                      options={{ headerShown: false }}
-                    />
-                    {/* Post Trip Flow Modals */}
+                  <KeyboardAvoidingView
+                    style={{ flex: 1 }}
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                  >
+                    <Stack screenOptions={{ headerShown: false }}>
+                      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                      <Stack.Screen name="(modals)/community" options={{ presentation: 'fullScreenModal' }} />
+                      <Stack.Screen name="(modals)/saved-addresses" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/notification-preferences" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/profile-address" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="request-details" options={{ headerShown: false }} />
+                      <Stack.Screen name="edit-trip" options={{ headerShown: false }} />
 
-                    <Stack.Screen
-                      name="(modals)/trip/select-store"
-                      options={{ presentation: "modal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/trip/order-cutoff"
-                      options={{ presentation: "modal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/trip/day-of-departure"
-                      options={{ presentation: "modal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/trip/latest-delivery-time"
-                      options={{ presentation: "modal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/trip/location-search"
-                      options={{ presentation: "modal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/trip/review-trip"
-                      options={{ presentation: "modal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/trip/post-success"
-                      options={{ presentation: "modal" }}
-                    />
+                      {/* Post Trip Flow Modals */}
+                      <Stack.Screen name="(modals)/trip/select-store" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/trip/order-cutoff" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/trip/day-of-departure" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/trip/latest-delivery-time" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/trip/location-search" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/trip/review-trip" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/trip/post-success" options={{ presentation: 'modal' }} />
 
-                    {/* Post Request Flow Modals */}
-                    <Stack.Screen
-                      name="(modals)/request/select-store"
-                      options={{ presentation: "modal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/request/delivery-address"
-                      options={{ presentation: "modal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/request/add-address"
-                      options={{ presentation: "modal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/request/select-day"
-                      options={{ presentation: "modal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/request/latest-delivery-time"
-                      options={{ presentation: "modal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/request/add-items"
-                      options={{ presentation: "fullScreenModal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/request/build-shopping-list"
-                      options={{ presentation: "fullScreenModal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/request/build-trip-order"
-                      options={{ presentation: "fullScreenModal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/request/order-summary"
-                      options={{ presentation: "fullScreenModal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/request/checkout"
-                      options={{ presentation: "fullScreenModal" }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/request/payment-success"
-                      options={{ presentation: "fullScreenModal" }}
-                    />
+                      {/* Post Request Flow Modals */}
+                      <Stack.Screen name="(modals)/request/select-store" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/request/delivery-address" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/request/add-address" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/request/select-day" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/request/latest-delivery-time" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="(modals)/request/add-items" options={{ presentation: 'fullScreenModal' }} />
+                      <Stack.Screen name="(modals)/request/build-shopping-list" options={{ presentation: 'fullScreenModal' }} />
+                      <Stack.Screen name="(modals)/request/build-trip-order" options={{ presentation: 'fullScreenModal' }} />
+                      <Stack.Screen name="(modals)/request/order-summary" options={{ presentation: 'fullScreenModal' }} />
+                      <Stack.Screen name="(modals)/request/checkout" options={{ presentation: 'fullScreenModal' }} />
+                      <Stack.Screen name="(modals)/request/payment-success" options={{ presentation: 'fullScreenModal' }} />
 
-                    {/* Profile Security Screens */}
-                    <Stack.Screen
-                      name="(modals)/change-password"
-                      options={{ presentation: "card", headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/change-email"
-                      options={{ presentation: "card", headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="(modals)/delete-account"
-                      options={{ presentation: "card", headerShown: false }}
-                    />
+                      {/* Profile Security Screens */}
+                      <Stack.Screen
+                        name="(modals)/change-password"
+                        options={{ presentation: "card", headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="(modals)/change-email"
+                        options={{ presentation: "card", headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="(modals)/delete-account"
+                        options={{ presentation: "card", headerShown: false }}
+                      />
 
-                    {/* Wallet Flow */}
-                    <Stack.Screen
-                      name="wallet/index"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="wallet/withdraw"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="wallet/withdraw-success"
-                      options={{ headerShown: false }}
-                    />
-                  </Stack>
+                      {/* Wallet Flow */}
+                      <Stack.Screen
+                        name="wallet/index"
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="wallet/withdraw"
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name="wallet/withdraw-success"
+                        options={{ headerShown: false }}
+                      />
+                    </Stack>
+                  </KeyboardAvoidingView>
                 </ToastProvider>
               </TripCreationProvider>
             </RequestCreationProvider>
