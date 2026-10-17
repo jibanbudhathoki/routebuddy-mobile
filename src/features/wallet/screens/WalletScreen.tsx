@@ -77,7 +77,7 @@ export function WalletScreen() {
             </TouchableOpacity>
 
             <Text style={styles.withdrawNoticeText}>
-              Up to ${formattedWithdrawable} · arrives in 1–2 business days
+              Up to ${formattedWithdrawable} · processed via Interac e-Transfer
             </Text>
           </View>
 

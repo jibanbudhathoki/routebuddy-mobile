@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { useRouter } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useWallet } from "../hooks/useWallet";
 import { withdrawSchema } from "../validations/withdraw.schema";
+import { getAuthSession } from "../../auth/services/authStorage";
 
 export function WithdrawScreen() {
   const router = useRouter();
@@ -26,6 +27,18 @@ export function WithdrawScreen() {
     balance.withdrawableBalance > 0 ? balance.withdrawableBalance.toFixed(2) : ""
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    getAuthSession().then((session) => {
+      if (isMounted && session?.user?.email) {
+        setEmail(session.user.email);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const formattedWithdrawable = balance.withdrawableBalance.toFixed(2);
 
@@ -159,9 +172,17 @@ export function WithdrawScreen() {
             </View>
 
             {/* Email input */}
-            <Text style={[styles.inputLabel, { marginTop: theme.spacing.md }]}>
-              Destination Email (Interac e-Transfer)
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: theme.spacing.md }}>
+              <Text style={styles.inputLabel}>
+                Destination Email (Interac e-Transfer)
+              </Text>
+              {email ? (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                  <MaterialCommunityIcons name="check-decagram" size={14} color={theme.colors.success} />
+                  <Text style={{ fontSize: 12, fontWeight: "600", color: theme.colors.success }}>Verified Account</Text>
+                </View>
+              ) : null}
+            </View>
             <View
               style={[
                 styles.inputWrapper,
@@ -179,6 +200,7 @@ export function WithdrawScreen() {
                 placeholder="recipient@example.com"
                 placeholderTextColor={theme.colors.muted}
                 value={email}
+                editable={!email}
                 onChangeText={(text) => {
                   setEmail(text);
                   if (errorMessage) setErrorMessage(null);
@@ -189,7 +211,7 @@ export function WithdrawScreen() {
               />
             </View>
             <Text style={styles.helperText}>
-              Ensure this email can receive Interac e-Transfers.
+              An administrator will send the Interac e-Transfer to this registered account email.
             </Text>
 
             {errorMessage && (

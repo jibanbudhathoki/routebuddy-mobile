@@ -55,9 +55,9 @@ export function WithdrawalSuccessScreen() {
 
           {/* Title & Sent Email */}
           <View style={styles.titleSection}>
-            <Text style={styles.title}>Withdrawal link sent</Text>
+            <Text style={styles.title}>Withdrawal Request Submitted</Text>
             <Text style={styles.subtitle}>
-              We've sent a secure withdrawal link to
+              Your request is pending manual processing. An administrator will send an Interac e-Transfer to:
             </Text>
             <Text style={styles.emailText}>{email}</Text>
           </View>
@@ -72,8 +72,7 @@ export function WithdrawalSuccessScreen() {
                 style={styles.infoIcon}
               />
               <Text style={styles.securityNoticeText}>
-                If you don't have Auto Deposit enabled, please use the security
-                answer:
+                If you don't have Auto Deposit enabled, please use this security answer:
               </Text>
             </View>
 
@@ -84,36 +83,13 @@ export function WithdrawalSuccessScreen() {
         {/* Action Buttons */}
         <View style={styles.bottomActions}>
           <TouchableOpacity
-            style={[
-              styles.resendButton,
-              isResending ? styles.buttonDisabled : undefined,
-            ]}
-            onPress={handleResend}
-            disabled={isResending}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Resend Link"
-          >
-            {isResending ? (
-              <ActivityIndicator size="small" color={theme.colors.onPrimary} />
-            ) : (
-              <Text style={styles.resendButtonText}>Resend Link</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.backLinkButton}
+            style={styles.resendButton}
             onPress={handleBackToWallet}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Back to Wallet"
           >
-            <MaterialCommunityIcons
-              name="chevron-left"
-              size={20}
-              color={theme.colors.text}
-            />
-            <Text style={styles.backLinkText}>Back to Wallet</Text>
+            <Text style={styles.resendButtonText}>Back to Wallet</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
