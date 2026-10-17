@@ -59,7 +59,8 @@
           "cameraPermission": "Allow RouteBuddy to take photos for chats.",
           "microphonePermission": "Allow RouteBuddy to record voice messages."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "extra": {
       "router": {},

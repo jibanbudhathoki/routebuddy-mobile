@@ -49,3 +49,6 @@ GoogleService-Info.plist
 # Notes
 api-endpoints-app.md
 ARCHITECTURE.md
+
+#APK
+*.apk
