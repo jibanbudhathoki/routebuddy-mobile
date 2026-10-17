@@ -20,3 +20,10 @@ export function formatRequestTime(value: string) {
     timeZone: "UTC",
   });
 }
+
+export function formatRequestDateTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return `${formatRequestDate(value)} at ${formatRequestTime(value)}`;
+}

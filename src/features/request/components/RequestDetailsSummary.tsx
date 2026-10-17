@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import type { RequestDetailsResponse } from "../types/request";
+import { formatRequestDateTime } from "../utils/requestFormatters";
 
 export function RequestDetailsSummary({
   request,
@@ -52,6 +53,19 @@ export function RequestDetailsSummary({
             <Text style={styles.totalValue}>{total}</Text>
           </View>
         </View>
+
+        {request.captureBefore ? (
+          <View style={styles.authExpiryRow}>
+            <MaterialCommunityIcons
+              name="clock-outline"
+              size={13}
+              color={theme.colors.muted}
+            />
+            <Text style={styles.authExpiryText}>
+              Pre-authorization hold expires {formatRequestDateTime(request.captureBefore)}
+            </Text>
+          </View>
+        ) : null}
       </View>
     </>
   );
@@ -179,5 +193,19 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text,
     fontSize: 13,
     fontWeight: "800",
+  },
+  authExpiryRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 6,
+    marginTop: theme.spacing.sm,
+    paddingTop: theme.spacing.xs,
+    borderTopColor: theme.colors.border,
+    borderTopWidth: 1,
+  },
+  authExpiryText: {
+    color: theme.colors.muted,
+    fontSize: 11,
+    flex: 1,
   },
 }));

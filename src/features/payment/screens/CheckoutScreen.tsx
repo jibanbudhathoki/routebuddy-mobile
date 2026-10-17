@@ -16,6 +16,7 @@ import { useStores } from "../../../shared/store/hooks/useStores";
 import { calculateEstimate } from "../../../shared/utils/pricing";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { useStripe } from "@stripe/stripe-react-native";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../../shared/components/ToastProvider";
 import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
 import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
@@ -23,6 +24,7 @@ import { useUnreadNotificationCount } from "../../notifications/hooks/useNotific
 export function CheckoutScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { postId, clearRequestDraft } = useLocalSearchParams<{
     postId: string;
     clearRequestDraft?: string;
@@ -131,6 +133,9 @@ export function CheckoutScreen() {
         if (stripeError) {
           throw new Error(stripeError.message || "Payment failed");
         }
+
+        // Refresh request details to pick up the updated webhook status ('open') and captureBefore
+        await queryClient.invalidateQueries({ queryKey: ["requests"] });
 
         router.push({
           pathname: "/(modals)/request/payment-success",

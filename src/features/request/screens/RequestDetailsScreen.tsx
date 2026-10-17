@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, ScrollView, Share, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, Share, Text, View } from "react-native";
 import { useState } from "react";
 import { useUnistyles } from "react-native-unistyles";
 
@@ -81,6 +81,13 @@ export function RequestDetailsScreen() {
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoading}
+              onRefresh={() => void refetch()}
+              tintColor={theme.colors.primary}
+            />
+          }
         >
           {isLoading ? (
             <View style={styles.stateCard}>
