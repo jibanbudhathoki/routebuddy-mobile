@@ -16,6 +16,12 @@ import { ProfileHeader } from "../components/ProfileHeader";
 import { ProfileSection } from "../components/ProfileSection";
 import { ProfileMenuItem } from "../components/ProfileMenuItem";
 import { clearAuthSession } from "../../auth/services/authStorage";
+import {
+  unregisterDeviceToken,
+  withDeviceTokenSessionLock,
+} from "../../auth/services/deviceToken";
+import { deviceTokenStorage } from "../../../shared/storage/deviceTokenStorage";
+import { getAuthSession } from "../../auth/services/authStorage";
 import { useProfile } from "../hooks/useProfile";
 import { UnistylesRuntime } from "react-native-unistyles";
 import { useToast } from "../../../shared/components/ToastProvider";
@@ -31,16 +37,38 @@ export function ProfileScreen() {
   const [isAppearanceModalVisible, setAppearanceModalVisible] = useState(false);
 
   const handleLogout = async () => {
-    try {
-      await clearAuthSession();
+    let tokenUnregisterError: unknown;
+
+    await withDeviceTokenSessionLock(async () => {
+      try {
+        const session = await getAuthSession();
+        const deviceToken = await deviceTokenStorage.get();
+        if (session && deviceToken) {
+          try {
+            await unregisterDeviceToken(deviceToken, session.user.id);
+          } catch (error) {
+            tokenUnregisterError = error;
+          }
+        }
+        await clearAuthSession();
+      } catch (error) {
+        showToast(
+          error instanceof Error ? error.message : "Unable to log out. Please try again.",
+          { title: "Logout failed", variant: "error" },
+        );
+        return;
+      }
+
       queryClient.clear();
       router.replace("/(auth)/login");
-    } catch (error) {
-      showToast(
-        error instanceof Error ? error.message : "Unable to log out. Please try again.",
-        { title: "Logout failed", variant: "error" },
-      );
-    }
+
+      if (tokenUnregisterError) {
+        showToast(
+          "You are logged out, but this device may still receive notifications for your account.",
+          { title: "Notification token was not removed", variant: "error" },
+        );
+      }
+    });
   };
 
   const handleAppearancePress = () => {
@@ -110,6 +138,7 @@ export function ProfileScreen() {
             iconName="credit-card-outline"
             title="Payment Methods"
             subtitle="Cards & accounts"
+            onPress={() => router.push("/(tabs)/payment-methods")}
           />
         </ProfileSection>
 
@@ -119,6 +148,7 @@ export function ProfileScreen() {
             iconName="wallet-outline"
             title="Wallet"
             subtitle="Balance & withdrawals"
+            onPress={() => router.push("/wallet")}
           />
         </ProfileSection>
 
@@ -153,11 +183,13 @@ export function ProfileScreen() {
             iconName="lock-outline"
             title="Change Password"
             subtitle="Change your password"
+            onPress={() => router.push("/(modals)/change-password")}
           />
           <ProfileMenuItem
             iconName="email-outline"
             title="Change Email"
             subtitle="Change your email"
+            onPress={() => router.push("/(modals)/change-email")}
           />
           <ProfileMenuItem
             iconName="delete-outline"

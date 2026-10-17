@@ -16,13 +16,11 @@ export type VerifyEmailRequest = {
 export type LoginRequest = {
   email: string;
   password: string;
-  deviceToken: string;
   platform: string;
 };
 
 export type GoogleSessionRequest = {
   idToken: string;
-  deviceToken: string;
   platform: string;
 };
 

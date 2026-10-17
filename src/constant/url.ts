@@ -6,6 +6,12 @@ export const apiEndpoints = {
     verifyEmail: "/v1/auth/verify-email",
     forgotPassword: "/v1/auth/forgot-password",
     resetPassword: "/v1/auth/reset-password",
+    changePassword: "/v1/auth/change-password",
+    changeEmail: "/v1/auth/change-email",
+    verifyChangeEmail: "/v1/auth/verify-change-email",
+  },
+  notifications: {
+    tokens: "/v1/notifications/tokens",
   },
   profile: {
     base: "/v1/profile",
@@ -23,7 +29,18 @@ export const apiEndpoints = {
   cities: "/v1/cities",
   payments: {
     payment: "/v1/payments",
+    intent: "/v1/payments/intent",
+    history: "/v1/payments/history",
     checkout: "/v1/payments/checkout",
+    confirmDelivery: "/v1/payments/confirm-delivery",
+    withdraw: "/v1/payments/withdraw",
+    walletSummary: "/v1/payments/wallet/summary",
+    walletActivity: "/v1/payments/wallet/activity",
+    setupIntent: "/v1/payments/methods/setup-intent",
+    methods: "/v1/payments/methods",
+    setDefaultMethod: "/v1/payments/methods/:id/default",
+    deleteMethod: "/v1/payments/methods/:id",
+    paymentDetail: "/v1/payments/:id",
   },
   requests: {
     requests: "/v1/requests",

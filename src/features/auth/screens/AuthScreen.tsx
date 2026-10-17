@@ -15,7 +15,11 @@ import { TextField } from "../../../shared/components/TextField";
 import { WelcomeHero } from "../components/WelcomeHero";
 import { GoogleSignInButton } from "../components/GoogleSignInButton";
 import { authService } from "../services/auth.service";
-import { getDeviceToken } from "../services/deviceToken";
+import {
+  getDeviceToken,
+  registerDeviceToken,
+  withDeviceTokenSessionLock,
+} from "../services/deviceToken";
 import { useGoogleSignIn } from "../hooks/useGoogleSignIn";
 import { loginSchema } from "../validations/auth";
 
@@ -62,12 +66,14 @@ export function AuthScreen({
     setIsSubmitting(true);
 
     try {
-      const deviceToken = await getDeviceToken();
-      await authService.logIn({
-        email: email.trim().toLowerCase(),
-        password,
-        deviceToken,
-        platform: Platform.OS,
+      await withDeviceTokenSessionLock(async () => {
+        const session = await authService.logIn({
+          email: email.trim().toLowerCase(),
+          password,
+          platform: Platform.OS,
+        });
+        const deviceToken = await getDeviceToken();
+        await registerDeviceToken(deviceToken, session.user.id);
       });
       onAuthenticated();
     } catch (error) {
