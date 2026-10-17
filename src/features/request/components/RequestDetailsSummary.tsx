@@ -62,7 +62,8 @@ export function RequestDetailsSummary({
               color={theme.colors.muted}
             />
             <Text style={styles.authExpiryText}>
-              Pre-authorization hold expires {formatRequestDateTime(request.captureBefore)}
+              Pre-authorization hold expires{" "}
+              {formatRequestDateTime(request.captureBefore)}
             </Text>
           </View>
         ) : null}
