@@ -14,11 +14,12 @@ import { useWallet } from "../hooks/useWallet";
 import { WalletBalanceCard } from "../components/WalletBalanceCard";
 import { PendingFundsNotice } from "../components/PendingFundsNotice";
 import { WalletActivityItem } from "../components/WalletActivityItem";
+import { WithdrawalRequestsCard } from "../components/WithdrawalRequestsCard";
 
 export function WalletScreen() {
   const router = useRouter();
   const { theme } = useUnistyles();
-  const { balance, activities, isLoading } = useWallet();
+  const { balance, activities, withdrawalRequests, isLoading } = useWallet();
 
   const formattedWithdrawable = balance.withdrawableBalance.toFixed(2);
 
@@ -82,6 +83,9 @@ export function WalletScreen() {
 
           {/* Pending Funds Notice */}
           <PendingFundsNotice />
+
+          {/* Withdrawal Requests */}
+          <WithdrawalRequestsCard requests={withdrawalRequests} />
 
           {/* Recent Activity */}
           <View style={styles.activitySection}>

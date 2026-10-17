@@ -7,6 +7,7 @@ import {
   ApiWalletSummary,
   ApiWalletActivity,
   ApiWithdrawalResponse,
+  WithdrawalRequestItem,
   mapApiWalletSummary,
   mapApiWalletActivity,
 } from "../types/wallet.types";
@@ -60,14 +61,17 @@ export const walletService = {
       },
     );
 
+    const payload: any = (response as any)?.data ?? response;
+    const finalAmount = Number(payload?.amount) || amount;
+
     // Generate security answer for recipient e-transfer authentication
     const securityAnswer = Math.floor(10000000 + Math.random() * 90000000).toString();
 
     return {
       email,
-      amount: response?.amount ?? amount,
+      amount: finalAmount,
       securityAnswer,
-      timestamp: new Date().toISOString(),
+      timestamp: payload?.requestedAt || new Date().toISOString(),
     };
   },
 
@@ -75,25 +79,26 @@ export const walletService = {
     return true;
   },
 
-  getWithdrawalRequests: async (): Promise<
-    Array<{
-      id: string;
-      amount: number;
-      status: string;
-      destinationEmail: string;
-      createdAt: string;
-    }>
-  > => {
+  getWithdrawalRequests: async (): Promise<WithdrawalRequestItem[]> => {
     const response = await apiRequest<any>(apiEndpoints.payments.withdraw, {
       method: "GET",
     });
 
-    if (Array.isArray(response)) {
-      return response;
-    }
-    if (response?.data && Array.isArray(response.data)) {
-      return response.data;
-    }
-    return [];
+    const list = Array.isArray(response)
+      ? response
+      : response?.data && Array.isArray(response.data)
+      ? response.data
+      : [];
+
+    return list.map((item: any) => ({
+      id: item.id,
+      walletId: item.walletId,
+      amount: Number(item.amount) || 0,
+      destinationEmail: item.destinationEmail,
+      status: item.status || "pending",
+      requestedAt: item.requestedAt,
+      paidAt: item.paidAt,
+      paidByAdminId: item.paidByAdminId,
+    }));
   },
 };

@@ -5,6 +5,7 @@ import { useToast } from "../../../shared/components/ToastProvider";
 
 const WALLET_BALANCE_KEY = ["walletBalance"];
 const WALLET_ACTIVITIES_KEY = ["walletActivities"];
+const WALLET_WITHDRAWALS_KEY = ["walletWithdrawals"];
 
 export function useWallet() {
   const queryClient = useQueryClient();
@@ -32,12 +33,22 @@ export function useWallet() {
     queryFn: walletService.getActivities,
   });
 
+  const {
+    data: withdrawalRequests = [],
+    isLoading: isLoadingWithdrawals,
+    refetch: refetchWithdrawals,
+  } = useQuery({
+    queryKey: WALLET_WITHDRAWALS_KEY,
+    queryFn: walletService.getWithdrawalRequests,
+  });
+
   const withdrawMutation = useMutation({
     mutationFn: ({ email, amount }: { email: string; amount: number }) =>
       walletService.requestWithdrawal(email, amount),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: WALLET_BALANCE_KEY });
       queryClient.invalidateQueries({ queryKey: WALLET_ACTIVITIES_KEY });
+      queryClient.invalidateQueries({ queryKey: WALLET_WITHDRAWALS_KEY });
     },
     onError: (err: any) => {
       showToast(err?.message || "Failed to process withdrawal request.", {
@@ -79,10 +90,13 @@ export function useWallet() {
   return {
     balance,
     activities,
-    isLoading: isLoadingBalance || isLoadingActivities,
+    withdrawalRequests,
+    isLoading:
+      isLoadingBalance || isLoadingActivities || isLoadingWithdrawals,
     refetch: () => {
       refetchBalance();
       refetchActivities();
+      refetchWithdrawals();
     },
     withdraw,
     isWithdrawing: withdrawMutation.isPending,

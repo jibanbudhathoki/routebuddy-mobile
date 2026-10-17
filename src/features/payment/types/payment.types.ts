@@ -20,9 +20,14 @@ export interface PaymentHistoryItem {
   createdAt: string;
 }
 
+export interface CheckoutRequest {
+  requestSlug: string;
+  paymentMethodId?: string;
+}
+
 export interface CheckoutResponse {
-  success: boolean;
-  message: string;
+  success?: boolean;
+  message?: string;
   data: {
     clientSecret: string;
     captureBefore: string;
@@ -30,9 +35,13 @@ export interface CheckoutResponse {
 }
 
 export interface ConfirmDeliveryResponse {
-  message: string;
-  capturedAmount: number;
-  walletCredited: number;
+  success?: boolean;
+  message?: string;
+  payoutAmount?: number;
+  data?: {
+    success: boolean;
+    payoutAmount: number;
+  };
 }
 
 export interface PaymentDetail {

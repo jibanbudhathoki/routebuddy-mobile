@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ProfileHeader } from "../components/ProfileHeader";
 import { ProfileSection } from "../components/ProfileSection";
 import { ProfileMenuItem } from "../components/ProfileMenuItem";
+import { authService } from "../../auth/services/auth.service";
 import { clearAuthSession } from "../../auth/services/authStorage";
 import {
   unregisterDeviceToken,
@@ -27,6 +28,7 @@ import { UnistylesRuntime } from "react-native-unistyles";
 import { useToast } from "../../../shared/components/ToastProvider";
 
 import { AppearanceModal } from "../components/AppearanceModal";
+import { LogoutConfirmationModal } from "../components/LogoutConfirmationModal";
 
 export function ProfileScreen() {
   const router = useRouter();
@@ -35,8 +37,11 @@ export function ProfileScreen() {
   const { profile, isLoading } = useProfile();
   const { theme } = useUnistyles();
   const [isAppearanceModalVisible, setAppearanceModalVisible] = useState(false);
+  const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     let tokenUnregisterError: unknown;
 
     await withDeviceTokenSessionLock(async () => {
@@ -50,15 +55,20 @@ export function ProfileScreen() {
             tokenUnregisterError = error;
           }
         }
-        await clearAuthSession();
+
+        try {
+          await authService.logOut();
+        } catch (error) {
+          console.warn("Backend logout request failed:", error);
+        }
       } catch (error) {
-        showToast(
-          error instanceof Error ? error.message : "Unable to log out. Please try again.",
-          { title: "Logout failed", variant: "error" },
-        );
-        return;
+        console.warn("Pre-logout cleanup error:", error);
+      } finally {
+        await clearAuthSession();
       }
 
+      setIsLoggingOut(false);
+      setLogoutModalVisible(false);
       queryClient.clear();
       router.replace("/(auth)/login");
 
@@ -174,7 +184,7 @@ export function ProfileScreen() {
             iconName="logout"
             title="Log Out"
             subtitle="Sign out of your account"
-            onPress={handleLogout}
+            onPress={() => setLogoutModalVisible(true)}
           />
         </ProfileSection>
         <ProfileSection title="Security">
@@ -194,15 +204,22 @@ export function ProfileScreen() {
           <ProfileMenuItem
             iconName="delete-outline"
             title="Delete Account"
-            subtitle="Delete your account"
-            // onPress={handleLogout}
+            subtitle="Permanently remove your account"
+            onPress={() => router.push("/(modals)/delete-account")}
           />
         </ProfileSection>
       </ScrollView>
 
-      <AppearanceModal 
+      <AppearanceModal
         visible={isAppearanceModalVisible}
         onClose={() => setAppearanceModalVisible(false)}
+      />
+
+      <LogoutConfirmationModal
+        visible={isLogoutModalVisible}
+        isLoggingOut={isLoggingOut}
+        onCancel={() => setLogoutModalVisible(false)}
+        onConfirm={handleLogout}
       />
     </SafeAreaView>
   );

@@ -1,18 +1,15 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
-import {
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useEffect, useState } from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { CheckoutOrderOverview } from "../components/CheckoutOrderOverview";
 import { CheckoutPaymentForm } from "../components/CheckoutPaymentForm";
 import { usePayment } from "../hooks/usePayment";
+import { paymentMethodsService } from "../services/paymentMethods.service";
+import type { PaymentMethodItem } from "../types/paymentMethod.types";
 import { useRequestCreation } from "../../request/context/RequestCreationContext";
 import { useCities } from "../../../shared/city/hooks/useCities";
 import { useStores } from "../../../shared/store/hooks/useStores";
@@ -29,8 +26,44 @@ export function CheckoutScreen() {
   const [nameOnCard, setNameOnCard] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
-  const { initiateCheckout, isInitializing, error: paymentError } = usePayment();
+  const [savedMethods, setSavedMethods] = useState<PaymentMethodItem[]>([]);
+  const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
+  const [isLoadingMethods, setIsLoadingMethods] = useState(true);
+
+  const {
+    initiateCheckout,
+    isInitializing,
+    error: paymentError,
+  } = usePayment();
   const { confirmPayment } = useStripe();
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadSavedMethods = async () => {
+      try {
+        setIsLoadingMethods(true);
+        const methods = await paymentMethodsService.getPaymentMethods();
+        if (!isMounted) return;
+        setSavedMethods(methods);
+        if (methods.length > 0) {
+          const defaultCard = methods.find((m) => m.isDefault);
+          setSelectedMethodId(defaultCard ? defaultCard.id : methods[0].id);
+        } else {
+          setSelectedMethodId(null);
+        }
+      } catch (e) {
+        console.warn("Could not load saved methods:", e);
+        if (isMounted) setSelectedMethodId(null);
+      } finally {
+        if (isMounted) setIsLoadingMethods(false);
+      }
+    };
+
+    loadSavedMethods();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const items = requestData.items || [];
   const { subtotal, serviceFee, taxes, total } = calculateEstimate(items);
@@ -49,8 +82,9 @@ export function CheckoutScreen() {
   );
   const routeText = `${originCity?.name || "Origin"}${formatProvince(selectedStore?.province)} → ${destinationCity?.name || "Destination"}${formatProvince(destinationCity?.province)}`;
 
+  const isUsingSavedCard = selectedMethodId !== null;
   const isNameValid = nameOnCard.trim().length > 0;
-  const isAllValid = isFormValid && isNameValid;
+  const isAllValid = isUsingSavedCard || (isFormValid && isNameValid);
   const hasFailed = (hasSubmitted && !isAllValid) || !!paymentError;
 
   const handlePay = async () => {
@@ -60,16 +94,31 @@ export function CheckoutScreen() {
     try {
       if (!postId) throw new Error("No post ID provided for checkout");
 
-      const checkoutResponse: any = await initiateCheckout(postId);
-      if (checkoutResponse?.data?.clientSecret) {
+      const checkoutResponse: any = await initiateCheckout(
+        postId,
+        selectedMethodId || undefined,
+      );
+      const clientSecret =
+        checkoutResponse?.data?.clientSecret || checkoutResponse?.clientSecret;
+
+      if (clientSecret) {
+        const paymentData = isUsingSavedCard
+          ? {
+              paymentMethodType: "Card",
+              paymentMethodData: {
+                paymentMethodId: selectedMethodId,
+              },
+            }
+          : {
+              paymentMethodType: "Card",
+              paymentMethodData: {
+                billingDetails: { name: nameOnCard },
+              },
+            };
+
         const { error: stripeError } = await confirmPayment(
-          checkoutResponse.data.clientSecret,
-          {
-            paymentMethodType: "Card",
-            paymentMethodData: {
-              billingDetails: { name: nameOnCard },
-            },
-          },
+          clientSecret,
+          paymentData as any,
         );
 
         if (stripeError) {
@@ -178,6 +227,10 @@ export function CheckoutScreen() {
           total={total}
           onPay={handlePay}
           onReset={() => setHasSubmitted(false)}
+          savedMethods={savedMethods}
+          selectedMethodId={selectedMethodId}
+          onSelectMethod={setSelectedMethodId}
+          isLoadingMethods={isLoadingMethods}
         />
       </ScrollView>
     </View>

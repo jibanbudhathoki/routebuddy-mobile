@@ -47,12 +47,18 @@ export const paymentService = {
 
   /**
    * POST /api/v1/payments/checkout
-   * Checkout an accepted or pending request and pre-authorize payment via Stripe
+   * Checkout an accepted or pending request and pre-authorize payment via Stripe.
+   * If a saved card is selected, send its paymentMethodId.
    */
-  initiateCheckout: async (requestSlug: string): Promise<CheckoutResponse> => {
+  initiateCheckout: async (
+    requestSlug: string,
+    paymentMethodId?: string,
+  ): Promise<CheckoutResponse> => {
     return apiRequest<CheckoutResponse>(apiEndpoints.payments.checkout, {
       method: "POST",
-      body: { requestSlug },
+      body: paymentMethodId
+        ? { requestSlug, paymentMethodId }
+        : { requestSlug },
     });
   },
 

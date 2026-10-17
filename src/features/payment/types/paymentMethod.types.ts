@@ -41,8 +41,8 @@ export interface AddPaymentMethodInput {
   postalCode?: string;
 }
 
-export function mapApiPaymentMethod(apiItem: ApiPaymentMethod): PaymentMethodItem {
-  const rawBrand = (apiItem.card?.brand || '').toLowerCase();
+export function mapApiPaymentMethod(apiItem: any): PaymentMethodItem {
+  const rawBrand = (apiItem.card?.brand || apiItem.brand || '').toLowerCase();
   let brand: CardBrand = 'other';
   if (rawBrand.includes('visa')) brand = 'visa';
   else if (rawBrand.includes('mastercard')) brand = 'mastercard';
@@ -57,18 +57,22 @@ export function mapApiPaymentMethod(apiItem: ApiPaymentMethod): PaymentMethodIte
     other: 'Card',
   };
 
-  const expMonthStr = apiItem.card?.expMonth
-    ? String(apiItem.card.expMonth).padStart(2, '0')
+  const expMonth = apiItem.card?.expMonth ?? apiItem.expMonth;
+  const expYear = apiItem.card?.expYear ?? apiItem.expYear;
+  const last4 = apiItem.card?.last4 ?? apiItem.last4 ?? '••••';
+
+  const expMonthStr = expMonth
+    ? String(expMonth).padStart(2, '0')
     : '00';
-  const expYearStr = apiItem.card?.expYear
-    ? String(apiItem.card.expYear).slice(-2)
+  const expYearStr = expYear
+    ? String(expYear).slice(-2)
     : '00';
 
   return {
     id: apiItem.id,
     brand,
     brandDisplayName: brandDisplayMap[brand] || 'Card',
-    last4: apiItem.card?.last4 || '••••',
+    last4,
     expiryMonth: expMonthStr,
     expiryYear: expYearStr,
     isDefault: !!apiItem.isDefault,

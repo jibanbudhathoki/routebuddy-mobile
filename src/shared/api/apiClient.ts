@@ -20,7 +20,7 @@ type ApiRequestOptions = Omit<AxiosRequestConfig, 'baseURL' | 'data' | 'headers'
   timeoutMs?: number;
 };
 
-import { getAccessToken, getAuthSession, saveAuthSession } from '../../features/auth/services/authStorage';
+import { clearAuthSession, getAccessToken, getAuthSession, saveAuthSession } from '../../features/auth/services/authStorage';
 
 const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '');
 const defaultTimeoutMs = 15_000;
@@ -59,8 +59,13 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const isAuthRoute =
+      originalRequest?.url?.includes('/auth/logout') ||
+      originalRequest?.url?.includes('/auth/sign-in') ||
+      originalRequest?.url?.includes('/auth/session') ||
+      originalRequest?.url?.includes('/auth/delete-account');
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest?._retry && !isAuthRoute) {
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });
@@ -116,7 +121,15 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        return Promise.reject(refreshError);
+        await clearAuthSession();
+        return Promise.reject(
+          new ApiError(
+            'Your session has expired. Please log in again.',
+            401,
+            'SESSION_EXPIRED',
+            refreshError,
+          ),
+        );
       } finally {
         isRefreshing = false;
       }

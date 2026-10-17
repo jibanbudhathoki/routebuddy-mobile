@@ -22,6 +22,9 @@ export function WithdrawScreen() {
   const { balance, withdraw, isWithdrawing } = useWallet();
 
   const [email, setEmail] = useState("");
+  const [amountStr, setAmountStr] = useState(
+    balance.withdrawableBalance > 0 ? balance.withdrawableBalance.toFixed(2) : ""
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const formattedWithdrawable = balance.withdrawableBalance.toFixed(2);
@@ -29,15 +32,33 @@ export function WithdrawScreen() {
   const handleSendTransfer = async () => {
     setErrorMessage(null);
     const cleanEmail = email.trim();
+    const parsedAmount = parseFloat(amountStr) || balance.withdrawableBalance;
 
-    const result = withdrawSchema.safeParse({ email: cleanEmail });
+    if (parsedAmount <= 0) {
+      setErrorMessage("Withdrawal amount must be greater than $0.00");
+      return;
+    }
+
+    if (parsedAmount > balance.withdrawableBalance) {
+      setErrorMessage(
+        `Amount cannot exceed your available balance of $${formattedWithdrawable}`
+      );
+      return;
+    }
+
+    const result = withdrawSchema.safeParse({
+      email: cleanEmail,
+      amount: parsedAmount,
+    });
     if (!result.success) {
-      setErrorMessage(result.error.issues[0]?.message || "Invalid email address");
+      setErrorMessage(
+        result.error.issues[0]?.message || "Please check your inputs"
+      );
       return;
     }
 
     try {
-      const res = await withdraw(cleanEmail);
+      const res = await withdraw(cleanEmail, parsedAmount);
       router.replace({
         pathname: "/wallet/withdraw-success",
         params: {
@@ -87,7 +108,7 @@ export function WithdrawScreen() {
           <View style={styles.headlineSection}>
             <Text style={styles.title}>Withdraw your earnings</Text>
             <Text style={styles.subtitle}>
-              Enter your email address and we'll send you a secure e-transfer.
+              Enter your payout destination email and the amount you'd like to withdraw.
             </Text>
           </View>
 
@@ -111,7 +132,36 @@ export function WithdrawScreen() {
 
           {/* Form */}
           <View style={styles.formSection}>
-            <Text style={styles.inputLabel}>Email address</Text>
+            {/* Amount input */}
+            <View style={styles.amountHeaderRow}>
+              <Text style={styles.inputLabel}>Withdrawal amount</Text>
+              <TouchableOpacity
+                onPress={() => setAmountStr(formattedWithdrawable)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={styles.maxButtonText}>Use Max</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.currencyPrefix}>$</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="0.00"
+                placeholderTextColor={theme.colors.muted}
+                value={amountStr}
+                onChangeText={(text) => {
+                  setAmountStr(text);
+                  if (errorMessage) setErrorMessage(null);
+                }}
+                keyboardType="decimal-pad"
+              />
+            </View>
+
+            {/* Email input */}
+            <Text style={[styles.inputLabel, { marginTop: theme.spacing.md }]}>
+              Destination Email (Interac e-Transfer)
+            </Text>
             <View
               style={[
                 styles.inputWrapper,
@@ -126,7 +176,7 @@ export function WithdrawScreen() {
               />
               <TextInput
                 style={styles.textInput}
-                placeholder="Enter your email"
+                placeholder="recipient@example.com"
                 placeholderTextColor={theme.colors.muted}
                 value={email}
                 onChangeText={(text) => {
@@ -138,6 +188,10 @@ export function WithdrawScreen() {
                 autoCorrect={false}
               />
             </View>
+            <Text style={styles.helperText}>
+              Ensure this email can receive Interac e-Transfers.
+            </Text>
+
             {errorMessage && (
               <Text style={styles.errorText}>{errorMessage}</Text>
             )}
@@ -260,6 +314,28 @@ const styles = StyleSheet.create((theme) => ({
   },
   formSection: {
     gap: 8,
+  },
+  amountHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  maxButtonText: {
+    color: theme.colors.primary,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  currencyPrefix: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: theme.colors.text,
+    marginRight: 6,
+  },
+  helperText: {
+    fontSize: 12,
+    color: theme.colors.muted,
+    marginTop: -2,
+    marginBottom: 4,
   },
   inputLabel: {
     fontSize: 14,

@@ -162,4 +162,14 @@ export const authService = {
     await saveAuthSession(authSession);
     return authSession;
   },
+
+  async logOut(): Promise<void> {
+    try {
+      await apiRequest<any>(apiEndpoints.auth.logout, {
+        method: 'POST',
+      });
+    } catch (error) {
+      console.warn('Backend logout error (revoking sessions):', error);
+    }
+  },
 };

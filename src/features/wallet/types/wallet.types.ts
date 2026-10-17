@@ -39,6 +39,17 @@ export interface ApiWalletActivity {
   status?: string;
 }
 
+export interface WithdrawalRequestItem {
+  id: string;
+  walletId: string;
+  amount: number;
+  destinationEmail: string;
+  status: "pending" | "paid" | "failed" | string;
+  requestedAt: string;
+  paidAt?: string | null;
+  paidByAdminId?: string | null;
+}
+
 export interface ApiWithdrawalRequest {
   amount: number;
   destinationEmail: string;
@@ -64,8 +75,6 @@ export interface WithdrawalResult {
 }
 
 export function mapApiWalletSummary(data: any): WalletBalance {
-  // Support both backend API format (totalBalance, withdrawable, pendingEscrow)
-  // and documentation format (balance, pendingEscrow)
   const withdrawable =
     typeof data?.withdrawable === "number"
       ? data.withdrawable
@@ -94,14 +103,35 @@ export function mapApiWalletSummary(data: any): WalletBalance {
   };
 }
 
-export function mapApiWalletActivity(item: ApiWalletActivity): WalletActivity {
-  const isPositive = item.type === "credit" || item.type === "earnings";
-  const isWithdrawal = item.type === "withdrawal" || item.type === "debit";
-  
+export function mapApiWalletActivity(item: any): WalletActivity {
+  const isPositive =
+    item.type === "credit" ||
+    item.reason === "delivery_payout" ||
+    item.reason === "reversal";
+  const isWithdrawal = item.type === "debit" || item.reason === "withdrawal";
+
+  let title = "Transaction";
+  if (item.reason === "delivery_payout") {
+    title = item.orderId
+      ? `Delivery Payout (#${String(item.orderId).slice(-6)})`
+      : "Delivery Payout";
+  } else if (item.reason === "withdrawal") {
+    title = "Withdrawal Request";
+  } else if (item.reason === "reversal") {
+    title = "Withdrawal Reversal";
+  } else if (item.description) {
+    title = item.description;
+  } else if (isWithdrawal) {
+    title = "Withdrawal";
+  } else {
+    title = "Earnings";
+  }
+
   let dateFormatted = "Recent";
-  if (item.createdAt) {
+  const dateField = item.createdAt || item.date || item.requestedAt;
+  if (dateField) {
     try {
-      dateFormatted = new Date(item.createdAt).toLocaleDateString("en-US", {
+      dateFormatted = new Date(dateField).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
       });
@@ -110,12 +140,15 @@ export function mapApiWalletActivity(item: ApiWalletActivity): WalletActivity {
     }
   }
 
+  const rawAmount = Number(item.amount);
+  const amount = !isNaN(rawAmount) ? Math.abs(rawAmount) : 0;
+
   return {
-    id: item.id,
-    title: item.description || (isWithdrawal ? "Withdrawal" : "Earnings"),
+    id: item.id || String(Math.random()),
+    title,
     date: dateFormatted,
     category: isWithdrawal ? "Withdrawal" : "Earnings",
-    amount: Math.abs(item.amount || 0),
+    amount,
     isPositive,
     status: item.status === "pending" ? "pending" : "completed",
     type: isWithdrawal ? "withdrawal" : "earnings",

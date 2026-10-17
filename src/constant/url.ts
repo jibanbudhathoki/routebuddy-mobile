@@ -9,6 +9,8 @@ export const apiEndpoints = {
     changePassword: "/v1/auth/change-password",
     changeEmail: "/v1/auth/change-email",
     verifyChangeEmail: "/v1/auth/verify-change-email",
+    deleteAccount: "/v1/auth/delete-account",
+    logout: "/v1/auth/logout",
   },
   notifications: {
     tokens: "/v1/notifications/tokens",

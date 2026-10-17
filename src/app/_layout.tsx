@@ -189,6 +189,10 @@ export default function RootLayout() {
                       name="(modals)/change-email"
                       options={{ presentation: "card", headerShown: false }}
                     />
+                    <Stack.Screen
+                      name="(modals)/delete-account"
+                      options={{ presentation: "card", headerShown: false }}
+                    />
 
                     {/* Wallet Flow */}
                     <Stack.Screen

@@ -72,13 +72,13 @@ export function OrderSummaryScreen() {
   const storeNameParts = storeName.split(" ");
   const storeLogoText = storeNameParts[0]?.toUpperCase() || "STORE";
   const storeLogoSubText = storeNameParts.slice(1).join(" ").toUpperCase();
-  const originCity = cities.find(
-    (city) => city.uid === selectedStore?.cityUid,
-  );
+  const originCity = selectedStore?.city;
   const destinationCity = cities.find(
     (city) => city.uid === requestData.deliveryCityUid,
   );
-  const routeText = `${originCity?.name || "Origin"}, ${originCity?.provinceCode || ""}  →  ${destinationCity?.name || "Destination"}, ${destinationCity?.provinceCode || ""}`;
+  const originProv = typeof selectedStore?.province === "string" ? selectedStore.province : selectedStore?.province?.name;
+  const destProv = typeof destinationCity?.province === "string" ? destinationCity.province : destinationCity?.province?.name;
+  const routeText = `${originCity?.name || "Origin"}${originProv ? `, ${originProv}` : ""}  →  ${destinationCity?.name || "Destination"}${destProv ? `, ${destProv}` : ""}`;
 
   return (
     <View

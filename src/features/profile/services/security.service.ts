@@ -1,6 +1,15 @@
 import { apiRequest } from "../../../shared/api/apiClient";
 import { apiEndpoints } from "../../../constant/url";
-import { getAuthSession, saveAuthSession } from "../../auth/services/authStorage";
+import {
+  clearAuthSession,
+  getAuthSession,
+  saveAuthSession,
+} from "../../auth/services/authStorage";
+import {
+  unregisterDeviceToken,
+  withDeviceTokenSessionLock,
+} from "../../auth/services/deviceToken";
+import { deviceTokenStorage } from "../../../shared/storage/deviceTokenStorage";
 import type {
   ChangePasswordInput,
   ChangeEmailInput,
@@ -69,6 +78,41 @@ export const securityService = {
         },
       });
     }
+
+    return response;
+  },
+
+  async deleteAccount(): Promise<{ message?: string; success?: boolean }> {
+    const session = await getAuthSession();
+    if (!session?.accessToken) {
+      throw new Error("You must be signed in to delete your account.");
+    }
+
+    const response = await apiRequest<{ message?: string; success?: boolean }>(
+      apiEndpoints.auth.deleteAccount,
+      {
+        method: "POST",
+        body: {
+          idToken: session.accessToken,
+          confirm: true,
+        },
+      },
+    );
+
+    await withDeviceTokenSessionLock(async () => {
+      try {
+        const deviceToken = await deviceTokenStorage.get();
+        if (session && deviceToken) {
+          try {
+            await unregisterDeviceToken(deviceToken, session.user.id);
+          } catch (e) {
+            console.warn("Failed to unregister device token on account deletion:", e);
+          }
+        }
+      } finally {
+        await clearAuthSession();
+      }
+    });
 
     return response;
   },
