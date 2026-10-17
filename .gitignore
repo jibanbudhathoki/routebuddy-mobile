@@ -52,8 +52,3 @@ ARCHITECTURE.md
 
 #APK
 *.apk
-
-# Generated APK files
-*.apk
-
-*.apk
