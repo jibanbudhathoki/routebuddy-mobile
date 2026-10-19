@@ -3,7 +3,11 @@ import { Platform } from 'react-native';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 import { authService } from '../services/auth.service';
-import { getDeviceToken } from '../services/deviceToken';
+import {
+  getDeviceToken,
+  registerDeviceToken,
+  withDeviceTokenSessionLock,
+} from '../services/deviceToken';
 
 type GoogleServicesConfig = {
   client?: Array<{
@@ -53,19 +57,21 @@ export function useGoogleSignIn() {
         throw new Error('Google did not return an ID token. Please try again.');
       }
 
-      const deviceToken = await getDeviceToken();
-      await authService.createGoogleSession(
-        {
-          idToken,
-          deviceToken,
-          platform: Platform.OS,
-        },
-        {
-          id: response.data.user.id,
-          fullName: response.data.user.name ?? '',
-          email: response.data.user.email,
-        },
-      );
+      await withDeviceTokenSessionLock(async () => {
+        const session = await authService.createGoogleSession(
+          {
+            idToken,
+            platform: Platform.OS,
+          },
+          {
+            id: response.data.user.id,
+            fullName: response.data.user.name ?? '',
+            email: response.data.user.email,
+          },
+        );
+        const deviceToken = await getDeviceToken();
+        await registerDeviceToken(deviceToken, session.user.id);
+      });
       return true;
     } catch (signInError) {
       setError(

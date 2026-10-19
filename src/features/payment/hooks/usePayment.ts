@@ -5,11 +5,17 @@ export function usePayment() {
   const [isInitializing, setIsInitializing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const initiateCheckout = async (requestSlug: string) => {
+  const initiateCheckout = async (
+    requestSlug: string,
+    paymentMethodId?: string,
+  ) => {
     setIsInitializing(true);
     setError(null);
     try {
-      const response = await paymentService.initiateCheckout(requestSlug);
+      const response = await paymentService.initiateCheckout(
+        requestSlug,
+        paymentMethodId,
+      );
       return response;
     } catch (err) {
       const message =

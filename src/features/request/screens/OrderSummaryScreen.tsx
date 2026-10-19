@@ -98,8 +98,9 @@ export function OrderSummaryScreen() {
   const destinationCity = cities.find(
     (city) => city.uid === requestData.deliveryCityUid,
   );
-  const originProvince = selectedStore?.province?.name;
-  const routeText = `${originCity?.name || "Origin"}${originProvince ? `, ${originProvince}` : ""}  →  ${destinationCity?.name || "Destination"}`;
+  const originProv = typeof selectedStore?.province === "string" ? selectedStore.province : selectedStore?.province?.name;
+  const destProv = typeof destinationCity?.province === "string" ? destinationCity.province : destinationCity?.province?.name;
+  const routeText = `${originCity?.name || "Origin"}${originProv ? `, ${originProv}` : ""}  →  ${destinationCity?.name || "Destination"}${destProv ? `, ${destProv}` : ""}`;
 
   return (
     <View

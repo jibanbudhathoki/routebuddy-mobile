@@ -13,10 +13,18 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ProfileHeader } from "../components/ProfileHeader";
 import { ProfileSection } from "../components/ProfileSection";
 import { ProfileMenuItem } from "../components/ProfileMenuItem";
+import { authService } from "../../auth/services/auth.service";
 import { clearAuthSession } from "../../auth/services/authStorage";
+import {
+  unregisterDeviceToken,
+  withDeviceTokenSessionLock,
+} from "../../auth/services/deviceToken";
+import { deviceTokenStorage } from "../../../shared/storage/deviceTokenStorage";
+import { getAuthSession } from "../../auth/services/authStorage";
 import { useProfileSummary } from "../hooks/useProfileSummary";
 import { useToast } from "../../../shared/components/ToastProvider";
 import { AppearanceModal } from "../components/AppearanceModal";
+import { LogoutConfirmationModal } from "../components/LogoutConfirmationModal";
 import { AppReviewPrompt } from "../../appReview/components/AppReviewPrompt";
 import { useSubmitAppReview } from "../../appReview/hooks/useSubmitAppReview";
 
@@ -27,20 +35,50 @@ export function ProfileScreen() {
   const { summary, isLoading, error, refetch } = useProfileSummary();
   const { theme } = useUnistyles();
   const [isAppearanceModalVisible, setAppearanceModalVisible] = useState(false);
+  const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isAppReviewVisible, setAppReviewVisible] = useState(false);
   const submitAppReview = useSubmitAppReview();
 
   const handleLogout = async () => {
-    try {
-      await clearAuthSession();
+    setIsLoggingOut(true);
+    let tokenUnregisterError: unknown;
+
+    await withDeviceTokenSessionLock(async () => {
+      try {
+        const session = await getAuthSession();
+        const deviceToken = await deviceTokenStorage.get();
+        if (session && deviceToken) {
+          try {
+            await unregisterDeviceToken(deviceToken, session.user.id);
+          } catch (error) {
+            tokenUnregisterError = error;
+          }
+        }
+
+        try {
+          await authService.logOut();
+        } catch (error) {
+          console.warn("Backend logout request failed:", error);
+        }
+      } catch (error) {
+        console.warn("Pre-logout cleanup error:", error);
+      } finally {
+        await clearAuthSession();
+      }
+
+      setIsLoggingOut(false);
+      setLogoutModalVisible(false);
       queryClient.clear();
       router.replace("/(auth)/login");
-    } catch (error) {
-      showToast(
-        error instanceof Error ? error.message : "Unable to log out. Please try again.",
-        { title: "Logout failed", variant: "error" },
-      );
-    }
+
+      if (tokenUnregisterError) {
+        showToast(
+          "You are logged out, but this device may still receive notifications for your account.",
+          { title: "Notification token was not removed", variant: "error" },
+        );
+      }
+    });
   };
 
   const handleAppearancePress = () => {
@@ -133,6 +171,7 @@ export function ProfileScreen() {
             iconName="credit-card-outline"
             title="Payment Methods"
             subtitle="Cards & accounts"
+            onPress={() => router.push("/(tabs)/payment-methods")}
           />
         </ProfileSection>
 
@@ -142,6 +181,7 @@ export function ProfileScreen() {
             iconName="wallet-outline"
             title="Wallet"
             subtitle="Balance & withdrawals"
+            onPress={() => router.push("/wallet")}
           />
         </ProfileSection>
 
@@ -169,7 +209,7 @@ export function ProfileScreen() {
             iconName="logout"
             title="Log Out"
             subtitle="Sign out of your account"
-            onPress={handleLogout}
+            onPress={() => setLogoutModalVisible(true)}
           />
         </ProfileSection>
         <ProfileSection title="Security">
@@ -178,25 +218,34 @@ export function ProfileScreen() {
             iconName="lock-outline"
             title="Change Password"
             subtitle="Change your password"
+            onPress={() => router.push("/(modals)/change-password")}
           />
           <ProfileMenuItem
             iconName="email-outline"
             title="Change Email"
             subtitle="Change your email"
+            onPress={() => router.push("/(modals)/change-email")}
           />
           <ProfileMenuItem
             iconName="delete-outline"
             title="Delete Account"
-            subtitle="Delete your account"
-            // onPress={handleLogout}
+            subtitle="Permanently remove your account"
+            onPress={() => router.push("/(modals)/delete-account")}
           />
         </ProfileSection>
       </ScrollView>
 
-      <AppearanceModal 
+      <AppearanceModal
         visible={isAppearanceModalVisible}
         onClose={() => setAppearanceModalVisible(false)}
       />
+      <LogoutConfirmationModal
+        visible={isLogoutModalVisible}
+        isLoggingOut={isLoggingOut}
+        onCancel={() => setLogoutModalVisible(false)}
+        onConfirm={handleLogout}
+      />
+
       <AppReviewPrompt
         visible={isAppReviewVisible}
         isSubmitting={submitAppReview.isPending}

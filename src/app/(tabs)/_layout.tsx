@@ -129,6 +129,12 @@ export default function TabLayout() {
             href: null,
           }}
         />
+        <Tabs.Screen
+          name="payment-methods"
+          options={{
+            href: null,
+          }}
+        />
       </Tabs>
       <AddActionModal
         visible={isAddModalVisible}
