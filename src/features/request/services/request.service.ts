@@ -1,11 +1,11 @@
 import {
-  acceptOffer,
-  acceptTripOrder,
   addDeliveryProof,
   cancelRequest,
   confirmDelivery,
   deleteRequest,
   reportIssue,
+  respondToOffer,
+  respondToTripOrder,
   updateRequestStatus,
 } from "./requestActions.service";
 import {
@@ -26,8 +26,8 @@ export const requestService = {
   createTripOrder,
   createOpenRequest,
   submitOffer,
-  acceptOffer,
-  acceptTripOrder,
+  respondToOffer,
+  respondToTripOrder,
   updateRequestStatus,
   addDeliveryProof,
   confirmDelivery,

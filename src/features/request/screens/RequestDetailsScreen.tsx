@@ -18,7 +18,7 @@ import { RequestOffersList } from "../components/RequestOffersList";
 import { RequestShoppingList } from "../components/RequestShoppingList";
 import { RequestStatusTimeline } from "../components/RequestStatusTimeline";
 import { ReportRequestIssueDialog } from "../components/ReportRequestIssueDialog";
-import { useAcceptRequestOffer } from "../hooks/useRequestOffers";
+import { useRespondToRequestOffer } from "../hooks/useRequestOffers";
 import {
   useCancelRequest,
   useDeleteRequest,
@@ -40,7 +40,7 @@ export function RequestDetailsScreen() {
   const createConversation = useCreateConversation();
   const requestUid = typeof uid === "string" ? uid : "";
   const { data: request, error, isLoading, refetch } = useRequestDetails(requestUid);
-  const acceptOffer = useAcceptRequestOffer(requestUid);
+  const respondToOffer = useRespondToRequestOffer(requestUid);
   const cancelRequest = useCancelRequest(requestUid);
   const deleteRequest = useDeleteRequest(requestUid);
   const reportIssue = useReportRequestIssue(requestUid);
@@ -121,17 +121,27 @@ export function RequestDetailsScreen() {
               <RequestOffersList
                 offers={request.offers ?? []}
                 requestStatus={request.status}
-                acceptingOfferUid={
-                  acceptOffer.isPending ? acceptOffer.variables : undefined
+                respondingOfferUid={
+                  respondToOffer.isPending
+                    ? respondToOffer.variables?.offerUid
+                    : undefined
                 }
-                onAccept={(offerUid) =>
-                  acceptOffer.mutate(offerUid, {
-                    onSuccess: () => showToast("Offer accepted."),
+                respondingAction={
+                  respondToOffer.isPending
+                    ? respondToOffer.variables?.action
+                    : undefined
+                }
+                onAction={(offerUid, action) =>
+                  respondToOffer.mutate({ offerUid, action }, {
+                    onSuccess: () =>
+                      showToast(
+                        action === "accept" ? "Offer accepted." : "Offer rejected.",
+                      ),
                     onError: (failure) =>
                       showToast(
                         failure instanceof Error
                           ? failure.message
-                          : "Unable to accept this offer.",
+                          : `Unable to ${action} this offer.`,
                       ),
                   })
                 }

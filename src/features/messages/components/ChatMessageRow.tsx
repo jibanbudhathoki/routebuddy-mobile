@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Image, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { useUnistyles } from "react-native-unistyles";
 
 import { parseSharedDetailLink } from "../../../shared/utils/sharedDetailLink";
@@ -10,6 +10,7 @@ import type {
   ChatTripOrder,
   Message,
 } from "../types/message.types";
+import type { RequestAction } from "../../request/types/request";
 import { RequestOfferMessageCard } from "./RequestOfferMessageCard";
 import { SystemChatNotice } from "./SystemChatNotice";
 import { TripOrderMessageCard } from "./TripOrderMessageCard";
@@ -17,28 +18,26 @@ import { DeliveryProofMessageCard } from "./DeliveryProofMessageCard";
 import { SwipeToReplyMessage } from "./SwipeToReplyMessage";
 import { ChatMessageMedia } from "./ChatMessageMedia";
 import { styles } from "./chatMessageRow.styles";
-import { resolveAvatarUrl } from "../utils/resolveAvatarUrl";
 
 interface ChatMessageRowProps {
   message: Message;
   replyMessage?: Message;
   currentUserUid: string;
-  participantName: string;
-  participantAvatar: string | null;
-  currentUserAvatar: string | null;
   selected: boolean;
   selectionMode: boolean;
   requestOffer?: ChatRequestOffer;
   tripOrder?: ChatTripOrder;
   showRequestOfferActions: boolean;
   showTripOrderActions: boolean;
-  isAcceptingOffer: boolean;
-  isAcceptingOrder: boolean;
+  isRespondingToOffer: boolean;
+  respondingOfferAction?: RequestAction;
+  isRespondingToOrder: boolean;
+  respondingOrderAction?: RequestAction;
   canConfirmDelivery: boolean;
   isConfirmingDelivery: boolean;
   deliveryConfirmed: boolean;
-  onAcceptOffer: (offerUid: string) => void;
-  onAcceptOrder: (orderUid: string) => void;
+  onOfferAction: (offerUid: string, action: RequestAction) => void;
+  onOrderAction: (orderUid: string, action: RequestAction) => void;
   onConfirmDelivery: (requestUid: string) => void;
   onPress: () => void;
   onLongPress: () => void;
@@ -50,22 +49,21 @@ export function ChatMessageRow({
   message,
   replyMessage,
   currentUserUid,
-  participantName,
-  participantAvatar,
-  currentUserAvatar,
   selected,
   selectionMode,
   requestOffer,
   tripOrder,
   showRequestOfferActions,
   showTripOrderActions,
-  isAcceptingOffer,
-  isAcceptingOrder,
+  isRespondingToOffer,
+  respondingOfferAction,
+  isRespondingToOrder,
+  respondingOrderAction,
   canConfirmDelivery,
   isConfirmingDelivery,
   deliveryConfirmed,
-  onAcceptOffer,
-  onAcceptOrder,
+  onOfferAction,
+  onOrderAction,
   onConfirmDelivery,
   onPress,
   onLongPress,
@@ -93,11 +91,6 @@ export function ChatMessageRow({
   const sharedTarget =
     message.type === "text" ? parseSharedDetailLink(message.text) : null;
   const reactions = getReactionCounts(message.reactions);
-  const avatarUrl = resolveAvatarUrl(
-    message.sender?.photoUrl ?? participantAvatar,
-  );
-  const name = message.sender?.displayName ?? participantName;
-
   return (
     <SwipeToReplyMessage enabled={!selectionMode} onReply={onSwipeReply}>
       <View
@@ -106,7 +99,6 @@ export function ChatMessageRow({
           isMine ? styles.messageRowMine : styles.messageRowOther,
         ]}
       >
-        {!isMine ? <Avatar uri={avatarUrl} name={name} /> : null}
         <View
           style={[
             styles.messageColumn,
@@ -133,25 +125,27 @@ export function ChatMessageRow({
               order={tripOrder}
               message={messageText}
               showActions={showTripOrderActions}
-              isAccepting={isAcceptingOrder}
+              isResponding={isRespondingToOrder}
+              respondingAction={respondingOrderAction}
               selected={selected}
               selectionMode={selectionMode}
               onPress={onPress}
               onLongPress={onLongPress}
               onDoubleTap={onDoubleTap}
-              onAccept={() => onAcceptOrder(tripOrder.uid)}
+              onAction={(action) => onOrderAction(tripOrder.uid, action)}
             />
           ) : requestOffer ? (
             <RequestOfferMessageCard
               offer={requestOffer}
               showActions={showRequestOfferActions}
-              isAccepting={isAcceptingOffer}
+              isResponding={isRespondingToOffer}
+              respondingAction={respondingOfferAction}
               selected={selected}
               selectionMode={selectionMode}
               onPress={onPress}
               onLongPress={onLongPress}
               onDoubleTap={onDoubleTap}
-              onAccept={() => onAcceptOffer(requestOffer.uid)}
+              onAction={(action) => onOfferAction(requestOffer.uid, action)}
             />
           ) : (
             <MessageGesturePressable
@@ -192,6 +186,21 @@ export function ChatMessageRow({
               ) : (
                 <Text style={styles.messageText}>{messageText}</Text>
               )}
+              <View style={styles.messageMeta}>
+                <Text style={styles.messageTime}>
+                  {formatTime(message.createdAt)}
+                </Text>
+                {isMine ? (
+                  <MaterialCommunityIcons
+                    name={message.isRead ? "check-all" : "check"}
+                    size={12}
+                    color={
+                      message.isRead ? theme.colors.primary : theme.colors.muted
+                    }
+                    accessibilityLabel={message.isRead ? "Read" : "Sent"}
+                  />
+                ) : null}
+              </View>
               {selected ? (
                 <MaterialCommunityIcons
                   name="check-circle"
@@ -244,46 +253,16 @@ export function ChatMessageRow({
               ))}
             </View>
           ) : null}
-          <View style={styles.messageMeta}>
-            <Text style={styles.messageTime}>
-              {formatTime(message.createdAt)}
-            </Text>
-          </View>
+          {message.deliveryProof || tripOrder || requestOffer ? (
+            <View style={styles.messageMeta}>
+              <Text style={styles.messageTime}>
+                {formatTime(message.createdAt)}
+              </Text>
+            </View>
+          ) : null}
         </View>
-        {isMine ? <Avatar uri={currentUserAvatar} name="You" small /> : null}
       </View>
     </SwipeToReplyMessage>
-  );
-}
-
-function Avatar({
-  uri,
-  name,
-  small = false,
-}: {
-  uri: string | null;
-  name: string;
-  small?: boolean;
-}) {
-  const { theme } = useUnistyles();
-  return (
-    <View
-      accessible
-      accessibilityLabel={`${name} profile photo`}
-      style={[styles.avatar, small && styles.smallAvatar]}
-    >
-      {uri ? (
-        <Image source={{ uri }} style={styles.avatarImage} />
-      ) : (
-        <View style={styles.avatarFallback}>
-          <MaterialCommunityIcons
-            name="account"
-            size={small ? 16 : 19}
-            color={theme.colors.onPrimary}
-          />
-        </View>
-      )}
-    </View>
   );
 }
 

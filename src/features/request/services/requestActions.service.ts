@@ -5,6 +5,7 @@ import type {
   CancelRequestResponse,
   DeleteRequestResponse,
   RequestDetailsResponse,
+  RequestAction,
   RequestDeliveryStatus,
   ReportRequestIssuePayload,
   ReportRequestIssueResponse,
@@ -16,64 +17,54 @@ import {
 } from "../validations/reportRequestIssue";
 import { updateRequestStatusSchema } from "../validations/updateRequestStatus";
 
-export const acceptOffer = async (
+export const respondToOffer = async (
   requestUid: string,
   offerUid: string,
-): Promise<RequestDetailsResponse> => {
+  action: RequestAction,
+): Promise<void> => {
   if (!requestUid.trim() || !offerUid.trim()) {
     throw new Error(
-      "A request ID and offer ID are required to accept an offer.",
+      "A request ID and offer ID are required to respond to an offer.",
     );
   }
 
   const response = await apiRequest<{
     success: boolean;
-    message: string;
-    data: RequestDetailsResponse;
+    message?: string;
   }>(
-    apiEndpoints.requests.acceptOffer
+    apiEndpoints.requests.acceptOrRejectOffer
       .replace(":uid", encodeURIComponent(requestUid))
       .replace(":offerUid", encodeURIComponent(offerUid)),
-    { method: "POST" },
+    { method: "POST", body: { action } },
   );
 
   if (!response.success) {
-    throw new Error(response.message || "Unable to accept this offer.");
+    throw new Error(response.message || `Unable to ${action} this offer.`);
   }
-  if (!response.data) {
-    throw new Error("The accept-offer response did not include request data.");
-  }
-
-  return response.data;
 };
 
-export const acceptTripOrder = async (
+export const respondToTripOrder = async (
   orderUid: string,
-): Promise<RequestDetailsResponse> => {
+  action: RequestAction,
+): Promise<void> => {
   if (!orderUid.trim()) {
-    throw new Error("An order ID is required to accept this order.");
+    throw new Error("An order ID is required to respond to this order.");
   }
 
   const response = await apiRequest<{
     success: boolean;
-    message: string;
-    data: RequestDetailsResponse;
+    message?: string;
   }>(
-    apiEndpoints.requests.acceptTripOrder.replace(
+    apiEndpoints.requests.acceptOrRejectTripOrder.replace(
       ":uid",
       encodeURIComponent(orderUid),
     ),
-    { method: "POST" },
+    { method: "POST", body: { action } },
   );
 
   if (!response.success) {
-    throw new Error(response.message || "Unable to accept this order.");
+    throw new Error(response.message || `Unable to ${action} this order.`);
   }
-  if (!response.data) {
-    throw new Error("The accept-order response did not include order details.");
-  }
-
-  return response.data;
 };
 
 export const updateRequestStatus = async (

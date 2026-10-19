@@ -17,7 +17,10 @@ import { ChatComposer } from "../components/ChatComposer";
 import { ChatMessagesPanel } from "../components/ChatMessagesPanel";
 import { ChatDetailHeader } from "../components/ChatDetailHeader";
 import { RequestStatusTimeline } from "../../request/components/RequestStatusTimeline";
-import type { RequestDetailsResponse } from "../../request/types/request";
+import type {
+  RequestAction,
+  RequestDetailsResponse,
+} from "../../request/types/request";
 import { SelectedMessageReactions } from "../components/SelectedMessageReactions";
 import type {
   ChatRequestOffer,
@@ -29,6 +32,11 @@ import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { resolveAvatarUrl } from "../utils/resolveAvatarUrl";
 import { styles } from "../components/chatDetailScreen.styles";
 
+interface RespondingItem {
+  uid: string;
+  action: RequestAction;
+}
+
 interface ChatDetailScreenProps {
   requestUid?: string;
   request?: RequestDetailsResponse;
@@ -36,11 +44,17 @@ interface ChatDetailScreenProps {
   requestOffers?: ChatRequestOffer[];
   tripOrder?: ChatTripOrder;
   orderDriverUid?: string;
-  isAcceptingOffer?: boolean;
-  isAcceptingOrder?: boolean;
+  respondingOffer?: RespondingItem;
+  respondingOrder?: RespondingItem;
   isConfirmingDelivery?: boolean;
-  onAcceptOffer?: (offerUid: string) => Promise<void>;
-  onAcceptOrder?: (orderUid: string) => Promise<void>;
+  onOfferAction?: (
+    offerUid: string,
+    action: RequestAction,
+  ) => Promise<void>;
+  onOrderAction?: (
+    orderUid: string,
+    action: RequestAction,
+  ) => Promise<void>;
   onConfirmDelivery?: (requestUid: string) => Promise<void>;
   onDeliveryConfirmed?: () => void;
 }
@@ -52,11 +66,11 @@ export function ChatDetailScreen({
   requestOffers = [],
   tripOrder,
   orderDriverUid,
-  isAcceptingOffer = false,
-  isAcceptingOrder = false,
+  respondingOffer,
+  respondingOrder,
   isConfirmingDelivery = false,
-  onAcceptOffer,
-  onAcceptOrder,
+  onOfferAction,
+  onOrderAction,
   onConfirmDelivery,
   onDeliveryConfirmed,
 }: ChatDetailScreenProps = {}) {
@@ -148,8 +162,8 @@ export function ChatDetailScreen({
   const effectiveRequestUid = requestUid || conversation?.requestId || "";
   const requestActions = useChatRequestActions({
     requestUid: effectiveRequestUid,
-    onAcceptOffer,
-    onAcceptOrder,
+    onOfferAction,
+    onOrderAction,
     onConfirmDelivery,
     onDeliveryConfirmed,
     setDialog,
@@ -213,23 +227,20 @@ export function ChatDetailScreen({
         conversationId={conversation?.msgId ?? conversationId}
         contextTitle={contextTitle}
         currentUserUid={currentUserUid}
-        participantName={participantName}
-        participantAvatar={participantAvatar}
-        currentUserAvatar={currentParticipant?.photoUrl ?? null}
         requestUid={effectiveRequestUid}
         requesterUid={requesterUid}
         orderDriverUid={orderDriverUid}
         requestOffers={requestOffers}
         tripOrder={tripOrder}
-        isAcceptingOffer={isAcceptingOffer}
-        isAcceptingOrder={isAcceptingOrder}
+        respondingOffer={respondingOffer}
+        respondingOrder={respondingOrder}
         canConfirmDelivery={Boolean(
           requesterUid && currentUserUid === requesterUid,
         )}
         isConfirmingDelivery={isConfirmingDelivery}
         deliveryConfirmed={requestActions.deliveryConfirmed}
-        onAcceptOffer={requestActions.onAcceptOffer}
-        onAcceptOrder={requestActions.onAcceptOrder}
+        onOfferAction={requestActions.onOfferAction}
+        onOrderAction={requestActions.onOrderAction}
         onConfirmDelivery={requestActions.onConfirmDelivery}
         selectedMessageIds={selectedMessageIds}
         selectionMode={selectedMessageIds.length > 0}

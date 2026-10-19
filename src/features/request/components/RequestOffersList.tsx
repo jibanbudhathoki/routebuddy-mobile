@@ -2,24 +2,26 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
-import type { RequestOffer } from "../types/request";
+import type { RequestAction, RequestOffer } from "../types/request";
 import { RequestOfferCard } from "./RequestOfferCard";
 
 interface RequestOffersListProps {
   offers: RequestOffer[];
   requestStatus: string;
-  acceptingOfferUid?: string;
-  onAccept: (offerUid: string) => void;
+  respondingOfferUid?: string;
+  respondingAction?: RequestAction;
+  onAction: (offerUid: string, action: RequestAction) => void;
 }
 
 export function RequestOffersList({
   offers,
   requestStatus,
-  acceptingOfferUid,
-  onAccept,
+  respondingOfferUid,
+  respondingAction,
+  onAction,
 }: RequestOffersListProps) {
   const { theme } = useUnistyles();
-  const canAccept = requestStatus.toLowerCase() === "open";
+  const canRespond = requestStatus.toLowerCase() === "open";
 
   return (
     <View style={styles.section}>
@@ -46,10 +48,13 @@ export function RequestOffersList({
             <RequestOfferCard
               key={offer.uid}
               offer={offer}
-              canAccept={canAccept}
-              isAccepting={acceptingOfferUid === offer.uid}
-              isAnyOfferAccepting={Boolean(acceptingOfferUid)}
-              onAccept={() => onAccept(offer.uid)}
+              canRespond={canRespond}
+              isResponding={respondingOfferUid === offer.uid}
+              respondingAction={
+                respondingOfferUid === offer.uid ? respondingAction : undefined
+              }
+              isAnyOfferResponding={Boolean(respondingOfferUid)}
+              onAction={(action) => onAction(offer.uid, action)}
             />
           ))}
         </View>

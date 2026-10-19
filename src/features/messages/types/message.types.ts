@@ -21,6 +21,8 @@ export interface Message {
   mediaUrl: string | null;
   replyToUid: string | null;
   reactions: MessageReaction[] | Record<string, string> | null;
+  isRead?: boolean;
+  readBy?: string[];
   deletedAt?: string | null;
   updatedAt?: string;
   sender: {
@@ -71,6 +73,8 @@ export interface MessageResponse {
   mediaUrl?: string | null;
   replyToUid?: string | null;
   reactions?: Message["reactions"];
+  isRead?: boolean;
+  readBy?: string[];
   deletedAt?: string | null;
   updatedAt?: string;
   sender?: Message["sender"];
@@ -95,6 +99,17 @@ export interface MessageActionResponse {
   data: {
     success: boolean;
     deletedCount?: number;
+  };
+}
+
+export interface ReadConversationResponse {
+  success: boolean;
+  message: string;
+  data: {
+    success: boolean;
+    conversationUid: string;
+    userUid: string;
+    messageUids: string[];
   };
 }
 
@@ -138,7 +153,9 @@ export interface InboxMessage {
   recipientName: string;
   latestMsg: string;
   latestMsgIsOwn?: boolean;
+  latestMessageUid?: string;
   contextType: string;
+  isRead?: boolean;
   avatarUrl?: string | null;
   timestamp?: string;
   unreadCount?: number;
@@ -153,7 +170,9 @@ export interface InboxMessageResponse {
   latestMsg?: string;
   latestMsgType?: Message["type"];
   latestMsgSenderUid?: string;
+  latestMessageUid?: string;
   contextType?: string;
+  isRead?: boolean;
   avatarUrl?: string | null;
   recipientImage?: string | null;
   timestamp?: string;

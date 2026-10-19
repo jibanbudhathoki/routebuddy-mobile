@@ -71,8 +71,8 @@ export const apiEndpoints = {
     updateRequestStatus: "/v1/requests/:uid/status",
     listAllRequests: "/v1/requests",
     submitOffer: "/v1/requests/:uid/offers",
-    acceptOffer: "/v1/requests/:uid/offers/:offerUid/accept",
-    acceptTripOrder: "/v1/requests/:uid/accept",
+    acceptOrRejectOffer: "/v1/requests/:uid/offers/:offerUid/action",
+    acceptOrRejectTripOrder: "/v1/requests/:uid/action",
     cancelRequest: "/v1/requests/:uid/cancel",
     deleteRequest: "/v1/requests/:uid",
     listMyAssignedRequests: "/v1/requests/driver/me",
@@ -90,6 +90,7 @@ export const apiEndpoints = {
     deleteConversation: "/v1/messages/conversations/:id",
     deleteMessage: "/v1/messages/messages",
     reactToMessage: "/v1/messages/messages/:id/react",
+    readMessage: "/v1/messages/conversations/:id/read",
   },
   orders: {
     postOrder: "/v1/requests/order",

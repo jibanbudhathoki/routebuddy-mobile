@@ -1,36 +1,37 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { MessageGesturePressable } from "./MessageGesturePressable";
 import type { ChatRequestOffer } from "../types/message.types";
+import type { RequestAction } from "../../request/types/request";
 
 interface RequestOfferMessageCardProps {
   offer: ChatRequestOffer;
   showActions: boolean;
-  isAccepting: boolean;
+  isResponding: boolean;
+  respondingAction?: RequestAction;
   selected: boolean;
   selectionMode: boolean;
   onPress: () => void;
   onLongPress: () => void;
   onDoubleTap: () => void;
-  onAccept: () => void;
+  onAction: (action: RequestAction) => void;
 }
 
 export function RequestOfferMessageCard({
   offer,
   showActions,
-  isAccepting,
+  isResponding,
+  respondingAction,
   selected,
   selectionMode,
   onPress,
   onLongPress,
   onDoubleTap,
-  onAccept,
+  onAction,
 }: RequestOfferMessageCardProps) {
   const { theme } = useUnistyles();
-  const [isRejected, setIsRejected] = useState(false);
   const date = new Date(offer.proposedLatestBy);
   const proposedDate = Number.isNaN(date.getTime())
     ? "Time not available"
@@ -38,7 +39,7 @@ export function RequestOfferMessageCard({
         dateStyle: "medium",
         timeStyle: "short",
       });
-  const isPending = offer.status.toLowerCase() === "pending" && !isRejected;
+  const isPending = offer.status.toLowerCase() === "pending";
 
   return (
     <View style={[styles.card, selected && styles.selectedCard]}>
@@ -57,7 +58,7 @@ export function RequestOfferMessageCard({
           />
           <Text style={styles.title}>Delivery offer</Text>
           <Text style={styles.status}>
-            {isRejected ? "Rejected" : offer.status}
+            {offer.status}
           </Text>
         </View>
         <View style={styles.proposedTime}>
@@ -76,14 +77,14 @@ export function RequestOfferMessageCard({
           <View style={styles.actions}>
             <Pressable
               accessibilityRole="button"
-              disabled={isAccepting}
-              onPress={onAccept}
+              disabled={isResponding}
+              onPress={() => onAction("accept")}
               style={[
                 styles.acceptButton,
-                isAccepting && styles.disabledButton,
+                isResponding && styles.disabledButton,
               ]}
             >
-              {isAccepting ? (
+              {isResponding && respondingAction === "accept" ? (
                 <ActivityIndicator
                   size="small"
                   color={theme.colors.onPrimary}
@@ -96,22 +97,35 @@ export function RequestOfferMessageCard({
                 />
               )}
               <Text style={styles.acceptText}>
-                {isAccepting ? "Accepting..." : "Accept"}
+                {isResponding && respondingAction === "accept"
+                  ? "Accepting..."
+                  : "Accept"}
               </Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ disabled: isAccepting }}
-              disabled={isAccepting}
-              onPress={() => setIsRejected(true)}
-              style={styles.rejectButton}
+              accessibilityState={{ disabled: isResponding }}
+              disabled={isResponding}
+              onPress={() => onAction("reject")}
+              style={[
+                styles.rejectButton,
+                isResponding && styles.disabledButton,
+              ]}
             >
-              <MaterialCommunityIcons
-                name="close"
-                size={16}
-                color={theme.colors.error}
-              />
-              <Text style={styles.rejectText}>Reject</Text>
+              {isResponding && respondingAction === "reject" ? (
+                <ActivityIndicator size="small" color={theme.colors.error} />
+              ) : (
+                <MaterialCommunityIcons
+                  name="close"
+                  size={16}
+                  color={theme.colors.error}
+                />
+              )}
+              <Text style={styles.rejectText}>
+                {isResponding && respondingAction === "reject"
+                  ? "Rejecting..."
+                  : "Reject"}
+              </Text>
             </Pressable>
           </View>
         </>

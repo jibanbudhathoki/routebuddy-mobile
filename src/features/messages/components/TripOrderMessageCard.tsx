@@ -1,39 +1,39 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { MessageGesturePressable } from "./MessageGesturePressable";
 import type { ChatTripOrder } from "../types/message.types";
+import type { RequestAction } from "../../request/types/request";
 
 interface TripOrderMessageCardProps {
   order: ChatTripOrder;
   message: string;
   showActions: boolean;
-  isAccepting: boolean;
+  isResponding: boolean;
+  respondingAction?: RequestAction;
   selected: boolean;
   selectionMode: boolean;
   onPress: () => void;
   onLongPress: () => void;
   onDoubleTap: () => void;
-  onAccept: () => void;
+  onAction: (action: RequestAction) => void;
 }
 
 export function TripOrderMessageCard({
   order,
   message,
   showActions,
-  isAccepting,
+  isResponding,
+  respondingAction,
   selected,
   selectionMode,
   onPress,
   onLongPress,
   onDoubleTap,
-  onAccept,
+  onAction,
 }: TripOrderMessageCardProps) {
   const { theme } = useUnistyles();
-  const [isRejected, setIsRejected] = useState(false);
-  const displayStatus = isRejected ? "Rejected" : order.status;
   const canRespond = ![
     "accepted",
     "cancelled",
@@ -41,7 +41,7 @@ export function TripOrderMessageCard({
     "completed",
     "delivered",
     "rejected",
-  ].includes(order.status.toLowerCase()) && !isRejected;
+  ].includes(order.status.toLowerCase());
 
   return (
     <View style={[styles.card, selected && styles.selectedCard]}>
@@ -59,7 +59,7 @@ export function TripOrderMessageCard({
             color={theme.colors.text}
           />
           <Text style={styles.title}>Shopping order</Text>
-          <Text style={styles.status}>{displayStatus}</Text>
+          <Text style={styles.status}>{order.status}</Text>
         </View>
         <Text style={styles.message}>{message}</Text>
       </MessageGesturePressable>
@@ -69,14 +69,14 @@ export function TripOrderMessageCard({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Accept shopping order"
-              disabled={isAccepting}
-              onPress={onAccept}
+              disabled={isResponding}
+              onPress={() => onAction("accept")}
               style={[
                 styles.acceptButton,
-                isAccepting && styles.disabledButton,
+                isResponding && styles.disabledButton,
               ]}
             >
-              {isAccepting ? (
+              {isResponding && respondingAction === "accept" ? (
                 <ActivityIndicator
                   size="small"
                   color={theme.colors.onPrimary}
@@ -89,22 +89,35 @@ export function TripOrderMessageCard({
                 />
               )}
               <Text style={styles.acceptText}>
-                {isAccepting ? "Accepting..." : "Accept order"}
+                {isResponding && respondingAction === "accept"
+                  ? "Accepting..."
+                  : "Accept order"}
               </Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ disabled: isAccepting }}
-              disabled={isAccepting}
-              onPress={() => setIsRejected(true)}
-              style={styles.rejectButton}
+              accessibilityState={{ disabled: isResponding }}
+              disabled={isResponding}
+              onPress={() => onAction("reject")}
+              style={[
+                styles.rejectButton,
+                isResponding && styles.disabledButton,
+              ]}
             >
-              <MaterialCommunityIcons
-                name="close"
-                size={16}
-                color={theme.colors.error}
-              />
-              <Text style={styles.rejectText}>Reject</Text>
+              {isResponding && respondingAction === "reject" ? (
+                <ActivityIndicator size="small" color={theme.colors.error} />
+              ) : (
+                <MaterialCommunityIcons
+                  name="close"
+                  size={16}
+                  color={theme.colors.error}
+                />
+              )}
+              <Text style={styles.rejectText}>
+                {isResponding && respondingAction === "reject"
+                  ? "Rejecting..."
+                  : "Reject"}
+              </Text>
             </Pressable>
           </View>
         </>

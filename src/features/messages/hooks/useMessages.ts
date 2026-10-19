@@ -84,6 +84,44 @@ export const useConversationMessages = (conversationId: string) => {
   });
 };
 
+export const useMarkConversationRead = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (conversationUid: string) =>
+      messageService.markConversationRead(conversationUid),
+    onSuccess: (result) => {
+      const readMessageUids = new Set(result.messageUids);
+      queryClient.setQueryData(
+        messageKeys.messages(result.conversationUid),
+        (messages: Awaited<
+          ReturnType<typeof messageService.getConversationMessages>
+        > | undefined) =>
+          messages?.map((message) =>
+            readMessageUids.has(message.id)
+              ? {
+                  ...message,
+                  isRead: true,
+                  readBy: Array.from(
+                    new Set([...(message.readBy ?? []), result.userUid]),
+                  ),
+                }
+              : message,
+          ),
+      );
+      queryClient.setQueryData(
+        messageKeys.conversations(),
+        (conversations: InboxMessage[] | undefined) =>
+          conversations?.map((conversation) =>
+            conversation.msgId === result.conversationUid
+              ? { ...conversation, isRead: true, unreadCount: 0 }
+              : conversation,
+          ),
+      );
+    },
+  });
+};
+
 export const useSendConversationMessage = (conversationId: string) => {
   const queryClient = useQueryClient();
 

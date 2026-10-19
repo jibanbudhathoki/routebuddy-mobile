@@ -11,6 +11,7 @@ import {
   InboxMessage,
   Message,
   ReactToMessageResponse,
+  ReadConversationResponse,
   SendMessageData,
 } from "../types/message.types";
 import { apiEndpoints } from "../../../constant/url";
@@ -55,10 +56,14 @@ export const messageService = {
           latestMsgIsOwn,
         ),
         latestMsgIsOwn,
+        latestMessageUid: item.latestMessageUid,
         contextType:
           item.contextType ??
           (item.requestId ? "request" : item.tripId ? "trip" : "direct"),
-        avatarUrl: resolveAvatarUrl(item.avatarUrl ?? item.recipientImage),
+        isRead: item.isRead,
+        avatarUrl:
+          resolveAvatarUrl(item.avatarUrl) ??
+          resolveAvatarUrl(item.recipientImage),
         timestamp: item.timestamp ?? item.lastMessage?.createdAt ?? item.createdAt,
         unreadCount:
           item.unreadCount ??
@@ -183,6 +188,36 @@ export const messageService = {
       );
   },
 
+  markConversationRead: async (
+    conversationUid: string,
+  ): Promise<ReadConversationResponse["data"]> => {
+    if (!conversationUid.trim()) {
+      throw new Error("A conversation ID is required to mark it as read.");
+    }
+
+    const response = await apiRequest<ReadConversationResponse>(
+      apiEndpoints.messages.readMessage.replace(
+        ":id",
+        encodeURIComponent(conversationUid),
+      ),
+      { method: "POST" },
+    );
+
+    if (!response.success || !response.data?.success) {
+      throw new Error(response.message || "Unable to mark conversation as read.");
+    }
+    if (
+      response.data.conversationUid !== conversationUid ||
+      !response.data.userUid ||
+      !Array.isArray(response.data.messageUids) ||
+      response.data.messageUids.some((uid) => typeof uid !== "string")
+    ) {
+      throw new Error("The read response did not include valid conversation details.");
+    }
+
+    return response.data;
+  },
+
   deleteConversation: async (conversationId: string): Promise<void> => {
     const response = await apiRequest<MessageActionResponse>(
       apiEndpoints.messages.deleteConversation.replace(
@@ -257,6 +292,8 @@ function normalizeMessage(
     ),
     replyToUid: message.replyToUid ?? null,
     reactions: message.reactions ?? null,
+    isRead: message.isRead,
+    readBy: message.readBy,
     deletedAt: message.deletedAt ?? null,
     updatedAt: message.updatedAt,
     sender: message.sender ?? null,

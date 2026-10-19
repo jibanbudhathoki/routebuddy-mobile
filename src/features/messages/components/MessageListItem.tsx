@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { Image } from 'expo-image';
 import type { ImageSourcePropType } from 'react-native';
@@ -10,10 +10,11 @@ export interface MessageListItemProps {
   id: string;
   avatarUrl: string | ImageSourcePropType | null;
   name: string;
-  tripInfo: string;
   messagePreview: string;
   timestamp: string;
   unreadCount?: number;
+  latestMessageIsOwn?: boolean;
+  latestMessageIsRead?: boolean;
   onPress?: () => void;
   onDelete?: () => void;
 }
@@ -21,17 +22,30 @@ export interface MessageListItemProps {
 export function MessageListItem({
   avatarUrl,
   name,
-  tripInfo,
   messagePreview,
   timestamp,
   unreadCount,
+  latestMessageIsOwn = false,
+  latestMessageIsRead = false,
   onPress,
   onDelete,
 }: MessageListItemProps) {
   const { theme } = useUnistyles();
   const swipeableRef = useRef<Swipeable>(null);
+  const [hasAvatarLoadError, setHasAvatarLoadError] = useState(false);
   const unreadMessages = unreadCount ?? 0;
   const isUnread = unreadMessages > 0;
+  const avatarUri = typeof avatarUrl === "string" ? avatarUrl.trim() : "";
+  const avatarSource =
+    typeof avatarUrl === "string"
+      ? avatarUri
+        ? { uri: avatarUri }
+        : null
+      : avatarUrl;
+
+  useEffect(() => {
+    setHasAvatarLoadError(false);
+  }, [avatarUri]);
 
   const renderRightActions = (_progress: Animated.AnimatedInterpolation<number>, _dragX: Animated.AnimatedInterpolation<number>) => {
     return (
@@ -64,19 +78,18 @@ export function MessageListItem({
       <TouchableOpacity
         accessibilityRole="button"
         accessibilityLabel={`${name}${isUnread ? `, ${unreadMessages} unread messages` : ""}. ${messagePreview}`}
-        style={[styles.container, isUnread && styles.unreadContainer]}
+        style={styles.container}
         onPress={onPress}
         activeOpacity={0.7}
         disabled={!onPress}
       >
         <View style={styles.avatarContainer}>
-          {avatarUrl ? (
+          {avatarSource && !hasAvatarLoadError ? (
             <Image
-              source={
-                typeof avatarUrl === "string" ? { uri: avatarUrl } : avatarUrl
-              }
+              source={avatarSource}
               style={styles.avatar}
               contentFit="cover"
+              onError={() => setHasAvatarLoadError(true)}
             />
           ) : (
             <View style={[styles.avatar, styles.avatarFallback]}>
@@ -87,7 +100,6 @@ export function MessageListItem({
               />
             </View>
           )}
-          {isUnread ? <View style={styles.unreadDot} /> : null}
         </View>
         <View style={styles.contentContainer}>
           <View style={styles.headerRow}>
@@ -101,10 +113,22 @@ export function MessageListItem({
               {timestamp}
             </Text>
           </View>
-          <Text style={styles.tripInfo} numberOfLines={1}>
-            {tripInfo}
-          </Text>
           <View style={styles.previewRow}>
+            {latestMessageIsOwn ? (
+              <MaterialCommunityIcons
+                name={latestMessageIsRead ? "check-all" : "check"}
+                size={16}
+                color={
+                  latestMessageIsRead
+                    ? theme.colors.primary
+                    : theme.colors.muted
+                }
+                style={styles.sentStatus}
+                accessibilityLabel={
+                  latestMessageIsRead ? "Latest message read" : "Latest message sent"
+                }
+              />
+            ) : null}
             <Text
               style={[
                 styles.messagePreview,
@@ -131,40 +155,20 @@ export function MessageListItem({
 const styles = StyleSheet.create((theme) => ({
   container: {
     alignItems: "center",
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
+    backgroundColor: theme.colors.background,
     flexDirection: 'row',
-    marginBottom: theme.spacing.sm,
-    minHeight: 86,
+    minHeight: 78,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
-  },
-  unreadContainer: {
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primary,
-    borderLeftWidth: 4,
-  },
-  unreadDot: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.surface,
-    borderRadius: 5,
-    borderWidth: 2,
-    height: 12,
-    position: "absolute",
-    right: -2,
-    top: -2,
-    width: 12,
   },
   avatarContainer: {
     marginRight: theme.spacing.md,
     justifyContent: 'center',
   },
   avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     backgroundColor: theme.colors.primarySoft,
   },
   avatarFallback: {
@@ -175,63 +179,64 @@ const styles = StyleSheet.create((theme) => ({
   contentContainer: {
     flex: 1,
     justifyContent: 'center',
+    alignSelf: "stretch",
+    borderBottomColor: theme.colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: theme.spacing.xs,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: theme.spacing.xs,
   },
   name: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: theme.colors.text,
     flex: 1,
   },
   unreadName: {
-    fontWeight: "800",
+    fontWeight: "700",
   },
   timestamp: {
-    fontSize: 13,
+    fontSize: 12,
     color: theme.colors.muted,
     marginLeft: theme.spacing.sm,
   },
   unreadTimestamp: {
-    color: theme.colors.text,
+    color: theme.colors.primary,
     fontWeight: "600",
-  },
-  tripInfo: {
-    fontSize: 12,
-    color: theme.colors.muted,
-    marginBottom: 4,
   },
   previewRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
   messagePreview: {
-    fontSize: 13,
+    fontSize: 14,
     color: theme.colors.muted,
     flex: 1,
   },
+  sentStatus: {
+    marginRight: theme.spacing.xs,
+  },
   unreadMessagePreview: {
     color: theme.colors.text,
-    fontWeight: "600",
+    fontWeight: "500",
   },
   unreadBadge: {
     backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.md,
-    minWidth: 28,
-    height: 28,
+    borderRadius: 12,
+    minWidth: 22,
+    height: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: theme.spacing.xs,
+    paddingHorizontal: 6,
     marginLeft: theme.spacing.sm,
   },
   unreadText: {
     color: theme.colors.onPrimary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
   rightActionsContainer: {

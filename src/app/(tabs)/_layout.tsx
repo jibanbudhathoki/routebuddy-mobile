@@ -5,12 +5,18 @@ import { View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AddActionModal } from "../../shared/components/AddActionModal";
+import { useListMessages } from "../../features/messages/hooks/useMessages";
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [isAddModalVisible, setAddModalVisible] = useState(false);
   const { theme } = useUnistyles();
+  const { data: conversations = [] } = useListMessages();
+  const unreadMessageCount = conversations.reduce(
+    (total, conversation) => total + (conversation.unreadCount ?? 0),
+    0,
+  );
 
   return (
     <>
@@ -34,8 +40,12 @@ export default function TabLayout() {
           name="index"
           options={{
             title: "Home",
-            tabBarIcon: ({ color, size }) => (
-              <MaterialCommunityIcons name="home" size={size} color={color} />
+            tabBarIcon: ({ color, focused, size }) => (
+              <MaterialCommunityIcons
+                name={focused ? "home" : "home-outline"}
+                size={size}
+                color={color}
+              />
             ),
           }}
         />
@@ -43,9 +53,9 @@ export default function TabLayout() {
           name="trips"
           options={{
             title: "My Trips",
-            tabBarIcon: ({ color, size }) => (
+            tabBarIcon: ({ color, focused, size }) => (
               <MaterialCommunityIcons
-                name="briefcase-outline"
+                name={focused ? "briefcase" : "briefcase-outline"}
                 size={size}
                 color={color}
               />
@@ -83,9 +93,21 @@ export default function TabLayout() {
           name="messages"
           options={{
             title: "Messages",
-            tabBarIcon: ({ color, size }) => (
+            tabBarBadge:
+              unreadMessageCount > 0
+                ? unreadMessageCount > 99
+                  ? "99+"
+                  : unreadMessageCount
+                : undefined,
+            tabBarBadgeStyle: {
+              backgroundColor: theme.colors.error,
+              color: theme.colors.onPrimary,
+              fontSize: 10,
+              minWidth: 17,
+            },
+            tabBarIcon: ({ color, focused, size }) => (
               <MaterialCommunityIcons
-                name="message-outline"
+                name={focused ? "message" : "message-outline"}
                 size={size}
                 color={color}
               />
@@ -96,9 +118,9 @@ export default function TabLayout() {
           name="profile"
           options={{
             title: "Profile",
-            tabBarIcon: ({ color, size }) => (
+            tabBarIcon: ({ color, focused, size }) => (
               <MaterialCommunityIcons
-                name="account-outline"
+                name={focused ? "account" : "account-outline"}
                 size={size}
                 color={color}
               />

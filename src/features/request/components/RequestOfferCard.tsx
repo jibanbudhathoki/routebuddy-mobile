@@ -1,29 +1,29 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
-import type { RequestOffer } from "../types/request";
+import type { RequestAction, RequestOffer } from "../types/request";
 import { formatRequestDate, formatRequestTime } from "../utils/requestFormatters";
 
 interface RequestOfferCardProps {
   offer: RequestOffer;
-  canAccept: boolean;
-  isAccepting: boolean;
-  isAnyOfferAccepting: boolean;
-  onAccept: () => void;
+  canRespond: boolean;
+  isResponding: boolean;
+  respondingAction?: RequestAction;
+  isAnyOfferResponding: boolean;
+  onAction: (action: RequestAction) => void;
 }
 
 export function RequestOfferCard({
   offer,
-  canAccept,
-  isAccepting,
-  isAnyOfferAccepting,
-  onAccept,
+  canRespond,
+  isResponding,
+  respondingAction,
+  isAnyOfferResponding,
+  onAction,
 }: RequestOfferCardProps) {
   const { theme } = useUnistyles();
-  const [isRejected, setIsRejected] = useState(false);
   const driverName = offer.driver.name ?? offer.driver.fName ?? "Driver";
   const initials = driverName
     .split(/\s+/)
@@ -31,7 +31,7 @@ export function RequestOfferCard({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const isPending = offer.status.toLowerCase() === "pending" && !isRejected;
+  const isPending = offer.status.toLowerCase() === "pending";
 
   return (
     <View style={styles.offerCard}>
@@ -68,9 +68,7 @@ export function RequestOfferCard({
             isPending ? styles.pendingBadge : styles.otherBadge,
           ]}
         >
-          <Text style={styles.statusText}>
-            {isRejected ? "Rejected" : offer.status}
-          </Text>
+          <Text style={styles.statusText}>{offer.status}</Text>
         </View>
       </View>
 
@@ -104,18 +102,17 @@ export function RequestOfferCard({
       ) : null}
 
       {isPending ? (
-        <>
-          <View style={styles.actions}>
+        <View style={styles.actions}>
             <Pressable
               accessibilityRole="button"
-              disabled={!canAccept || isAnyOfferAccepting}
-              onPress={onAccept}
+              disabled={!canRespond || isAnyOfferResponding}
+              onPress={() => onAction("accept")}
               style={[
                 styles.acceptButton,
-                (!canAccept || isAnyOfferAccepting) && styles.disabledButton,
+                (!canRespond || isAnyOfferResponding) && styles.disabledButton,
               ]}
             >
-              {isAccepting ? (
+              {isResponding && respondingAction === "accept" ? (
                 <ActivityIndicator
                   size="small"
                   color={theme.colors.onPrimary}
@@ -128,30 +125,39 @@ export function RequestOfferCard({
                 />
               )}
               <Text style={styles.acceptText}>
-                {isAccepting ? "Accepting..." : "Accept"}
+                {isResponding && respondingAction === "accept"
+                  ? "Accepting..."
+                  : "Accept"}
               </Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
               accessibilityState={{
-                disabled: isAnyOfferAccepting,
+                disabled: !canRespond || isAnyOfferResponding,
               }}
-              disabled={isAnyOfferAccepting}
-              onPress={() => setIsRejected(true)}
+              disabled={!canRespond || isAnyOfferResponding}
+              onPress={() => onAction("reject")}
               style={[
                 styles.rejectButton,
-                isAnyOfferAccepting && styles.disabledButton,
+                (!canRespond || isAnyOfferResponding) && styles.disabledButton,
               ]}
             >
-              <MaterialCommunityIcons
-                name="close"
-                size={16}
-                color={theme.colors.error}
-              />
-              <Text style={styles.rejectText}>Reject</Text>
+              {isResponding && respondingAction === "reject" ? (
+                <ActivityIndicator size="small" color={theme.colors.error} />
+              ) : (
+                <MaterialCommunityIcons
+                  name="close"
+                  size={16}
+                  color={theme.colors.error}
+                />
+              )}
+              <Text style={styles.rejectText}>
+                {isResponding && respondingAction === "reject"
+                  ? "Rejecting..."
+                  : "Reject"}
+              </Text>
             </Pressable>
-          </View>
-        </>
+        </View>
       ) : null}
     </View>
   );

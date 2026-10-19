@@ -1,5 +1,5 @@
-import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { ChatDetailScreen } from "../../features/messages/screens/ChatDetailScreen";
@@ -9,10 +9,11 @@ import { useToast } from "../../shared/components/ToastProvider";
 import {
   useConversationMessages,
   useListMessages,
+  useMarkConversationRead,
 } from "../../features/messages/hooks/useMessages";
 import {
-  useAcceptRequestOffer,
-  useAcceptTripOrder,
+  useRespondToRequestOffer,
+  useRespondToTripOrder,
 } from "../../features/request/hooks/useRequestOffers";
 import { useRequestDetails } from "../../features/request/hooks/useRequestDetails";
 import { useConfirmDelivery } from "../../features/request/hooks/useDeliveryProof";
@@ -29,8 +30,23 @@ export default function ChatScreen() {
   const rateDriver = useRateDriver();
   const { showToast } = useToast();
   const confirmDelivery = useConfirmDelivery();
+  const markConversationRead = useMarkConversationRead();
   const { data: conversations = [] } = useListMessages();
   const { data: messages = [] } = useConversationMessages(conversationId);
+  useFocusEffect(
+    useCallback(() => {
+      if (!conversationId) return;
+      markConversationRead.mutate(conversationId, {
+        onError: (failure) => {
+          showToast(
+            failure instanceof Error
+              ? failure.message
+              : "Unable to mark conversation as read.",
+          );
+        },
+      });
+    }, [conversationId, markConversationRead.mutate, showToast]),
+  );
   const conversation = conversations.find(
     (item) => item.msgId === conversationId,
   );
@@ -44,8 +60,8 @@ export default function ChatScreen() {
   const { data: request } = useRequestDetails(requestUid, {
     refetchInterval: requestUid ? 10_000 : false,
   });
-  const acceptOffer = useAcceptRequestOffer(requestUid);
-  const acceptTripOrder = useAcceptTripOrder();
+  const respondToOffer = useRespondToRequestOffer(requestUid);
+  const respondToTripOrder = useRespondToTripOrder();
   const tripOrderMessage = messages.find((message) => message.tripOrderUid);
   const tripOrderUid =
     tripOrderMessage?.tripOrderUid ??
@@ -84,14 +100,28 @@ export default function ChatScreen() {
         }
         tripOrder={tripOrder}
         orderDriverUid={tripOrderDriverUid}
-        isAcceptingOffer={acceptOffer.isPending}
-        isAcceptingOrder={acceptTripOrder.isPending}
+        respondingOffer={
+          respondToOffer.isPending && respondToOffer.variables
+            ? {
+                uid: respondToOffer.variables.offerUid,
+                action: respondToOffer.variables.action,
+              }
+            : undefined
+        }
+        respondingOrder={
+          respondToTripOrder.isPending && respondToTripOrder.variables
+            ? {
+                uid: respondToTripOrder.variables.orderUid,
+                action: respondToTripOrder.variables.action,
+              }
+            : undefined
+        }
         isConfirmingDelivery={confirmDelivery.isPending}
-        onAcceptOffer={async (offerUid) => {
-          await acceptOffer.mutateAsync(offerUid);
+        onOfferAction={async (offerUid, action) => {
+          await respondToOffer.mutateAsync({ offerUid, action });
         }}
-        onAcceptOrder={async (orderUid) => {
-          await acceptTripOrder.mutateAsync(orderUid);
+        onOrderAction={async (orderUid, action) => {
+          await respondToTripOrder.mutateAsync({ orderUid, action });
         }}
         onConfirmDelivery={async (requestId) => {
           await confirmDelivery.mutateAsync(requestId);

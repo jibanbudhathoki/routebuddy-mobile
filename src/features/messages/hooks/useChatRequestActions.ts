@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
+import type { RequestAction } from "../../request/types/request";
 
 interface UseChatRequestActionsOptions {
   requestUid?: string;
-  onAcceptOffer?: (offerUid: string) => Promise<void>;
-  onAcceptOrder?: (orderUid: string) => Promise<void>;
+  onOfferAction?: (
+    offerUid: string,
+    action: RequestAction,
+  ) => Promise<void>;
+  onOrderAction?: (
+    orderUid: string,
+    action: RequestAction,
+  ) => Promise<void>;
   onConfirmDelivery?: (requestUid: string) => Promise<void>;
   onDeliveryConfirmed?: () => void;
   setDialog: (dialog: {
@@ -16,8 +23,8 @@ interface UseChatRequestActionsOptions {
 
 export function useChatRequestActions({
   requestUid,
-  onAcceptOffer,
-  onAcceptOrder,
+  onOfferAction,
+  onOrderAction,
   onConfirmDelivery,
   onDeliveryConfirmed,
   setDialog,
@@ -29,13 +36,19 @@ export function useChatRequestActions({
     setDeliveryConfirmed(false);
   }, [requestUid]);
 
-  const handleAcceptOffer = (offerUid: string) => {
-    if (!onAcceptOffer) return;
-    void onAcceptOffer(offerUid)
+  const handleOfferAction = (
+    offerUid: string,
+    action: RequestAction,
+  ) => {
+    if (!onOfferAction) return;
+    void onOfferAction(offerUid, action)
       .then(() => {
         setDialog({
-          title: "Offer accepted",
-          message: "The request has been assigned to this driver.",
+          title: action === "accept" ? "Offer accepted" : "Offer rejected",
+          message:
+            action === "accept"
+              ? "The request has been assigned to this driver."
+              : "The driver offer has been rejected.",
           actions: [{ label: "OK", onPress: () => {} }],
         });
       })
@@ -43,18 +56,24 @@ export function useChatRequestActions({
         setError(
           failure instanceof Error
             ? failure.message
-            : "Unable to accept this offer. Please try again.",
+            : `Unable to ${action} this offer. Please try again.`,
         );
       });
   };
 
-  const handleAcceptOrder = (orderUid: string) => {
-    if (!onAcceptOrder) return;
-    void onAcceptOrder(orderUid)
+  const handleOrderAction = (
+    orderUid: string,
+    action: RequestAction,
+  ) => {
+    if (!onOrderAction) return;
+    void onOrderAction(orderUid, action)
       .then(() => {
         setDialog({
-          title: "Order accepted",
-          message: "The order is now assigned to you.",
+          title: action === "accept" ? "Order accepted" : "Order rejected",
+          message:
+            action === "accept"
+              ? "The order is now assigned to you."
+              : "The trip order has been rejected.",
           actions: [{ label: "OK", onPress: () => {} }],
         });
       })
@@ -62,7 +81,7 @@ export function useChatRequestActions({
         setError(
           failure instanceof Error
             ? failure.message
-            : "Unable to accept this order. Please try again.",
+            : `Unable to ${action} this order. Please try again.`,
         );
       });
   };
@@ -93,8 +112,8 @@ export function useChatRequestActions({
 
   return {
     deliveryConfirmed,
-    onAcceptOffer: handleAcceptOffer,
-    onAcceptOrder: handleAcceptOrder,
+    onOfferAction: handleOfferAction,
+    onOrderAction: handleOrderAction,
     onConfirmDelivery: handleConfirmDelivery,
   };
 }

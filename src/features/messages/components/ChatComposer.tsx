@@ -116,7 +116,7 @@ export function ChatComposer({
             accessibilityLabel="Type a message"
             style={styles.input}
             placeholder={
-              isRecording ? "Recording voice message..." : "Type a message..."
+              isRecording ? "Recording voice message..." : "Message"
             }
             placeholderTextColor={theme.colors.muted}
             multiline
@@ -173,10 +173,8 @@ export function ChatComposer({
 const styles = StyleSheet.create((theme) => ({
   container: {
     backgroundColor: theme.colors.surface,
-    borderTopColor: theme.colors.border,
-    borderTopWidth: 1,
     paddingHorizontal: theme.spacing.sm,
-    paddingTop: theme.spacing.xs,
+    paddingTop: theme.spacing.sm,
   },
   error: {
     color: theme.colors.error,
@@ -228,39 +226,35 @@ const styles = StyleSheet.create((theme) => ({
   },
   addButton: {
     alignItems: "center",
-    borderColor: theme.colors.border,
-    borderRadius: 22,
-    borderWidth: 1,
-    height: 38,
+    height: 42,
     justifyContent: "center",
-    width: 38,
+    width: 34,
   },
   inputPill: {
     alignItems: "center",
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.background,
     borderColor: theme.colors.border,
-    borderRadius: 22,
+    borderRadius: 24,
     borderWidth: 1,
     flex: 1,
     flexDirection: "row",
-    minHeight: 40,
-    paddingLeft: theme.spacing.sm,
-    paddingRight: theme.spacing.xs,
+    minHeight: 44,
+    paddingHorizontal: theme.spacing.sm,
   },
   input: {
     color: theme.colors.text,
     flex: 1,
-    fontSize: 12,
-    maxHeight: 82,
-    paddingVertical: theme.spacing.xs,
+    fontSize: 15,
+    maxHeight: 112,
+    paddingVertical: theme.spacing.sm,
   },
   sendButton: {
     alignItems: "center",
     backgroundColor: theme.colors.primary,
-    borderRadius: 20,
-    height: 40,
+    borderRadius: 22,
+    height: 44,
     justifyContent: "center",
-    width: 40,
+    width: 44,
   },
   sendButtonDisabled: {
     opacity: 0.55,

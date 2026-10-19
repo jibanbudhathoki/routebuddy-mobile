@@ -12,33 +12,8 @@ export const styles = StyleSheet.create((theme) => ({
   messageRowMine: {
     justifyContent: "flex-end",
   },
-  avatar: {
-    borderRadius: 16,
-    height: 32,
-    marginBottom: 16,
-    marginRight: theme.spacing.xs,
-    overflow: "hidden",
-    width: 32,
-  },
-  smallAvatar: {
-    height: 28,
-    marginBottom: 16,
-    marginLeft: theme.spacing.xs,
-    marginRight: 0,
-    width: 28,
-  },
-  avatarImage: {
-    height: "100%",
-    width: "100%",
-  },
-  avatarFallback: {
-    alignItems: "center",
-    backgroundColor: theme.colors.primary,
-    flex: 1,
-    justifyContent: "center",
-  },
   messageColumn: {
-    maxWidth: "78%",
+    maxWidth: "84%",
   },
   messageColumnOffer: {
     flexGrow: 1,
@@ -50,20 +25,21 @@ export const styles = StyleSheet.create((theme) => ({
     alignItems: "flex-end",
   },
   bubble: {
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.sm,
+    borderRadius: 18,
+    borderWidth: 0,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.xs,
+    paddingBottom: theme.spacing.xs,
   },
   incomingBubble: {
     backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
     borderBottomLeftRadius: 4,
+    marginLeft: theme.spacing.xs,
   },
   outgoingBubble: {
     backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primarySoft,
     borderBottomRightRadius: 4,
+    marginRight: theme.spacing.xs,
   },
   selectedBubble: {
     borderColor: theme.colors.primary,
@@ -77,8 +53,8 @@ export const styles = StyleSheet.create((theme) => ({
   },
   messageText: {
     color: theme.colors.text,
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 20,
   },
   sharedLinkButton: {
     alignItems: "center",
@@ -116,10 +92,12 @@ export const styles = StyleSheet.create((theme) => ({
   },
   messageMeta: {
     alignItems: "center",
+    alignSelf: "flex-end",
     flexDirection: "row",
-    gap: 3,
-    marginHorizontal: 2,
-    marginTop: 3,
+    gap: 4,
+    marginLeft: theme.spacing.md,
+    marginTop: 1,
+    minHeight: 14,
   },
   reactionsRow: {
     flexDirection: "row",
@@ -141,6 +119,6 @@ export const styles = StyleSheet.create((theme) => ({
   },
   messageTime: {
     color: theme.colors.muted,
-    fontSize: 9,
+    fontSize: 10,
   },
 }));

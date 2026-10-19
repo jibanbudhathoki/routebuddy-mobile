@@ -14,6 +14,7 @@ import type {
   ChatTripOrder,
   Message,
 } from "../types/message.types";
+import type { RequestAction } from "../../request/types/request";
 import { useChatMessageListScroll } from "../hooks/useChatMessageListScroll";
 import { ChatMessageRow } from "./ChatMessageRow";
 import { ConversationSummaryCard } from "./ConversationSummaryCard";
@@ -27,21 +28,18 @@ interface ChatMessagesPanelProps {
   conversationId: string;
   contextTitle: string;
   currentUserUid: string;
-  participantName: string;
-  participantAvatar: string | null;
-  currentUserAvatar: string | null;
   requestUid?: string;
   requesterUid?: string;
   orderDriverUid?: string;
   requestOffers: ChatRequestOffer[];
   tripOrder?: ChatTripOrder;
-  isAcceptingOffer: boolean;
-  isAcceptingOrder: boolean;
+  respondingOffer?: { uid: string; action: RequestAction };
+  respondingOrder?: { uid: string; action: RequestAction };
   canConfirmDelivery: boolean;
   isConfirmingDelivery: boolean;
   deliveryConfirmed: boolean;
-  onAcceptOffer: (offerUid: string) => void;
-  onAcceptOrder: (orderUid: string) => void;
+  onOfferAction: (offerUid: string, action: RequestAction) => void;
+  onOrderAction: (orderUid: string, action: RequestAction) => void;
   onConfirmDelivery: (requestUid: string) => void;
   selectedMessageIds: string[];
   selectionMode: boolean;
@@ -61,21 +59,18 @@ export function ChatMessagesPanel({
   conversationId,
   contextTitle,
   currentUserUid,
-  participantName,
-  participantAvatar,
-  currentUserAvatar,
   requestUid,
   requesterUid,
   orderDriverUid,
   requestOffers,
   tripOrder,
-  isAcceptingOffer,
-  isAcceptingOrder,
+  respondingOffer,
+  respondingOrder,
   canConfirmDelivery,
   isConfirmingDelivery,
   deliveryConfirmed,
-  onAcceptOffer,
-  onAcceptOrder,
+  onOfferAction,
+  onOrderAction,
   onConfirmDelivery,
   selectedMessageIds,
   selectionMode,
@@ -128,9 +123,6 @@ export function ChatMessagesPanel({
         message={message}
         replyMessage={replyMessage}
         currentUserUid={currentUserUid}
-        participantName={participantName}
-        participantAvatar={participantAvatar}
-        currentUserAvatar={currentUserAvatar}
         selected={selectedMessageIds.includes(message.id)}
         selectionMode={selectionMode}
         requestOffer={requestOffer}
@@ -145,13 +137,19 @@ export function ChatMessagesPanel({
               currentUserUid === orderDriverUid,
           )
         }
-        isAcceptingOffer={isAcceptingOffer}
-        isAcceptingOrder={isAcceptingOrder}
+        isRespondingToOffer={Boolean(
+          requestOffer && respondingOffer?.uid === requestOffer.uid,
+        )}
+        respondingOfferAction={respondingOffer?.action}
+        isRespondingToOrder={Boolean(
+          matchedTripOrder && respondingOrder?.uid === matchedTripOrder.uid,
+        )}
+        respondingOrderAction={respondingOrder?.action}
         canConfirmDelivery={canConfirmDelivery}
         isConfirmingDelivery={isConfirmingDelivery}
         deliveryConfirmed={deliveryConfirmed}
-        onAcceptOffer={onAcceptOffer}
-        onAcceptOrder={onAcceptOrder}
+        onOfferAction={onOfferAction}
+        onOrderAction={onOrderAction}
         onConfirmDelivery={onConfirmDelivery}
         onPress={() => onMessagePress(message)}
         onLongPress={() => onMessageLongPress(message)}

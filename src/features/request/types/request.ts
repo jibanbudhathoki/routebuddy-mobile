@@ -276,6 +276,8 @@ export interface SubmitRequestOfferResponse {
   data: SubmittedRequestOffer;
 }
 
+export type RequestAction = "accept" | "reject";
+
 export interface SubmittedRequestOffer {
   uid: string;
   message?: string;

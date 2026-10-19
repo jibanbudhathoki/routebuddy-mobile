@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  TextInput,
   View,
   Text,
   TouchableOpacity,
@@ -10,7 +11,6 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { TextField } from "../../../shared/components/TextField";
 import { MessageListItem } from "../components/MessageListItem";
 import { MessageDialog, type MessageDialogAction } from "../components/MessageDialog";
 import {
@@ -30,6 +30,8 @@ export function MessageScreen() {
   const { data: conversations, isLoading, isError, error, refetch } =
     useListMessages();
   const deleteConversation = useDeleteConversation();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [conversationFilter, setConversationFilter] = useState<"all" | "unread">("all");
   const [dialog, setDialog] = useState<{
     title: string;
     message?: string;
@@ -98,25 +100,32 @@ export function MessageScreen() {
       );
     }
 
+    const normalizedSearch = searchQuery.trim().toLocaleLowerCase();
+    const visibleConversations = conversations.filter((conversation) => {
+      const matchesFilter =
+        conversationFilter === "all" || (conversation.unreadCount ?? 0) > 0;
+      const matchesSearch =
+        !normalizedSearch ||
+        `${conversation.recipientName} ${conversation.latestMsg}`
+          .toLocaleLowerCase()
+          .includes(normalizedSearch);
+      return matchesFilter && matchesSearch;
+    });
+
     return (
       <FlatList
-        data={conversations}
+        data={visibleConversations}
         keyExtractor={(item) => item.msgId}
         renderItem={({ item }) => (
           <MessageListItem
             id={item.msgId}
             avatarUrl={item.avatarUrl ?? ""}
             name={item.recipientName}
-            tripInfo={
-              item.contextType === "request"
-                ? "Request"
-                : item.contextType === "trip"
-                  ? "Trip"
-                  : "Direct Message"
-            }
             messagePreview={item.latestMsg || "No messages yet"}
             timestamp={formatInboxTime(item.timestamp)}
             unreadCount={item.unreadCount}
+            latestMessageIsOwn={item.latestMsgIsOwn}
+            latestMessageIsRead={item.isRead}
             onPress={() =>
               router.push({
                 pathname: "/chat/[id]",
@@ -129,7 +138,17 @@ export function MessageScreen() {
             onDelete={() => handleDeleteConversation(item.msgId)}
           />
         )}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          visibleConversations.length === 0 && styles.emptyList,
+        ]}
+        ListEmptyComponent={
+          <Text style={styles.noResults}>
+            {conversationFilter === "unread"
+              ? "No unread conversations"
+              : "No conversations found"}
+          </Text>
+        }
         showsVerticalScrollIndicator={false}
       />
     );
@@ -146,19 +165,49 @@ export function MessageScreen() {
       </View>
 
       <View style={styles.searchContainer}>
-        <View style={styles.searchBarWrapper}>
-          <TextField
-            placeholder="Search messages"
-            leftElement={
-              <MaterialCommunityIcons
-                name="magnify"
-                size={24}
-                color={theme.colors.muted}
-                style={{ marginRight: 8 }}
-              />
-            }
-          />
-        </View>
+        <MaterialCommunityIcons
+          name="magnify"
+          size={22}
+          color={theme.colors.muted}
+        />
+        <TextInput
+          accessibilityLabel="Search messages"
+          placeholder="Search messages"
+          placeholderTextColor={theme.colors.muted}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          style={styles.searchInput}
+          returnKeyType="search"
+        />
+      </View>
+      <View style={styles.filterRow}>
+        {(["all", "unread"] as const).map((filter) => {
+          const isSelected = conversationFilter === filter;
+          return (
+            <TouchableOpacity
+              key={filter}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+              onPress={() => setConversationFilter(filter)}
+              style={[
+                styles.filterChip,
+                isSelected && styles.selectedFilterChip,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.filterLabel,
+                  isSelected && styles.selectedFilterLabel,
+                ]}
+              >
+                {filter === "all" ? "All" : "Unread"}
+                {filter === "unread"
+                  ? ` ${conversations?.filter((item) => (item.unreadCount ?? 0) > 0).length ?? 0}`
+                  : ""}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {renderContent()}
@@ -192,27 +241,68 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.md,
     paddingTop: 0,
     paddingBottom: theme.spacing.sm,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "700",
     color: theme.colors.text,
   },
   searchContainer: {
-    flexDirection: "row",
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.md,
     alignItems: "center",
+    backgroundColor: theme.colors.surface,
+    borderRadius: 28,
+    flexDirection: "row",
+    marginHorizontal: theme.spacing.md,
+    marginVertical: theme.spacing.sm,
+    minHeight: 48,
+    paddingHorizontal: theme.spacing.md,
   },
-  searchBarWrapper: {
+  searchInput: {
+    color: theme.colors.text,
     flex: 1,
-    marginRight: theme.spacing.sm,
+    fontSize: 15,
+    marginLeft: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
+  },
+  filterRow: {
+    flexDirection: "row",
+    gap: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    paddingBottom: theme.spacing.sm,
+  },
+  filterChip: {
+    borderColor: theme.colors.border,
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+  },
+  selectedFilterChip: {
+    backgroundColor: theme.colors.primarySoft,
+    borderColor: theme.colors.primary,
+  },
+  filterLabel: {
+    color: theme.colors.muted,
+    fontSize: 13,
+  },
+  selectedFilterLabel: {
+    color: theme.colors.primary,
+    fontWeight: "700",
   },
   listContent: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: 100,
+    paddingBottom: theme.spacing.md,
+  },
+  emptyList: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
+  noResults: {
+    color: theme.colors.muted,
+    fontSize: 14,
+    padding: theme.spacing.lg,
+    textAlign: "center",
   },
 }));
