@@ -8,7 +8,7 @@ import {
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { Alert, Linking } from "react-native";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import type { ChatMediaFile, ChatMediaMessageType } from "../types/chatMedia.types";
 import { useSendConversationMessage, useUploadChatMedia } from "./useMessages";
@@ -31,6 +31,8 @@ export function useChatMedia({
   const upload = useUploadChatMedia();
   const sendMessage = useSendConversationMessage(conversationId);
   const [isRecording, setIsRecording] = useState(false);
+  const [isSendingImageBatch, setIsSendingImageBatch] = useState(false);
+  const imageBatchInProgress = useRef(false);
 
   async function sendFile(file: ChatMediaFile, type: ChatMediaMessageType) {
     if (upload.isPending || sendMessage.isPending) return;
@@ -54,23 +56,39 @@ export function useChatMedia({
   }
 
   async function pickImage() {
+    if (
+      imageBatchInProgress.current ||
+      upload.isPending ||
+      sendMessage.isPending
+    ) {
+      return;
+    }
+
+    imageBatchInProgress.current = true;
+    setIsSendingImageBatch(true);
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
+        allowsMultipleSelection: true,
         quality: 0.85,
       });
       if (result.canceled) return;
-      const image = result.assets[0];
-      if (!image) return;
-      const file = makeFile(
-        image.uri,
-        image.fileName,
-        image.mimeType,
-        image.fileSize,
-      );
-      await sendFile(file, "image");
+      for (const image of result.assets) {
+        await sendFile(
+          makeFile(
+            image.uri,
+            image.fileName,
+            image.mimeType,
+            image.fileSize,
+          ),
+          "image",
+        );
+      }
     } catch (failure) {
       onError(toError(failure, "Unable to open the photo library."));
+    } finally {
+      imageBatchInProgress.current = false;
+      setIsSendingImageBatch(false);
     }
   }
 
@@ -185,7 +203,8 @@ export function useChatMedia({
     pickAudioFile,
     stopAndSendVoiceRecording,
     isRecording,
-    isUploading: upload.isPending || sendMessage.isPending,
+    isUploading:
+      isSendingImageBatch || upload.isPending || sendMessage.isPending,
     recordingDuration: Math.floor(recorderState.durationMillis / 1000),
   };
 }
