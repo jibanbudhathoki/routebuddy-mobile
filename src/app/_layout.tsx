@@ -1,5 +1,5 @@
 import "../theme/unistyles";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack, usePathname, useRouter } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as Notifications from "expo-notifications";
@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { getApp } from "@react-native-firebase/app";
 import { getMessaging, onTokenRefresh } from "@react-native-firebase/messaging";
 
@@ -82,24 +83,31 @@ function DeviceTokenRefreshListener() {
 }
 
 export default function RootLayout() {
+  const pathname = usePathname();
   const stripePublishableKey =
     process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
     "pk_test_TYooMQauvdEDq54NiTphI7jx";
+  const isKeyboardControllerScreen = pathname.startsWith("/chat/");
 
   return (
     <StripeProvider publishableKey={stripePublishableKey}>
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <SafeAreaProvider>
-            <RequestCreationProvider>
-              <TripCreationProvider>
-                <ToastProvider>
-                  <DeviceTokenRefreshListener />
-                  <KeyboardAvoidingView
-                    style={{ flex: 1 }}
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                  >
-                    <Stack screenOptions={{ headerShown: false }}>
+          <KeyboardProvider>
+            <SafeAreaProvider>
+              <RequestCreationProvider>
+                <TripCreationProvider>
+                  <ToastProvider>
+                    <DeviceTokenRefreshListener />
+                    <KeyboardAvoidingView
+                      style={{ flex: 1 }}
+                      behavior={
+                        Platform.OS === "ios" && !isKeyboardControllerScreen
+                          ? "padding"
+                          : undefined
+                      }
+                    >
+                      <Stack screenOptions={{ headerShown: false }}>
                       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                       <Stack.Screen name="(modals)/community" options={{ presentation: 'fullScreenModal' }} />
@@ -158,13 +166,14 @@ export default function RootLayout() {
                         name="wallet/withdraw-success"
                         options={{ headerShown: false }}
                       />
-                    </Stack>
-                  </KeyboardAvoidingView>
-                </ToastProvider>
-              </TripCreationProvider>
-            </RequestCreationProvider>
-            <StatusBar style="auto" />
-          </SafeAreaProvider>
+                      </Stack>
+                    </KeyboardAvoidingView>
+                  </ToastProvider>
+                </TripCreationProvider>
+              </RequestCreationProvider>
+              <StatusBar style="auto" />
+            </SafeAreaProvider>
+          </KeyboardProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>
     </StripeProvider>

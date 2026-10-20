@@ -1,6 +1,9 @@
 import { StyleSheet } from "react-native-unistyles";
 
 export const homeFiltersModalStyles = StyleSheet.create((theme) => ({
+  keyboardAvoiding: {
+    flex: 1,
+  },
   screen: {
     backgroundColor: theme.colors.background,
     flex: 1,

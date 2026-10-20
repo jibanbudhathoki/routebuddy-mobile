@@ -1,6 +1,15 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRef, useState } from 'react';
-import { Modal, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { Button } from '../../../shared/components/Button';
@@ -40,7 +49,15 @@ export function EmailVerificationModal({
       transparent
       visible={visible}
     >
-      <View style={styles.overlay}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoiding}
+      >
+      <ScrollView
+        contentContainerStyle={styles.overlay}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.card}>
           <View style={styles.iconCircle}>
             <MaterialCommunityIcons
@@ -99,16 +116,20 @@ export function EmailVerificationModal({
             style={styles.verifyButton}
           />
         </View>
-      </View>
+      </ScrollView>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
+  keyboardAvoiding: {
+    flex: 1,
+  },
   overlay: {
     alignItems: 'center',
     backgroundColor: theme.colors.overlay,
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     padding: theme.spacing.lg,
   },

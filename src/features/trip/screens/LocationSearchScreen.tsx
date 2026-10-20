@@ -63,7 +63,11 @@ export function LocationSearchScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.titleSection}>
           <Text style={styles.title}>
             {isFrom ? "Where are you starting?" : "Where are you going?"}

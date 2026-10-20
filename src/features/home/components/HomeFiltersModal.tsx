@@ -1,7 +1,9 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -71,6 +73,10 @@ export function HomeFiltersModal({
       animationType="slide"
       onRequestClose={onClose}
     >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoiding}
+      >
       <SafeAreaView edges={["top", "left", "right", "bottom"]} style={styles.screen}>
         <View style={styles.header}>
           <Text style={styles.title}>Filters</Text>
@@ -165,6 +171,7 @@ export function HomeFiltersModal({
           </Pressable>
         </View>
       </SafeAreaView>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

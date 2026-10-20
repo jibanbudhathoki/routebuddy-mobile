@@ -85,7 +85,7 @@ export function AddPaymentMethodModal({
       <TouchableWithoutFeedback onPress={handleClose}>
         <View style={styles.overlay}>
           <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.keyboardContainer}
           >
             <TouchableWithoutFeedback>

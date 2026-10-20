@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
@@ -58,7 +59,13 @@ export function PostRequestScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <KeyboardAwareScrollView
+        bottomOffset={12}
+        contentContainerStyle={styles.scrollContent}
+        extraKeyboardSpace={88}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.heroSection}>
           <View style={styles.heroIconContainer}>
             <MaterialCommunityIcons name="cart-outline" size={40} color={theme.colors.text} />
@@ -161,13 +168,10 @@ export function PostRequestScreen() {
             Drivers will review your request and send you an offer. You can choose the one that works best for you.
           </Text>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <View style={styles.footer}>
-        <PrimaryButton 
-          title="Continue" 
-          onPress={handleContinue}
-        />
+        <PrimaryButton title="Continue" onPress={handleContinue} />
       </View>
     </View>
   );

@@ -150,6 +150,7 @@ export function AddressFormScreen({
       />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <AddressFormIntro />

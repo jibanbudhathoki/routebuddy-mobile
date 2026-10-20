@@ -63,7 +63,7 @@ export function ReportRequestIssueDialog({
       onRequestClose={close}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.overlay}
       >
         <Pressable

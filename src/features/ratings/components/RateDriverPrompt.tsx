@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
   Pressable,
+  Platform,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -48,105 +51,117 @@ export function RateDriverPrompt({
       animationType="fade"
       onRequestClose={isSubmitting ? undefined : onNotNow}
     >
-      <View style={styles.overlay}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Dismiss rating prompt"
-          disabled={isSubmitting}
-          onPress={onNotNow}
-          style={styles.backdrop}
-        />
-        <View style={styles.dialog}>
-          <View style={styles.iconCircle}>
-            <MaterialCommunityIcons
-              name="star-outline"
-              size={26}
-              color={theme.colors.text}
-            />
-          </View>
-          <Text style={styles.title}>Rate your driver</Text>
-          <Text style={styles.description}>
-            Delivery confirmed. How was your experience with {driverName}?
-          </Text>
-          <View
-            accessibilityRole="radiogroup"
-            accessibilityLabel="Driver rating"
-            style={styles.stars}
-          >
-            {[1, 2, 3, 4, 5].map((value) => (
-              <Pressable
-                key={value}
-                accessibilityRole="radio"
-                accessibilityLabel={`${value} ${value === 1 ? "star" : "stars"}`}
-                accessibilityState={{ checked: score === value }}
-                disabled={isSubmitting}
-                onPress={() => setScore(value)}
-                hitSlop={4}
-              >
-                <MaterialCommunityIcons
-                  name={score >= value ? "star" : "star-outline"}
-                  size={34}
-                  color={
-                    score >= value ? theme.colors.secondary : theme.colors.muted
-                  }
-                />
-              </Pressable>
-            ))}
-          </View>
-          <TextInput
-            accessibilityLabel="Optional rating comment"
-            editable={!isSubmitting}
-            maxLength={500}
-            multiline
-            onChangeText={setComment}
-            placeholder="Add a comment (optional)"
-            placeholderTextColor={theme.colors.muted}
-            style={styles.comment}
-            textAlignVertical="top"
-            value={comment}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoiding}
+      >
+        <ScrollView
+          contentContainerStyle={styles.overlay}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss rating prompt"
+            disabled={isSubmitting}
+            onPress={onNotNow}
+            style={styles.backdrop}
           />
-          <Text style={styles.counter}>{comment.length}/500</Text>
-          <View style={styles.actions}>
-            <Pressable
-              accessibilityRole="button"
-              disabled={isSubmitting}
-              onPress={onNotNow}
-              style={[styles.button, styles.secondaryButton]}
+          <View style={styles.dialog}>
+            <View style={styles.iconCircle}>
+              <MaterialCommunityIcons
+                name="star-outline"
+                size={26}
+                color={theme.colors.text}
+              />
+            </View>
+            <Text style={styles.title}>Rate your driver</Text>
+            <Text style={styles.description}>
+              Delivery confirmed. How was your experience with {driverName}?
+            </Text>
+            <View
+              accessibilityRole="radiogroup"
+              accessibilityLabel="Driver rating"
+              style={styles.stars}
             >
-              <Text style={styles.secondaryText}>Not now</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{
-                disabled: score === 0 || isSubmitting,
-                busy: isSubmitting,
-              }}
-              disabled={score === 0 || isSubmitting}
-              onPress={submit}
-              style={[
-                styles.button,
-                styles.primaryButton,
-                (score === 0 || isSubmitting) && styles.disabled,
-              ]}
-            >
-              {isSubmitting ? (
-                <ActivityIndicator color={theme.colors.onPrimary} />
-              ) : (
-                <Text style={styles.primaryText}>Submit rating</Text>
-              )}
-            </Pressable>
+              {[1, 2, 3, 4, 5].map((value) => (
+                <Pressable
+                  key={value}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${value} ${value === 1 ? "star" : "stars"}`}
+                  accessibilityState={{ checked: score === value }}
+                  disabled={isSubmitting}
+                  onPress={() => setScore(value)}
+                  hitSlop={4}
+                >
+                  <MaterialCommunityIcons
+                    name={score >= value ? "star" : "star-outline"}
+                    size={34}
+                    color={
+                      score >= value ? theme.colors.secondary : theme.colors.muted
+                    }
+                  />
+                </Pressable>
+              ))}
+            </View>
+            <TextInput
+              accessibilityLabel="Optional rating comment"
+              editable={!isSubmitting}
+              maxLength={500}
+              multiline
+              onChangeText={setComment}
+              placeholder="Add a comment (optional)"
+              placeholderTextColor={theme.colors.muted}
+              style={styles.comment}
+              textAlignVertical="top"
+              value={comment}
+            />
+            <Text style={styles.counter}>{comment.length}/500</Text>
+            <View style={styles.actions}>
+              <Pressable
+                accessibilityRole="button"
+                disabled={isSubmitting}
+                onPress={onNotNow}
+                style={[styles.button, styles.secondaryButton]}
+              >
+                <Text style={styles.secondaryText}>Not now</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{
+                  disabled: score === 0 || isSubmitting,
+                  busy: isSubmitting,
+                }}
+                disabled={score === 0 || isSubmitting}
+                onPress={submit}
+                style={[
+                  styles.button,
+                  styles.primaryButton,
+                  (score === 0 || isSubmitting) && styles.disabled,
+                ]}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color={theme.colors.onPrimary} />
+                ) : (
+                  <Text style={styles.primaryText}>Submit rating</Text>
+                )}
+              </Pressable>
+            </View>
           </View>
-        </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
+  keyboardAvoiding: {
+    flex: 1,
+  },
   overlay: {
     alignItems: "center",
     backgroundColor: theme.colors.overlay,
-    flex: 1,
+    flexGrow: 1,
     justifyContent: "center",
     padding: theme.spacing.lg,
   },

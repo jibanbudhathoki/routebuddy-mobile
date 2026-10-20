@@ -1,6 +1,10 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
+import {
+  KeyboardStickyView,
+  useKeyboardState,
+} from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { getAuthSession } from "../../auth/services/authStorage";
@@ -75,6 +79,7 @@ export function ChatDetailScreen({
   onDeliveryConfirmed,
 }: ChatDetailScreenProps = {}) {
   const insets = useSafeAreaInsets();
+  const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
   const router = useRouter();
   const { id: routeId, recipientName: routeRecipientName } =
     useLocalSearchParams<{ id?: string; recipientName?: string }>();
@@ -255,24 +260,29 @@ export function ChatDetailScreen({
         onInteractionAreaTouch={interactions.dismissReactionPicker}
       />
 
-      <ChatComposer
-        messageText={messageText}
-        onMessageTextChange={setMessageText}
-        onSend={handleSendMessage}
-        isSending={sendMessage.isPending}
-        enabled={Boolean(conversationId)}
-        error={interactions.error}
-        replyTo={replyTo}
-        onCancelReply={() => setReplyTo(null)}
-        bottomPadding={Math.max(insets.bottom, 8)}
-        onPickImage={media.pickImage}
-        onTakePhoto={media.takePhoto}
-        onPickAudioFile={media.pickAudioFile}
-        onVoiceMessage={media.stopAndSendVoiceRecording}
-        isRecording={media.isRecording}
-        isMediaBusy={media.isUploading}
-        recordingDuration={media.recordingDuration}
-      />
+      <KeyboardStickyView
+        offset={{ closed: 0, opened: 0 }}
+        style={styles.composerSticky}
+      >
+        <ChatComposer
+          messageText={messageText}
+          onMessageTextChange={setMessageText}
+          onSend={handleSendMessage}
+          isSending={sendMessage.isPending}
+          enabled={Boolean(conversationId)}
+          error={interactions.error}
+          replyTo={replyTo}
+          onCancelReply={() => setReplyTo(null)}
+          bottomPadding={isKeyboardVisible ? 8 : Math.max(insets.bottom, 8)}
+          onPickImage={media.pickImage}
+          onTakePhoto={media.takePhoto}
+          onPickAudioFile={media.pickAudioFile}
+          onVoiceMessage={media.stopAndSendVoiceRecording}
+          isRecording={media.isRecording}
+          isMediaBusy={media.isUploading}
+          recordingDuration={media.recordingDuration}
+        />
+      </KeyboardStickyView>
       <MessageDialog
         visible={dialog !== null}
         title={dialog?.title ?? ""}

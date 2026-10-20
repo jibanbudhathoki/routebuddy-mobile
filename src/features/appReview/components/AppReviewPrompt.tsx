@@ -2,8 +2,11 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
   Pressable,
+  Platform,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -46,7 +49,15 @@ export function AppReviewPrompt({
       animationType="fade"
       onRequestClose={isSubmitting ? undefined : onClose}
     >
-      <View style={styles.overlay}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoiding}
+      >
+      <ScrollView
+        contentContainerStyle={styles.overlay}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Close app review"
@@ -137,16 +148,20 @@ export function AppReviewPrompt({
             </Pressable>
           </View>
         </View>
-      </View>
+        </ScrollView>
+        </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
+  keyboardAvoiding: {
+    flex: 1,
+  },
   overlay: {
     alignItems: "center",
     backgroundColor: theme.colors.overlay,
-    flex: 1,
+    flexGrow: 1,
     justifyContent: "center",
     padding: theme.spacing.lg,
   },

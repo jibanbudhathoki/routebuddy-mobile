@@ -1,6 +1,9 @@
 import { StyleSheet } from "react-native-unistyles";
 
 export const styles = StyleSheet.create((theme) => ({
+  composerSticky: {
+    zIndex: 1,
+  },
   screen: {
     backgroundColor: theme.colors.background,
     flex: 1,
