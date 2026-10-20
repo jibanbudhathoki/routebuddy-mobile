@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export interface EditTripOption {
   uid: string;
@@ -27,6 +28,7 @@ export function EditTripSelectionModal({
   onToggle,
   onClose,
 }: EditTripSelectionModalProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
 
   return (
@@ -43,7 +45,12 @@ export function EditTripSelectionModal({
           onPress={onClose}
           style={styles.backdrop}
         />
-        <View style={styles.sheet}>
+        <View
+          style={[
+            styles.sheet,
+            { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) },
+          ]}
+        >
           <View style={styles.header}>
             <Text style={styles.title}>{title}</Text>
             <Pressable

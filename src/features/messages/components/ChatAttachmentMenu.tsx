@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Modal, Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ChatAttachmentMenuProps {
   visible: boolean;
@@ -17,6 +18,7 @@ export function ChatAttachmentMenu({
   onTakePhoto,
   onPickAudio,
 }: ChatAttachmentMenuProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
   const options = [
     {
@@ -45,7 +47,13 @@ export function ChatAttachmentMenu({
     >
       <Pressable style={styles.backdrop} onPress={onClose}>
         <View style={styles.scrim} />
-        <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
+        <Pressable
+          style={[
+            styles.sheet,
+            { paddingBottom: Math.max(insets.bottom, theme.spacing.xl) },
+          ]}
+          onPress={(event) => event.stopPropagation()}
+        >
           <View style={styles.handle} />
           <Text style={styles.title}>Add to conversation</Text>
           <View style={styles.options}>

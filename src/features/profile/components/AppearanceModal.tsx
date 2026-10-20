@@ -9,6 +9,7 @@ import {
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { UnistylesRuntime } from "react-native-unistyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface AppearanceModalProps {
   visible: boolean;
@@ -16,6 +17,7 @@ interface AppearanceModalProps {
 }
 
 export function AppearanceModal({ visible, onClose }: AppearanceModalProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
 
   const handleSelect = (mode: "system" | "light" | "dark") => {
@@ -42,7 +44,12 @@ export function AppearanceModal({ visible, onClose }: AppearanceModalProps) {
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <View style={styles.content}>
+            <View
+              style={[
+                styles.content,
+                { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) },
+              ]}
+            >
               <View style={styles.dragIndicator} />
 
               <Text style={styles.title}>Appearance</Text>
@@ -136,7 +143,7 @@ const styles = StyleSheet.create((theme) => ({
     borderTopLeftRadius: theme.radius.lg,
     borderTopRightRadius: theme.radius.lg,
     padding: theme.spacing.lg,
-    paddingBottom: 48,
+    paddingBottom: theme.spacing.lg,
     alignItems: "center",
   },
   dragIndicator: {

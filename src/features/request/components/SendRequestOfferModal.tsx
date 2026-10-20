@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { TextField } from "../../../shared/components/TextField";
 import type { SubmitRequestOfferPayload } from "../types/request";
@@ -35,6 +36,7 @@ export function SendRequestOfferModal({
   onValidationError,
   onSubmit,
 }: SendRequestOfferModalProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
   const scrollViewRef = useRef<ScrollView>(null);
   const [proposedAt, setProposedAt] = useState(() =>
@@ -119,7 +121,10 @@ export function SendRequestOfferModal({
             <ScrollView
               ref={scrollViewRef}
               style={styles.scrollView}
-              contentContainerStyle={styles.content}
+              contentContainerStyle={[
+                styles.content,
+                { paddingBottom: Math.max(insets.bottom, theme.spacing.xl) },
+              ]}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode={
                 Platform.OS === "ios" ? "interactive" : "on-drag"

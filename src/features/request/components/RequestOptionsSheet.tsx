@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Modal, Pressable, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface RequestOptionsSheetProps {
   visible: boolean;
@@ -27,6 +28,7 @@ export function RequestOptionsSheet({
   onDeleteRequest,
   onReportIssue,
 }: RequestOptionsSheetProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
   const isBusy = isCancelling || isDeleting || isReportingIssue;
 
@@ -44,7 +46,12 @@ export function RequestOptionsSheet({
           onPress={onClose}
           style={styles.backdrop}
         />
-        <View style={styles.sheet}>
+        <View
+          style={[
+            styles.sheet,
+            { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) },
+          ]}
+        >
           <View style={styles.grabber} />
           <View style={styles.header}>
             <Text style={styles.title}>Request Options</Text>

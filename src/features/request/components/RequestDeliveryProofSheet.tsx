@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { useUnistyles } from "react-native-unistyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { DeliveryProofPhoto } from "../types/request";
 import { styles } from "./requestDeliveryProofSheet.styles";
@@ -38,6 +39,7 @@ export function RequestDeliveryProofSheet({
   onClose,
   onSubmit,
 }: RequestDeliveryProofSheetProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
   const [photos, setPhotos] = useState<DeliveryProofPhoto[]>([]);
   const [note, setNote] = useState("");
@@ -136,7 +138,10 @@ export function RequestDeliveryProofSheet({
         />
         <View style={styles.sheet}>
           <ScrollView
-            contentContainerStyle={styles.sheetContent}
+            contentContainerStyle={[
+              styles.sheetContent,
+              { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) },
+            ]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             style={styles.sheetScroll}

@@ -15,6 +15,7 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { CardForm } from "@stripe/stripe-react-native";
 import { AddPaymentMethodInput } from "../types/paymentMethod.types";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface AddPaymentMethodModalProps {
   visible: boolean;
@@ -29,6 +30,7 @@ export function AddPaymentMethodModal({
   onSubmit,
   isLoading = false,
 }: AddPaymentMethodModalProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
 
   const [holderName, setHolderName] = useState("");
@@ -89,7 +91,12 @@ export function AddPaymentMethodModal({
             style={styles.keyboardContainer}
           >
             <TouchableWithoutFeedback>
-              <View style={styles.content}>
+              <View
+                style={[
+                  styles.content,
+                  { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) },
+                ]}
+              >
                 <View style={styles.dragIndicator} />
 
                 <View style={styles.headerRow}>
@@ -244,7 +251,7 @@ const styles = StyleSheet.create((theme) => ({
     borderTopRightRadius: theme.radius.lg,
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.md,
-    paddingBottom: 40,
+    paddingBottom: theme.spacing.lg,
     maxHeight: "85%",
   },
   dragIndicator: {

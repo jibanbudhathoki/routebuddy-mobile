@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 
@@ -29,6 +30,7 @@ export function AddRequestItemModal({
   onClose,
   onAddItem,
 }: AddRequestItemModalProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -71,7 +73,12 @@ export function AddRequestItemModal({
         style={styles.overlay}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View style={styles.content}>
+        <View
+          style={[
+            styles.content,
+            { paddingBottom: Math.max(insets.bottom, theme.spacing.xl * 2) },
+          ]}
+        >
           <View style={styles.dragHandle} />
           <View style={styles.header}>
             <Text style={styles.title}>Add New Item</Text>

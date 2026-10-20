@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PaymentMethodItem } from "../types/paymentMethod.types";
 
 interface PaymentMethodActionModalProps {
@@ -25,6 +26,7 @@ export function PaymentMethodActionModal({
   onSetDefault,
   onDelete,
 }: PaymentMethodActionModalProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
 
   if (!paymentMethod) return null;
@@ -40,7 +42,12 @@ export function PaymentMethodActionModal({
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <View style={styles.content}>
+            <View
+              style={[
+                styles.content,
+                { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) },
+              ]}
+            >
               <View style={styles.dragIndicator} />
 
               <Text style={styles.title}>
@@ -106,7 +113,7 @@ const styles = StyleSheet.create((theme) => ({
     borderTopLeftRadius: theme.radius.lg,
     borderTopRightRadius: theme.radius.lg,
     padding: theme.spacing.lg,
-    paddingBottom: 40,
+    paddingBottom: theme.spacing.lg,
     alignItems: "center",
   },
   dragIndicator: {

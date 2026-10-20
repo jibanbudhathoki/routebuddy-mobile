@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface AddActionModalProps {
   visible: boolean;
@@ -22,6 +23,7 @@ export function AddActionModal({
   onPostTrip,
   onPostRequest,
 }: AddActionModalProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
 
   return (
@@ -34,7 +36,12 @@ export function AddActionModal({
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <View style={styles.content}>
+            <View
+              style={[
+                styles.content,
+                { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) },
+              ]}
+            >
               <View style={styles.dragIndicator} />
 
               <Text style={styles.title}>What would you like to do?</Text>
@@ -124,7 +131,7 @@ const styles = StyleSheet.create((theme) => ({
     borderTopLeftRadius: theme.radius.lg,
     borderTopRightRadius: theme.radius.lg,
     padding: theme.spacing.lg,
-    paddingBottom: 48,
+    paddingBottom: theme.spacing.lg,
     alignItems: "center",
   },
   dragIndicator: {

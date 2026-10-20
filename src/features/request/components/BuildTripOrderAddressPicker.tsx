@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Address } from "../../../shared/address/types/address";
 import { formatAddress } from "./BuildTripOrderAddressSection";
@@ -28,6 +29,7 @@ export function BuildTripOrderAddressPicker({
   onAddAddress,
   onSelect,
 }: BuildTripOrderAddressPickerProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
 
   return (
@@ -38,7 +40,12 @@ export function BuildTripOrderAddressPicker({
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+        <View
+          style={[
+            styles.modalContent,
+            { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) },
+          ]}
+        >
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Choose delivery address</Text>
             <TouchableOpacity

@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Modal, Platform, Pressable, Text, View } from "react-native";
 import { useUnistyles } from "react-native-unistyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { RequestDeliveryStatus } from "../types/request";
 import { styles } from "./requestStatusOptionsSheet.styles";
@@ -32,6 +33,7 @@ export function RequestStatusOptionsSheet({
   onClose,
   onSelectStatus,
 }: RequestStatusOptionsSheetProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
   const [isStatusExpanded, setIsStatusExpanded] = useState(false);
 
@@ -40,6 +42,8 @@ export function RequestStatusOptionsSheet({
       visible={visible}
       transparent
       animationType="slide"
+      statusBarTranslucent={Platform.OS === "android"}
+      navigationBarTranslucent={Platform.OS === "android"}
       onRequestClose={onClose}
       onShow={() => setIsStatusExpanded(false)}
     >
@@ -50,7 +54,12 @@ export function RequestStatusOptionsSheet({
           onPress={onClose}
           style={styles.backdrop}
         />
-        <View style={styles.sheet}>
+        <View
+          style={[
+            styles.sheet,
+            { paddingBottom: Math.max(insets.bottom, theme.spacing.xl) },
+          ]}
+        >
           <View style={styles.grabber} />
           <View style={styles.header}>
             <Text style={styles.title}>Order Options</Text>

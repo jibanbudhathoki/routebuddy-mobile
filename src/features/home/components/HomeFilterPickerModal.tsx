@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { HomeFilterOption } from "../types/homeFilters";
 
@@ -23,6 +24,7 @@ export function HomeFilterPickerModal({
   onSelect,
   onClose,
 }: HomeFilterPickerModalProps) {
+  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
 
   return (
@@ -39,7 +41,12 @@ export function HomeFilterPickerModal({
           onPress={onClose}
           style={styles.backdrop}
         />
-        <View style={styles.sheet}>
+        <View
+          style={[
+            styles.sheet,
+            { paddingBottom: Math.max(insets.bottom, theme.spacing.lg) },
+          ]}
+        >
           <View style={styles.header}>
             <Text style={styles.title}>{title}</Text>
             <Pressable
