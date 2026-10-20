@@ -1,10 +1,17 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Modal, Platform, Pressable, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Modal,
+  Platform,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import { useUnistyles } from "react-native-unistyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { RequestDeliveryStatus } from "../types/request";
+import type { RequestAction, RequestDeliveryStatus } from "../types/request";
 import { styles } from "./requestStatusOptionsSheet.styles";
 
 const statusOptions: Array<{
@@ -20,22 +27,28 @@ interface RequestStatusOptionsSheetProps {
   visible: boolean;
   currentStatus: string;
   isUpdating: boolean;
+  respondingAction?: RequestAction;
   pendingStatus?: RequestDeliveryStatus;
   onClose: () => void;
   onSelectStatus: (status: RequestDeliveryStatus) => void;
+  onRespondToOrder: (action: RequestAction) => void;
 }
 
 export function RequestStatusOptionsSheet({
   visible,
   currentStatus,
   isUpdating,
+  respondingAction,
   pendingStatus,
   onClose,
   onSelectStatus,
+  onRespondToOrder,
 }: RequestStatusOptionsSheetProps) {
   const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
   const [isStatusExpanded, setIsStatusExpanded] = useState(false);
+  const canRespond = currentStatus.toLowerCase() === "open";
+  const isResponding = Boolean(respondingAction);
 
   return (
     <Modal
@@ -76,9 +89,67 @@ export function RequestStatusOptionsSheet({
               />
             </Pressable>
           </View>
+          {canRespond ? (
+            <View style={styles.actions}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Accept order"
+                accessibilityState={{ disabled: isResponding }}
+                disabled={isResponding}
+                onPress={() => onRespondToOrder("accept")}
+                style={[
+                  styles.acceptButton,
+                  isResponding && styles.disabledButton,
+                ]}
+              >
+                {respondingAction === "accept" ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={theme.colors.onPrimary}
+                  />
+                ) : (
+                  <MaterialCommunityIcons
+                    name="check"
+                    size={16}
+                    color={theme.colors.onPrimary}
+                  />
+                )}
+                <Text style={styles.acceptText}>
+                  {respondingAction === "accept" ? "Accepting..." : "Accept"}
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Reject order"
+                accessibilityState={{ disabled: isResponding }}
+                disabled={isResponding}
+                onPress={() => onRespondToOrder("reject")}
+                style={[
+                  styles.rejectButton,
+                  isResponding && styles.disabledButton,
+                ]}
+              >
+                {respondingAction === "reject" ? (
+                  <ActivityIndicator size="small" color={theme.colors.error} />
+                ) : (
+                  <MaterialCommunityIcons
+                    name="close"
+                    size={16}
+                    color={theme.colors.error}
+                  />
+                )}
+                <Text style={styles.rejectText}>
+                  {respondingAction === "reject" ? "Rejecting..." : "Reject"}
+                </Text>
+              </Pressable>
+            </View>
+          ) : null}
           <Pressable
             accessibilityRole="button"
-            accessibilityState={{ expanded: isStatusExpanded, disabled: isUpdating }}
+            accessibilityState={{
+              expanded: isStatusExpanded,
+              disabled: isUpdating,
+            }}
             disabled={isUpdating}
             onPress={() => setIsStatusExpanded((expanded) => !expanded)}
             style={styles.dropdown}

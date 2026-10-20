@@ -7,13 +7,15 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { AppScreen } from "../../../shared/components/AppScreen";
 import { useToast } from "../../../shared/components/ToastProvider";
-import {
-  useCreateConversation,
-} from "../../messages/hooks/useMessages";
+import { useCreateConversation } from "../../messages/hooks/useMessages";
 import { messageService } from "../../messages/services/messageService";
 import { RequestDeliveryProofSheet } from "../../request/components/RequestDeliveryProofSheet";
 import { RequestStatusOptionsSheet } from "../../request/components/RequestStatusOptionsSheet";
-import type { RequestDeliveryStatus } from "../../request/types/request";
+import type {
+  RequestAction,
+  RequestDeliveryStatus,
+} from "../../request/types/request";
+import { useRespondToTripOrder } from "../../request/hooks/useRequestOffers";
 import { useUpdateRequestStatus } from "../../request/hooks/useUpdateRequestStatus";
 import { styles } from "../components/tripOrderDetailsScreen.styles";
 import { TripOrderDetailsContent } from "../components/TripOrderDetailsContent";
@@ -31,6 +33,7 @@ export function TripOrderDetailsScreen() {
   const params = useLocalSearchParams<{ uid?: string }>();
   const orderUid = typeof params.uid === "string" ? params.uid : "";
   const updateStatus = useUpdateRequestStatus(orderUid);
+  const respondToOrder = useRespondToTripOrder();
   const createConversation = useCreateConversation();
   const {
     data: order,
@@ -114,9 +117,13 @@ export function TripOrderDetailsScreen() {
         visible={showOptions}
         currentStatus={order?.status ?? ""}
         isUpdating={updateStatus.isPending}
+        respondingAction={
+          respondToOrder.isPending ? respondToOrder.variables?.action : undefined
+        }
         pendingStatus={updateStatus.variables}
         onClose={() => setShowOptions(false)}
         onSelectStatus={handleStatusUpdate}
+        onRespondToOrder={handleOrderResponse}
       />
       <RequestDeliveryProofSheet
         visible={showProofSheet}
@@ -167,9 +174,10 @@ export function TripOrderDetailsScreen() {
           await queryClient.invalidateQueries({
             queryKey: ["messages"],
           });
-          showToast(`Status updated to ${formatStatus(status)} and shared in chat.`, {
-            variant: "success",
-          });
+          showToast(
+            `Status updated to ${formatStatus(status)} and shared in chat.`,
+            { variant: "success" },
+          );
         } catch (messageFailure) {
           showToast(
             messageFailure instanceof Error
@@ -187,6 +195,24 @@ export function TripOrderDetailsScreen() {
         failure instanceof Error
           ? failure.message
           : "Unable to update request status.",
+      );
+    }
+  }
+
+  async function handleOrderResponse(action: RequestAction) {
+    if (!orderUid || respondToOrder.isPending) return;
+    try {
+      await respondToOrder.mutateAsync({ orderUid, action });
+      setShowOptions(false);
+      showToast(
+        action === "accept" ? "Order accepted." : "Order rejected.",
+        { variant: "success" },
+      );
+    } catch (failure) {
+      showToast(
+        failure instanceof Error
+          ? failure.message
+          : `Unable to ${action} this order.`,
       );
     }
   }

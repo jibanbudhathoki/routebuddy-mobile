@@ -10,10 +10,22 @@ import type {
   UserProfile,
 } from "../types/profile";
 
+const ratingSchema = z
+  .union([
+    z.number(),
+    z
+      .string()
+      .trim()
+      .min(1)
+      .regex(/^\d+(?:\.\d+)?$/)
+      .transform(Number),
+  ])
+  .pipe(z.number().min(0).max(5));
+
 export const profileSummarySchema: z.ZodType<ProfileSummary> = z.object({
   displayName: z.string(),
   photoUrl: z.string().url().nullable(),
-  rating: z.number().min(0).max(5),
+  rating: ratingSchema,
 });
 
 export const profileSummaryResponseSchema = z.object({
@@ -75,7 +87,7 @@ export const userProfileSchema: z.ZodType<UserProfile> = z.object({
   phone: z.string().nullable(),
   city: z.string().nullable().optional(),
   homeTown: z.string().nullable(),
-  rating: z.number().min(0).max(5).nullable(),
+  rating: ratingSchema.nullable(),
   defaultAddressUid: z.string().nullable().optional(),
   roles: z.array(z.string()),
   createdAt: z.string(),
