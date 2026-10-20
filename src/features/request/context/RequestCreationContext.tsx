@@ -12,6 +12,10 @@ interface RequestCreationContextType {
   updateRequestData: (data: Partial<CreateRequestPayload>) => void;
   tripOrderConversation: TripOrderConversationData | null;
   setTripOrderConversation: (data: TripOrderConversationData | null) => void;
+  checkoutPayment: { requestUid: string; clientSecret: string } | null;
+  setCheckoutPayment: (
+    payment: { requestUid: string; clientSecret: string } | null,
+  ) => void;
   resetRequestData: () => void;
 }
 
@@ -52,6 +56,10 @@ export function RequestCreationProvider({ children }: { children: ReactNode }) {
   });
   const [tripOrderConversation, setTripOrderConversation] =
     useState<TripOrderConversationData | null>(null);
+  const [checkoutPayment, setCheckoutPayment] = useState<{
+    requestUid: string;
+    clientSecret: string;
+  } | null>(null);
 
   const updateRequestData = (newData: Partial<CreateRequestPayload>) => {
     setRequestData((prev) => ({ ...prev, ...newData }));
@@ -59,6 +67,7 @@ export function RequestCreationProvider({ children }: { children: ReactNode }) {
 
   const resetRequestData = useCallback(() => {
     setTripOrderConversation(null);
+    setCheckoutPayment(null);
     setRequestData({
       stores: [],
       deliveryAddress: "",
@@ -77,6 +86,8 @@ export function RequestCreationProvider({ children }: { children: ReactNode }) {
         updateRequestData,
         tripOrderConversation,
         setTripOrderConversation,
+        checkoutPayment,
+        setCheckoutPayment,
         resetRequestData,
       }}
     >

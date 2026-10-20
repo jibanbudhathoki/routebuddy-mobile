@@ -24,6 +24,13 @@ export function MyRequestsScreen() {
     });
   };
 
+  const continuePayment = (request: MyRequestListItem) => {
+    router.push({
+      pathname: "/(modals)/request/checkout",
+      params: { postId: request.uid },
+    });
+  };
+
   return (
     <View>
       {isLoading ? (
@@ -51,6 +58,7 @@ export function MyRequestsScreen() {
               key={request.uid}
               request={request}
               onViewDetails={showRequestDetails}
+              onPayPending={continuePayment}
             />
           ))}
         </View>

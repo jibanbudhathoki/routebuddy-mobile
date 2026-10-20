@@ -1,5 +1,6 @@
 import {
   addDeliveryProof,
+  cancelTripOrder,
   cancelRequest,
   confirmDelivery,
   deleteRequest,
@@ -32,6 +33,7 @@ export const requestService = {
   addDeliveryProof,
   confirmDelivery,
   cancelRequest,
+  cancelTripOrder,
   deleteRequest,
   reportIssue,
 };

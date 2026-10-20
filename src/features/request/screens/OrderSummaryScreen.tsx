@@ -18,6 +18,8 @@ import { useToast } from "../../../shared/components/ToastProvider";
 import { validateOpenRequest } from "../validations/openRequest";
 import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
 import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
+import { requestService } from "../services/request.service";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function OrderSummaryScreen() {
   const insets = useSafeAreaInsets();
@@ -25,7 +27,12 @@ export function OrderSummaryScreen() {
   const { theme } = useUnistyles();
   const unreadCount = useUnreadNotificationCount();
   const { showToast } = useToast();
-  const { requestData, updateRequestData } = useRequestCreation();
+  const queryClient = useQueryClient();
+  const {
+    requestData,
+    updateRequestData,
+    setCheckoutPayment,
+  } = useRequestCreation();
   const { createRequest, isLoading: isCreatingRequest } = useCreateRequest();
   const items = requestData.items || [];
   const estimate = calculateEstimate(items);
@@ -57,25 +64,43 @@ export function OrderSummaryScreen() {
       const response = await createRequest(validation.data);
 
       if (response?.data?.status === "pending") {
+        setCheckoutPayment(
+          response.data.payment
+            ? {
+                requestUid: response.data.postId,
+                clientSecret: response.data.payment.clientSecret,
+              }
+            : null,
+        );
+        await queryClient.invalidateQueries({ queryKey: ["requests"] });
         router.push({
           pathname: "/(modals)/request/checkout",
           params: { postId: response.data.postId, clearRequestDraft: "true" },
         });
       } else if (response.data.status === "open") {
-        router.push({
-          pathname: "/(modals)/request/payment-success",
-          params: {
-            resultType: "request-published",
-            requestUid: response.data.postId,
-            clearRequestDraft: "true",
-          },
-        });
+        try {
+          await requestService.cancelRequest(response.data.postId);
+          await queryClient.invalidateQueries({ queryKey: ["requests"] });
+          showToast(
+            "Payment is required before your request can be published. The unpaid request was cancelled. Please try again.",
+            { title: "Payment required", variant: "error" },
+          );
+        } catch (cancelError) {
+          throw new Error(
+            `The API published this request without payment, and cancellation failed: ${
+              cancelError instanceof Error
+                ? cancelError.message
+                : "Please contact support."
+            }`,
+          );
+        }
       } else {
         showToast(response.message || "Failed to create request.");
       }
     } catch (error) {
       showToast(
         error instanceof Error ? error.message : "Failed to create request.",
+        { title: "Unable to publish request", variant: "error" },
       );
     }
   };

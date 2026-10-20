@@ -192,6 +192,33 @@ export const cancelRequest = async (
   return response;
 };
 
+export const cancelTripOrder = async (
+  orderUid: string,
+): Promise<void> => {
+  if (!orderUid.trim()) {
+    throw new Error("An order ID is required to cancel this order.");
+  }
+
+  const response = await apiRequest<{
+    success: boolean;
+    message?: string;
+    data?: { uid?: string };
+  }>(
+    apiEndpoints.requests.cancelTripOrder.replace(
+      ":uid",
+      encodeURIComponent(orderUid),
+    ),
+    { method: "PATCH" },
+  );
+
+  if (!response.success) {
+    throw new Error(response.message || "Unable to cancel the unpaid order.");
+  }
+  if (!response.data?.uid) {
+    throw new Error("The cancel response did not include the updated order.");
+  }
+};
+
 export const deleteRequest = async (
   requestUid: string,
 ): Promise<DeleteRequestResponse> => {

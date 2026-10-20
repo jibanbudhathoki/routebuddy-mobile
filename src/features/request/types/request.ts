@@ -39,6 +39,10 @@ export interface CreateOpenRequestResponse {
     status: "pending" | "open";
     totalItems: number;
     totalCost: string;
+    payment: {
+      clientSecret: string;
+      captureBefore: string | null;
+    } | null;
   };
 }
 
@@ -81,6 +85,10 @@ export interface CreateTripOrderResponse {
     status: "pending" | "open";
     totalItems: number;
     totalCost: string;
+    payment: {
+      clientSecret: string;
+      captureBefore: string | null;
+    } | null;
   };
 }
 

@@ -7,11 +7,13 @@ import type { MyRequestListItem } from "../types/request";
 interface MyRequestCardProps {
   request: MyRequestListItem;
   onViewDetails: (request: MyRequestListItem) => void;
+  onPayPending: (request: MyRequestListItem) => void;
 }
 
 export function MyRequestCard({
   request,
   onViewDetails,
+  onPayPending,
 }: MyRequestCardProps) {
   const { theme } = useUnistyles();
   const stores = request.stores ?? [];
@@ -110,17 +112,28 @@ export function MyRequestCard({
         </View>
       </View>
 
+      {request.status.toLowerCase() === "pending" ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Continue to payment"
+          onPress={() => onPayPending(request)}
+          style={styles.payButton}
+        >
+          <MaterialCommunityIcons
+            name="credit-card-outline"
+            size={16}
+            color={theme.colors.onPrimary}
+          />
+          <Text style={styles.payButtonText}>Continue to Payment</Text>
+        </Pressable>
+      ) : null}
       <Pressable
         accessibilityRole="button"
         onPress={() => onViewDetails(request)}
         style={styles.detailsButton}
       >
         <Text style={styles.detailsText}>View Request Details</Text>
-        <MaterialCommunityIcons
-          name="chevron-right"
-          size={17}
-          color={theme.colors.text}
-        />
+        <MaterialCommunityIcons name="chevron-right" size={17} color={theme.colors.text} />
       </Pressable>
     </View>
   );
@@ -350,6 +363,20 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.spacing.xs,
     justifyContent: "center",
     minHeight: 34,
+  },
+  payButton: {
+    alignItems: "center",
+    backgroundColor: theme.colors.primary,
+    borderRadius: 6,
+    flexDirection: "row",
+    gap: theme.spacing.xs,
+    justifyContent: "center",
+    minHeight: 38,
+  },
+  payButtonText: {
+    color: theme.colors.onPrimary,
+    fontSize: 11,
+    fontWeight: "700",
   },
   detailsText: {
     color: theme.colors.text,

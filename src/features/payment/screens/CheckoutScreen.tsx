@@ -1,7 +1,13 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import {
+  BackHandler,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
@@ -11,6 +17,8 @@ import { usePayment } from "../hooks/usePayment";
 import { paymentMethodsService } from "../services/paymentMethods.service";
 import type { PaymentMethodItem } from "../types/paymentMethod.types";
 import { useRequestCreation } from "../../request/context/RequestCreationContext";
+import { useRequestDetails } from "../../request/hooks/useRequestDetails";
+import { requestService } from "../../request/services/request.service";
 import { useCities } from "../../../shared/city/hooks/useCities";
 import { useStores } from "../../../shared/store/hooks/useStores";
 import { calculateEstimate } from "../../../shared/utils/pricing";
@@ -20,6 +28,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../../shared/components/ToastProvider";
 import { NotificationBellButton } from "../../../shared/components/NotificationBellButton";
 import { useUnreadNotificationCount } from "../../notifications/hooks/useNotifications";
+import { untrackPendingTripOrder } from "../../request/services/pendingTripOrderStorage";
 
 export function CheckoutScreen() {
   const insets = useSafeAreaInsets();
@@ -30,9 +39,19 @@ export function CheckoutScreen() {
     clearRequestDraft?: string;
   }>();
   const { theme } = useUnistyles();
-  const { requestData, tripOrderConversation } = useRequestCreation();
+  const {
+    data: pendingRequestDetails,
+  } = useRequestDetails(postId);
+  const {
+    requestData,
+    tripOrderConversation,
+    checkoutPayment,
+    setCheckoutPayment,
+    setTripOrderConversation,
+  } = useRequestCreation();
   const [nameOnCard, setNameOnCard] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
   const [savedMethods, setSavedMethods] = useState<PaymentMethodItem[]>([]);
   const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
@@ -75,13 +94,31 @@ export function CheckoutScreen() {
     };
   }, []);
 
-  const items = requestData.items || [];
+  const items =
+    requestData.items?.length
+      ? requestData.items
+      : (pendingRequestDetails?.items ?? []).map((item, index) => ({
+          id: `${postId}-${index}`,
+          name: item.item,
+          description: item.description,
+          estimatedPrice: item.estimatePrice,
+        }));
   const { subtotal, serviceFee, taxes, total } = calculateEstimate(items);
   const tripOrderTotal =
     tripOrderConversation?.orderUid === postId
       ? Number(tripOrderConversation.total)
       : Number.NaN;
-  const totalToPay = Number.isFinite(tripOrderTotal) ? tripOrderTotal : total;
+  const detailTotal =
+    pendingRequestDetails?.total == null
+      ? Number.NaN
+      : Number(pendingRequestDetails.total);
+  const hasServerTotal =
+    Number.isFinite(tripOrderTotal) || Number.isFinite(detailTotal);
+  const totalToPay = Number.isFinite(tripOrderTotal)
+    ? tripOrderTotal
+    : Number.isFinite(detailTotal)
+      ? detailTotal
+      : total;
   const { stores } = useStores({ limit: 100 });
   const { cities } = useCities();
   const selectedStore = stores.find((store) =>
@@ -96,6 +133,9 @@ export function CheckoutScreen() {
     (city) => city.uid === requestData.deliveryCityUid,
   );
   const routeText = `${originCity?.name || "Origin"}${formatProvince(selectedStore?.province)} → ${destinationCity?.name || "Destination"}${formatProvince(destinationCity?.province)}`;
+  const isTripOrder =
+    tripOrderConversation?.orderUid === postId ||
+    Boolean(pendingRequestDetails?.trip?.uid);
 
   const isUsingSavedCard = selectedMethodId !== null;
   const isNameValid = nameOnCard.trim().length > 0;
@@ -109,12 +149,15 @@ export function CheckoutScreen() {
     try {
       if (!postId) throw new Error("No post ID provided for checkout");
 
-      const checkoutResponse: any = await initiateCheckout(
-        postId,
-        selectedMethodId || undefined,
-      );
       const clientSecret =
-        checkoutResponse?.data?.clientSecret || checkoutResponse?.clientSecret;
+        checkoutPayment?.requestUid === postId
+          ? checkoutPayment.clientSecret
+          : (
+              await initiateCheckout(
+                postId,
+                selectedMethodId || undefined,
+              )
+            ).data.clientSecret;
 
       if (clientSecret) {
         const paymentData = isUsingSavedCard
@@ -130,10 +173,13 @@ export function CheckoutScreen() {
                 billingDetails: { name: nameOnCard },
               },
             };
+        setIsConfirmingPayment(true);
         const { error: stripeError } = await confirmPayment(
           clientSecret,
           paymentData as any,
-        );
+        ).finally(() => {
+          setIsConfirmingPayment(false);
+        });
 
         if (stripeError) {
           throw new Error(stripeError.message || "Payment failed");
@@ -142,14 +188,39 @@ export function CheckoutScreen() {
         // Refresh request details to pick up the updated webhook status ('open') and captureBefore
         await queryClient.invalidateQueries({ queryKey: ["requests"] });
 
-        router.push({
-          pathname: "/(modals)/request/payment-success",
-          params: {
-            orderUid: postId,
-            clearRequestDraft:
-              clearRequestDraft === "true" ? "true" : undefined,
-          },
-        });
+        setCheckoutPayment(null);
+        if (isTripOrder) {
+          try {
+            await untrackPendingTripOrder(postId);
+          } catch (storageError) {
+            showToast(
+              storageError instanceof Error
+                ? `Payment succeeded, but local order cleanup could not be updated: ${storageError.message}`
+                : "Payment succeeded, but local order cleanup could not be updated.",
+              { title: "Payment successful", variant: "error" },
+            );
+          }
+        }
+        if (isTripOrder) {
+          router.push({
+            pathname: "/(modals)/request/payment-success",
+            params: {
+              orderUid: postId,
+              clearRequestDraft:
+                clearRequestDraft === "true" ? "true" : undefined,
+            },
+          });
+        } else {
+          router.push({
+            pathname: "/(modals)/request/payment-success",
+            params: {
+              resultType: "request-published",
+              requestUid: postId,
+              clearRequestDraft:
+                clearRequestDraft === "true" ? "true" : undefined,
+            },
+          });
+        }
       } else {
         throw new Error("Unable to retrieve payment client secret.");
       }
@@ -158,6 +229,62 @@ export function CheckoutScreen() {
         error instanceof Error ? error.message : "Unable to complete payment.",
       );
     }
+  };
+
+  const abandonTripOrder = useCallback(async () => {
+    if (!postId || !isTripOrder || isInitializing) return;
+    if (isConfirmingPayment) {
+      showToast("Payment is processing. Please wait before leaving checkout.", {
+        title: "Payment in progress",
+        variant: "info",
+      });
+      return;
+    }
+    try {
+      await requestService.cancelTripOrder(postId);
+      await untrackPendingTripOrder(postId);
+      await queryClient.invalidateQueries({ queryKey: ["requests"] });
+      setCheckoutPayment(null);
+      setTripOrderConversation(null);
+      router.back();
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? `Unable to discard the unpaid order: ${error.message}`
+          : "Unable to discard the unpaid order. Please try again.",
+        { title: "Order not cancelled", variant: "error" },
+      );
+    }
+  }, [
+    isInitializing,
+    isConfirmingPayment,
+    isTripOrder,
+    postId,
+    queryClient,
+    router,
+    setCheckoutPayment,
+    setTripOrderConversation,
+    showToast,
+  ]);
+
+  useEffect(() => {
+    if (!isTripOrder) return;
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        void abandonTripOrder();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [abandonTripOrder, isTripOrder]);
+
+  const handleBack = () => {
+    if (isTripOrder) {
+      void abandonTripOrder();
+      return;
+    }
+    router.back();
   };
 
   return (
@@ -173,7 +300,7 @@ export function CheckoutScreen() {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() => router.back()}
+          onPress={handleBack}
         >
           <MaterialCommunityIcons
             name="chevron-left"
@@ -225,12 +352,12 @@ export function CheckoutScreen() {
           storeLogoText={storeLogoText}
           storeLogoSubText={storeLogoSubText}
           routeText={routeText}
-          neededBy={requestData.dayNeeded}
+          neededBy={requestData.dayNeeded ?? pendingRequestDetails?.neededBy}
           subtotal={subtotal}
           serviceFee={serviceFee}
           taxes={taxes}
           total={totalToPay}
-          showEstimatedBreakdown={!Number.isFinite(tripOrderTotal)}
+          showEstimatedBreakdown={!hasServerTotal}
         />
 
         <CheckoutPaymentForm
@@ -239,7 +366,7 @@ export function CheckoutScreen() {
           onCardValidityChange={setIsFormValid}
           isFormValid={isFormValid}
           hasFailed={hasFailed}
-          isInitializing={isInitializing}
+          isInitializing={isInitializing || isConfirmingPayment}
           total={totalToPay}
           onPay={handlePay}
           onReset={() => setHasSubmitted(false)}

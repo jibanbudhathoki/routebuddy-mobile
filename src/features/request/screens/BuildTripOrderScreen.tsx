@@ -30,6 +30,8 @@ import { PrimaryButton } from "../../../shared/components/PrimaryButton";
 import { calculateEstimate } from "../../../shared/utils/pricing";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { useTripDetails } from "../../trip/hooks/useTripDetails";
+import { requestService } from "../services/request.service";
+import { trackPendingTripOrder } from "../services/pendingTripOrderStorage";
 
 export function BuildTripOrderScreen() {
   const insets = useSafeAreaInsets();
@@ -45,7 +47,11 @@ export function BuildTripOrderScreen() {
     error: addressError,
     refetch: refetchAddresses,
   } = useAddresses();
-  const { updateRequestData, setTripOrderConversation } = useRequestCreation();
+  const {
+    updateRequestData,
+    setTripOrderConversation,
+    setCheckoutPayment,
+  } = useRequestCreation();
   const createTripOrder = useCreateTripOrder();
 
   const [items, setItems] = useState<RequestItem[]>([]);
@@ -105,10 +111,40 @@ export function BuildTripOrderScreen() {
     try {
       const response = await createTripOrder.mutateAsync(validation.data);
       const checkoutId = response.data.postId;
-      if (response.data.status !== "pending" && response.data.status !== "open") {
+      if (response.data.status === "open") {
+        try {
+          await requestService.cancelTripOrder(checkoutId);
+        } catch (cancelError) {
+          throw new Error(
+            `The API created this order without payment, and cancellation failed: ${
+              cancelError instanceof Error
+                ? cancelError.message
+                : "Please contact support."
+            }`,
+          );
+        }
         throw new Error(
-          `The order was created with an unsupported status: ${response.data.status}.`,
+          "Payment is required before a trip order can be placed. The unpaid order was cancelled. Please try again.",
         );
+      }
+      if (response.data.status !== "pending") {
+        throw new Error(`Unsupported trip order status: ${response.data.status}.`);
+      }
+      try {
+        await trackPendingTripOrder(checkoutId);
+      } catch (storageError) {
+        try {
+          await requestService.cancelTripOrder(checkoutId);
+        } catch (cancelError) {
+          throw new Error(
+            `Unable to track or discard the unpaid order: ${
+              cancelError instanceof Error
+                ? cancelError.message
+                : "Please contact support."
+            }`,
+          );
+        }
+        throw storageError;
       }
 
       updateRequestData({
@@ -140,6 +176,14 @@ export function BuildTripOrderScreen() {
         deliveryCity: selectedAddress.city?.name ?? "",
         deliveryProvince: selectedAddress.province?.name ?? "",
       });
+      setCheckoutPayment(
+        response.data.payment
+          ? {
+              requestUid: checkoutId,
+              clientSecret: response.data.payment.clientSecret,
+            }
+          : null,
+      );
 
       router.push({
         pathname: "/(modals)/request/checkout",

@@ -17,6 +17,7 @@ import { getMessaging, onTokenRefresh } from "@react-native-firebase/messaging";
 
 import { TripCreationProvider } from "../features/trip/context/TripCreationContext";
 import { RequestCreationProvider } from "../features/request/context/RequestCreationContext";
+import { PendingTripOrderCleanup } from "../features/request/components/PendingTripOrderCleanup";
 import { getAuthSession } from "../features/auth/services/authStorage";
 import {
   registerDeviceToken,
@@ -99,6 +100,7 @@ export default function RootLayout() {
               <RequestCreationProvider>
                 <TripCreationProvider>
                   <ToastProvider>
+                    <PendingTripOrderCleanup />
                     <DeviceTokenRefreshListener />
                     <KeyboardAvoidingView
                       style={{ flex: 1 }}

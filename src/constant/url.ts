@@ -74,6 +74,7 @@ export const apiEndpoints = {
     acceptOrRejectOffer: "/v1/requests/:uid/offers/:offerUid/action",
     acceptOrRejectTripOrder: "/v1/requests/:uid/action",
     cancelRequest: "/v1/requests/:uid/cancel",
+    cancelTripOrder: "/v1/requests/order/:uid/cancel",
     deleteRequest: "/v1/requests/:uid",
     listMyAssignedRequests: "/v1/requests/driver/me",
     addDeliveryProof: "/v1/requests/:uid/delivery-proof",

@@ -17,16 +17,36 @@ export const createTripOrderSchema = z.object({
 });
 
 const tripOrderCreationDataSchema = z.object({
-  postId: z.string().min(1),
+  postId: z.string().min(1).optional(),
+  uid: z.string().min(1).optional(),
   status: z.enum(["pending", "open"]),
-  totalItems: z.number().int().nonnegative(),
+  totalItems: z.number().int().nonnegative().optional(),
   totalCost: z
     .union([
       z.string().regex(/^\d+(\.\d+)?$/),
       z.number().finite().nonnegative(),
     ])
-    .transform(String),
-});
+    .optional(),
+  total: z
+    .union([
+      z.string().regex(/^\d+(\.\d+)?$/),
+      z.number().finite().nonnegative(),
+    ])
+    .optional(),
+  payment: z
+    .object({
+      clientSecret: z.string().min(1),
+      captureBefore: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+})
+  .refine((data) => Boolean(data.postId ?? data.uid), {
+    message: "The order response did not include an order ID.",
+  })
+  .refine((data) => data.totalCost !== undefined || data.total !== undefined, {
+    message: "The order response did not include a valid total.",
+  });
 
 export const createTripOrderResponseSchema = z.object({
   success: z.boolean(),
