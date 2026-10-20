@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "routebuddy-mobile",
-    "slug": "routebuddy-mobile",
+    "name": "Route Buddy",
+    "slug": "routebuddy",
     "owner": "davidho416s-team",
     "scheme": "routebuddy",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
@@ -16,10 +16,8 @@
     "android": {
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/logo.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "routebuddy.app",
@@ -29,7 +27,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/logo.png"
     },
     "plugins": [
       "expo-router",
@@ -41,7 +39,7 @@
         "@stripe/stripe-react-native",
         {
           "merchantIdentifier": "merchant.com.anonymous.routebuddymobile",
-          "enableApplePay": true
+          "enableApplePay": false
         }
       ],
       "@react-native-google-signin/google-signin",
