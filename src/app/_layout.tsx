@@ -87,7 +87,8 @@ export default function RootLayout() {
   const stripePublishableKey =
     process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
     "pk_test_TYooMQauvdEDq54NiTphI7jx";
-  const isKeyboardControllerScreen = pathname.startsWith("/chat/");
+  const isKeyboardControllerScreen =
+    pathname.startsWith("/chat/") || pathname === "/login";
 
   return (
     <StripeProvider publishableKey={stripePublishableKey}>

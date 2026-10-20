@@ -10,7 +10,8 @@ import { FlatList } from "react-native-gesture-handler";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback } from "react";
 import { MessageListItem } from "../components/MessageListItem";
 import { MessageDialog, type MessageDialogAction } from "../components/MessageDialog";
 import {
@@ -37,6 +38,12 @@ export function MessageScreen() {
     message?: string;
     actions: MessageDialogAction[];
   } | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refetch();
+    }, [refetch]),
+  );
 
   const handleDeleteConversation = (conversationId: string) => {
     setDialog({

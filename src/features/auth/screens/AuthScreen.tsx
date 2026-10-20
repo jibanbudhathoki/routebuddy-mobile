@@ -3,11 +3,11 @@ import { useState } from "react";
 import {
   Platform,
   Pressable,
-  ScrollView,
   Text,
   View,
 } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 import { Button } from "../../../shared/components/Button";
 import { TextField } from "../../../shared/components/TextField";
@@ -88,123 +88,120 @@ export function AuthScreen({
 
   return (
     <View style={styles.screen}>
-      <View style={styles.keyboardView}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.keyboardView}>
-            <WelcomeHero variant="flat" />
+      <KeyboardAwareScrollView
+        bottomOffset={16}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <WelcomeHero variant="flat" />
+
+        <View style={styles.bottomSheet}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Welcome back!</Text>
+            <Text style={styles.description}>Log in to your account</Text>
           </View>
 
-          <View style={styles.bottomSheet}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Welcome back!</Text>
-              <Text style={styles.description}>Log in to your account</Text>
-            </View>
+          <View style={styles.form}>
+            <TextField
+              leftElement={
+                <MaterialCommunityIcons
+                  name="email-outline"
+                  size={24}
+                  color={styles.icon.color}
+                  style={styles.inputIcon}
+                />
+              }
+              autoCapitalize="none"
+              autoComplete="email"
+              keyboardType="email-address"
+              placeholder="Email address"
+              onChangeText={(text) => {
+                setEmail(text);
+                setFieldErrors((prev) => ({ ...prev, email: undefined }));
+              }}
+              value={email}
+              error={fieldErrors.email}
+            />
 
-            <View style={styles.form}>
-              <TextField
-                leftElement={
+            <TextField
+              leftElement={
+                <MaterialCommunityIcons
+                  name="lock-outline"
+                  size={24}
+                  color={styles.icon.color}
+                  style={styles.inputIcon}
+                />
+              }
+              rightElement={
+                <Pressable
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeIcon}
+                >
                   <MaterialCommunityIcons
-                    name="email-outline"
+                    name={showPassword ? "eye-outline" : "eye-off-outline"}
                     size={24}
                     color={styles.icon.color}
-                    style={styles.inputIcon}
                   />
-                }
-                autoCapitalize="none"
-                autoComplete="email"
-                keyboardType="email-address"
-                placeholder="Email address"
-                onChangeText={(text) => {
-                  setEmail(text);
-                  setFieldErrors((prev) => ({ ...prev, email: undefined }));
-                }}
-                value={email}
-                error={fieldErrors.email}
-              />
+                </Pressable>
+              }
+              autoCapitalize="none"
+              autoComplete="password"
+              placeholder="Password"
+              secureTextEntry={!showPassword}
+              onChangeText={(text) => {
+                setPassword(text);
+                setFieldErrors((prev) => ({ ...prev, password: undefined }));
+              }}
+              value={password}
+              error={fieldErrors.password}
+            />
 
-              <TextField
-                leftElement={
-                  <MaterialCommunityIcons
-                    name="lock-outline"
-                    size={24}
-                    color={styles.icon.color}
-                    style={styles.inputIcon}
-                  />
-                }
-                rightElement={
-                  <Pressable
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeIcon}
-                  >
-                    <MaterialCommunityIcons
-                      name={showPassword ? "eye-outline" : "eye-off-outline"}
-                      size={24}
-                      color={styles.icon.color}
-                    />
-                  </Pressable>
-                }
-                autoCapitalize="none"
-                autoComplete="password"
-                placeholder="Password"
-                secureTextEntry={!showPassword}
-                onChangeText={(text) => {
-                  setPassword(text);
-                  setFieldErrors((prev) => ({ ...prev, password: undefined }));
-                }}
-                value={password}
-                error={fieldErrors.password}
-              />
+            <Pressable onPress={onForgotPassword} accessibilityRole="button">
+              <Text style={styles.forgotPassword}>Forgot password?</Text>
+            </Pressable>
 
-              <Pressable onPress={onForgotPassword} accessibilityRole="button">
-                <Text style={styles.forgotPassword}>Forgot password?</Text>
-              </Pressable>
+            {requestError ? (
+              <Text accessibilityRole="alert" style={styles.requestError}>
+                {requestError}
+              </Text>
+            ) : null}
 
-              {requestError ? (
-                <Text accessibilityRole="alert" style={styles.requestError}>
-                  {requestError}
-                </Text>
-              ) : null}
+            <Button
+              title="Log In"
+              loading={isSubmitting}
+              disabled={googleSignIn.isSubmitting}
+              onPress={handleContinue}
+              style={styles.button}
+            />
 
-              <Button
-                title="Log In"
-                loading={isSubmitting}
-                disabled={googleSignIn.isSubmitting}
-                onPress={handleContinue}
-                style={styles.button}
-              />
-
-              <View style={styles.dividerContainer}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>OR</Text>
-                <View style={styles.dividerLine} />
-              </View>
-
-              {googleSignIn.error ? (
-                <Text accessibilityRole="alert" style={styles.requestError}>
-                  {googleSignIn.error}
-                </Text>
-              ) : null}
-              <GoogleSignInButton
-                loading={googleSignIn.isSubmitting}
-                onPress={async () => {
-                  if (await googleSignIn.signIn()) {
-                    onAuthenticated();
-                  }
-                }}
-              />
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>OR</Text>
+              <View style={styles.dividerLine} />
             </View>
 
-            <Text onPress={onSignUp} style={styles.footer}>
-              <Text style={styles.footerText}>New to Route Buddy? </Text>
-              <Text style={styles.footerLink}>Create an account</Text>
-            </Text>
+            {googleSignIn.error ? (
+              <Text accessibilityRole="alert" style={styles.requestError}>
+                {googleSignIn.error}
+              </Text>
+            ) : null}
+            <GoogleSignInButton
+              loading={googleSignIn.isSubmitting}
+              onPress={async () => {
+                if (await googleSignIn.signIn()) {
+                  onAuthenticated();
+                }
+              }}
+            />
           </View>
-        </ScrollView>
-      </View>
+
+          <Text onPress={onSignUp} style={styles.footer}>
+            <Text style={styles.footerText}>New to Route Buddy? </Text>
+            <Text style={styles.footerLink}>Create an account</Text>
+          </Text>
+        </View>
+      </KeyboardAwareScrollView>
     </View>
   );
 }
@@ -212,9 +209,6 @@ export function AuthScreen({
 const styles = StyleSheet.create((theme) => ({
   screen: {
     backgroundColor: theme.colors.surface,
-    flex: 1,
-  },
-  keyboardView: {
     flex: 1,
   },
   scrollContent: {
