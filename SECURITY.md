@@ -8,10 +8,10 @@ The RouteBuddy team takes the security and privacy of our users, drivers, and pa
 
 Security fixes and updates are actively maintained for the latest stable release and the main development branch. Older versions may not receive security updates once a newer minor or major version is published.
 
-| Version | Supported          | Status                                 |
+| Version |     Supported      | Status                                 |
 | :------ | :----------------: | :------------------------------------- |
 | 1.0.x   | :white_check_mark: | Currently Supported (Active Release)   |
-| < 1.0.0 | :x:                | Deprecated (Pre-release / Unsupported) |
+| < 1.0.0 |        :x:         | Deprecated (Pre-release / Unsupported) |
 
 We strongly recommend users and testers always stay updated with the latest build from authorized distribution channels (e.g., Google Play, Apple TestFlight / App Store, or tagged repository releases).
 
@@ -47,19 +47,20 @@ To help us investigate, triage, and remediate the issue effectively, please incl
 
 When you submit a vulnerability report in good faith, we commit to the following response timeline:
 
-| Milestone               | Target Timeline         | Description                                                          |
-| :---------------------- | :---------------------- | :------------------------------------------------------------------- |
-| **Initial Response**    | Within 48 hours         | Acknowledge receipt of the report and begin initial triage.          |
-| **Triage & Validation** | Within 5 business days  | Confirm vulnerability validity, assess severity (CVSS), and assign priority. |
-| **Status Updates**      | Every 7 business days   | Keep the reporter informed on remediation progress.                  |
-| **Fix & Release**       | 14–30 business days     | Deploy patch in an updated release, depending on complexity.         |
-| **Public Disclosure**   | Coordinated             | Publish a security advisory after the fix is verified and deployed.  |
+| Milestone               | Target Timeline        | Description                                                                  |
+| :---------------------- | :--------------------- | :--------------------------------------------------------------------------- |
+| **Initial Response**    | Within 48 hours        | Acknowledge receipt of the report and begin initial triage.                  |
+| **Triage & Validation** | Within 5 business days | Confirm vulnerability validity, assess severity (CVSS), and assign priority. |
+| **Status Updates**      | Every 7 business days  | Keep the reporter informed on remediation progress.                          |
+| **Fix & Release**       | 14–30 business days    | Deploy patch in an updated release, depending on complexity.                 |
+| **Public Disclosure**   | Coordinated            | Publish a security advisory after the fix is verified and deployed.          |
 
 ---
 
 ## Scope & Security Architecture
 
 ### In-Scope
+
 - RouteBuddy Mobile client codebase (`src/` and native configurations).
 - Client-side data storage and session management (tokens stored via `expo-secure-store`).
 - Authentication and authorization client workflows (OAuth, refresh tokens, session revocation).
@@ -67,6 +68,7 @@ When you submit a vulnerability report in good faith, we commit to the following
 - Input validation and schema integrity (Zod validation pipelines).
 
 ### Out-of-Scope
+
 - Vulnerabilities requiring root/jailbreak or physical device compromise without privilege escalation.
 - Denial of Service (DoS/DDoS) attacks against mobile APIs or third-party infrastructure.
 - Social engineering, phishing, or physical attacks targeting RouteBuddy employees or users.
