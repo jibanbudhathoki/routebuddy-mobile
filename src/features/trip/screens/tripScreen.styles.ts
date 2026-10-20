@@ -44,6 +44,25 @@ export const styles = StyleSheet.create((theme) => ({
   activeSegmentLabel: {
     color: theme.colors.onPrimary,
   },
+  assignedCountBadge: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: theme.radius.sm,
+    minWidth: 22,
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: 2,
+  },
+  assignedCountText: {
+    color: theme.colors.text,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  activeAssignedCountBadge: {
+    backgroundColor: theme.colors.onPrimary,
+  },
+  activeAssignedCountText: {
+    color: theme.colors.primary,
+  },
   sectionHeading: {
     alignItems: 'center',
     flexDirection: 'row',

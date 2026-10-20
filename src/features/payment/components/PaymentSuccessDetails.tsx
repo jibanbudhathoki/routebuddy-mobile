@@ -15,10 +15,12 @@ interface PaymentSuccessDetailsProps {
   serviceFee: number;
   taxes: number;
   total: number;
+  showEstimatedBreakdown?: boolean;
   conversationError: string;
   isCreatingConversation: boolean;
   onRetryConversation: () => void;
   onGoHome: () => void;
+  onViewDetails: () => void;
 }
 
 export function PaymentSuccessDetails(props: PaymentSuccessDetailsProps) {
@@ -44,10 +46,12 @@ export function PaymentSuccessDetails(props: PaymentSuccessDetailsProps) {
         serviceFee={props.serviceFee}
         taxes={props.taxes}
         total={props.total}
+        showEstimatedBreakdown={props.showEstimatedBreakdown}
       />
       <PaymentSuccessNextSteps
         isRequestPublished={props.isRequestPublished}
         onGoHome={props.onGoHome}
+        onViewDetails={props.onViewDetails}
       />
     </>
   );

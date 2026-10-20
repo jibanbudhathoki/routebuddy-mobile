@@ -1,14 +1,16 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
-import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { Text } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 
-import { MessageGesturePressable } from "./MessageGesturePressable";
+import { MessageRequestCard } from "./MessageRequestCard";
 import type { ChatTripOrder } from "../types/message.types";
 import type { RequestAction } from "../../request/types/request";
 
 interface TripOrderMessageCardProps {
   order: ChatTripOrder;
   message: string;
+  createdAt: string;
+  isMine: boolean;
+  isRead?: boolean;
   showActions: boolean;
   isResponding: boolean;
   respondingAction?: RequestAction;
@@ -23,6 +25,9 @@ interface TripOrderMessageCardProps {
 export function TripOrderMessageCard({
   order,
   message,
+  createdAt,
+  isMine,
+  isRead,
   showActions,
   isResponding,
   respondingAction,
@@ -33,172 +38,49 @@ export function TripOrderMessageCard({
   onDoubleTap,
   onAction,
 }: TripOrderMessageCardProps) {
-  const { theme } = useUnistyles();
-  const canRespond = ![
-    "accepted",
-    "cancelled",
-    "canceled",
-    "completed",
-    "delivered",
-    "rejected",
-  ].includes(order.status.toLowerCase());
+  const normalizedStatus = order.status.toLowerCase();
+  const canRespond = ["pending", "open"].includes(normalizedStatus);
+  const statusMessage = canRespond
+    ? showActions
+      ? "Review this order and choose whether to accept or reject it."
+      : "This order is waiting for the driver’s response."
+    : normalizedStatus === "accepted"
+      ? "This order was accepted and assigned to a driver."
+      : normalizedStatus === "rejected"
+        ? "This order was declined."
+        : "Order updates are available in this conversation.";
 
   return (
-    <View style={[styles.card, selected && styles.selectedCard]}>
-      <MessageGesturePressable
-        selectionMode={selectionMode}
-        accessibilityLabel={selected ? "Deselect order message" : "Order message"}
-        onPress={onPress}
-        onLongPress={onLongPress}
-        onDoubleTap={onDoubleTap}
-      >
-        <View style={styles.heading}>
-          <MaterialCommunityIcons
-            name="clipboard-list-outline"
-            size={18}
-            color={theme.colors.text}
-          />
-          <Text style={styles.title}>Shopping order</Text>
-          <Text style={styles.status}>{order.status}</Text>
-        </View>
-        <Text style={styles.message}>{message}</Text>
-      </MessageGesturePressable>
-      {showActions && canRespond ? (
-        <>
-          <View style={styles.actions}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Accept shopping order"
-              disabled={isResponding}
-              onPress={() => onAction("accept")}
-              style={[
-                styles.acceptButton,
-                isResponding && styles.disabledButton,
-              ]}
-            >
-              {isResponding && respondingAction === "accept" ? (
-                <ActivityIndicator
-                  size="small"
-                  color={theme.colors.onPrimary}
-                />
-              ) : (
-                <MaterialCommunityIcons
-                  name="check"
-                  size={16}
-                  color={theme.colors.onPrimary}
-                />
-              )}
-              <Text style={styles.acceptText}>
-                {isResponding && respondingAction === "accept"
-                  ? "Accepting..."
-                  : "Accept order"}
-              </Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ disabled: isResponding }}
-              disabled={isResponding}
-              onPress={() => onAction("reject")}
-              style={[
-                styles.rejectButton,
-                isResponding && styles.disabledButton,
-              ]}
-            >
-              {isResponding && respondingAction === "reject" ? (
-                <ActivityIndicator size="small" color={theme.colors.error} />
-              ) : (
-                <MaterialCommunityIcons
-                  name="close"
-                  size={16}
-                  color={theme.colors.error}
-                />
-              )}
-              <Text style={styles.rejectText}>
-                {isResponding && respondingAction === "reject"
-                  ? "Rejecting..."
-                  : "Reject"}
-              </Text>
-            </Pressable>
-          </View>
-        </>
-      ) : null}
-    </View>
+    <MessageRequestCard
+      title="Shopping order"
+      icon="clipboard-list-outline"
+      status={order.status}
+      statusMessage={statusMessage}
+      createdAt={createdAt}
+      isMine={isMine}
+      isRead={isRead}
+      canRespond={canRespond}
+      showActions={showActions}
+      isResponding={isResponding}
+      respondingAction={respondingAction}
+      selected={selected}
+      selectionMode={selectionMode}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      onDoubleTap={onDoubleTap}
+      onAction={onAction}
+    >
+      <Text style={styles.message}>
+        {message.trim() || "Shopping order details"}
+      </Text>
+    </MessageRequestCard>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
-  card: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.sm,
-  },
-  selectedCard: {
-    borderColor: theme.colors.primary,
-    borderWidth: 2,
-  },
-  heading: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: theme.spacing.xs,
-  },
-  title: {
-    color: theme.colors.text,
-    flex: 1,
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  status: {
-    color: theme.colors.text,
-    fontSize: 10,
-    fontWeight: "700",
-    textTransform: "capitalize",
-  },
   message: {
     color: theme.colors.text,
     fontSize: 12,
     lineHeight: 18,
-    marginTop: theme.spacing.sm,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-  },
-  acceptButton: {
-    alignItems: "center",
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.sm,
-    flex: 1,
-    flexDirection: "row",
-    gap: theme.spacing.xs,
-    height: 40,
-    justifyContent: "center",
-  },
-  acceptText: {
-    color: theme.colors.onPrimary,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  rejectButton: {
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    flex: 1,
-    flexDirection: "row",
-    gap: theme.spacing.xs,
-    height: 40,
-    justifyContent: "center",
-  },
-  rejectText: {
-    color: theme.colors.error,
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  disabledButton: {
-    opacity: 0.65,
   },
 }));

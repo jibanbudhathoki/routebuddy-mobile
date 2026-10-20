@@ -7,6 +7,7 @@ import { AppScreen } from '../../../shared/components/AppScreen';
 import { NotificationBellButton } from '../../../shared/components/NotificationBellButton';
 import { useUnreadNotificationCount } from '../../notifications/hooks/useNotifications';
 import { MyRequestsScreen } from '../../request/screens/MyRequestsScreen';
+import { useListMyAssignedRequests } from '../../request/hooks/useListMyAssignedRequests';
 import { AssignedToMeOrders } from '../components/AssignedToMeOrders';
 import {
   RequestOrderModeDropdown,
@@ -25,6 +26,11 @@ export function TripScreen() {
     useState<RequestOrderMode>('posted');
   const { theme } = useUnistyles();
   const unreadCount = useUnreadNotificationCount();
+  const { data: assignedRequests } = useListMyAssignedRequests();
+  const activeAssignedRequestCount =
+    assignedRequests?.filter((request) =>
+      isActiveAssignedRequest(request.status),
+    ).length ?? 0;
   const {
     data: trips,
     error,
@@ -72,6 +78,11 @@ export function TripScreen() {
           </Pressable>
           <Pressable
             accessibilityRole="tab"
+            accessibilityLabel={`Requests (Ordering)${
+              activeAssignedRequestCount
+                ? `, ${activeAssignedRequestCount} active assigned requests`
+                : ''
+            }`}
             accessibilityState={{ selected: tripMode === 'ordering' }}
             onPress={() => setTripMode('ordering')}
             style={[
@@ -92,6 +103,25 @@ export function TripScreen() {
             >
               Requests (Ordering)
             </Text>
+            {activeAssignedRequestCount > 0 ? (
+              <View
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+                style={[
+                  styles.assignedCountBadge,
+                  tripMode === 'ordering' && styles.activeAssignedCountBadge,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.assignedCountText,
+                    tripMode === 'ordering' && styles.activeAssignedCountText,
+                  ]}
+                >
+                  {formatCount(activeAssignedRequestCount)}
+                </Text>
+              </View>
+            ) : null}
           </Pressable>
         </View>
 
@@ -150,6 +180,7 @@ export function TripScreen() {
             <RequestOrderModeDropdown
               value={requestOrderMode}
               onChange={setRequestOrderMode}
+              assignedCount={activeAssignedRequestCount}
             />
             {requestOrderMode === 'posted' ? (
               <MyRequestsScreen />
@@ -161,4 +192,14 @@ export function TripScreen() {
       </ScrollView>
     </AppScreen>
   );
+}
+
+function isActiveAssignedRequest(status: string) {
+  return !['completed', 'delivered', 'cancelled', 'canceled', 'rejected'].includes(
+    status.trim().toLowerCase(),
+  );
+}
+
+function formatCount(count: number) {
+  return count > 99 ? '99+' : String(count);
 }

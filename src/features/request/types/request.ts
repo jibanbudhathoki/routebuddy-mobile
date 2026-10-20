@@ -76,8 +76,11 @@ export interface CreateTripOrderPayload {
 export interface CreateTripOrderResponse {
   success: boolean;
   message: string;
-  data: Omit<TripOrder, "status"> & {
+  data: {
+    postId: string;
     status: "pending" | "open";
+    totalItems: number;
+    totalCost: string;
   };
 }
 

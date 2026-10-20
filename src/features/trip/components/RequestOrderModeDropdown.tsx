@@ -15,9 +15,11 @@ const options: Array<{ value: RequestOrderMode; label: string }> = [
 export function RequestOrderModeDropdown({
   value,
   onChange,
+  assignedCount = 0,
 }: {
   value: RequestOrderMode;
   onChange: (value: RequestOrderMode) => void;
+  assignedCount?: number;
 }) {
   const { theme } = useUnistyles();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -27,12 +29,21 @@ export function RequestOrderModeDropdown({
     <View style={styles.container}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Request orders: ${selectedOption?.label}`}
+        accessibilityLabel={`Request orders: ${selectedOption?.label}${
+          value === "assigned" && assignedCount > 0
+            ? `, ${assignedCount} active`
+            : ""
+        }`}
         accessibilityState={{ expanded: isExpanded }}
         onPress={() => setIsExpanded((expanded) => !expanded)}
         style={styles.currentSelection}
       >
-        <Text style={styles.currentLabel}>{selectedOption?.label}</Text>
+        <View style={styles.currentContent}>
+          <Text style={styles.currentLabel}>{selectedOption?.label}</Text>
+          {value === "assigned" && assignedCount > 0 ? (
+            <CountBadge count={assignedCount} />
+          ) : null}
+        </View>
         <MaterialCommunityIcons
           name={isExpanded ? "chevron-up" : "chevron-down"}
           size={18}
@@ -46,6 +57,11 @@ export function RequestOrderModeDropdown({
               <Pressable
                 key={option.value}
                 accessibilityRole="button"
+                accessibilityLabel={`${option.label}${
+                  option.value === "assigned" && assignedCount > 0
+                    ? `, ${assignedCount} active`
+                    : ""
+                }`}
                 accessibilityState={{ selected }}
                 onPress={() => {
                   onChange(option.value);
@@ -53,11 +69,19 @@ export function RequestOrderModeDropdown({
                 }}
                 style={[styles.option, selected && styles.selectedOption]}
               >
-                <Text
-                  style={[styles.label, selected && styles.selectedLabel]}
-                >
-                  {option.label}
-                </Text>
+                <View style={styles.optionContent}>
+                  <Text
+                    style={[styles.label, selected && styles.selectedLabel]}
+                  >
+                    {option.label}
+                  </Text>
+                  {option.value === "assigned" && assignedCount > 0 ? (
+                    <CountBadge
+                      count={assignedCount}
+                      selected={selected}
+                    />
+                  ) : null}
+                </View>
                 {selected ? (
                   <MaterialCommunityIcons
                     name="check"
@@ -69,6 +93,32 @@ export function RequestOrderModeDropdown({
             );
           })
         : null}
+    </View>
+  );
+}
+
+function CountBadge({
+  count,
+  selected = false,
+}: {
+  count: number;
+  selected?: boolean;
+}) {
+  return (
+    <View
+      style={[
+        styles.countBadge,
+        selected && styles.selectedCountBadge,
+      ]}
+    >
+      <Text
+        style={[
+          styles.countText,
+          selected && styles.selectedCountText,
+        ]}
+      >
+        {count > 99 ? "99+" : count}
+      </Text>
     </View>
   );
 }

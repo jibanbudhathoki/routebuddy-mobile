@@ -16,6 +16,17 @@ export const styles = StyleSheet.create((theme) => ({
     minHeight: 44,
     paddingHorizontal: theme.spacing.md,
   },
+  currentContent: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: theme.spacing.sm,
+  },
+  optionContent: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+    gap: theme.spacing.sm,
+  },
   currentLabel: {
     color: theme.colors.text,
     fontSize: 13,
@@ -43,5 +54,24 @@ export const styles = StyleSheet.create((theme) => ({
   },
   selectedLabel: {
     color: theme.colors.onPrimary,
+  },
+  countBadge: {
+    alignItems: "center",
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: theme.radius.sm,
+    minWidth: 22,
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: 2,
+  },
+  countText: {
+    color: theme.colors.text,
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  selectedCountBadge: {
+    backgroundColor: theme.colors.onPrimary,
+  },
+  selectedCountText: {
+    color: theme.colors.primary,
   },
 }));

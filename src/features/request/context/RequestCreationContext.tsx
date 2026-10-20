@@ -21,11 +21,11 @@ export interface TripOrderConversationData {
   driverUid: string;
   items: RequestItem[];
   total: string;
-  itemSubtotal: string;
-  serviceFee: string;
-  driverFee: string;
-  platformFee: string;
-  tax: string;
+  itemSubtotal?: string;
+  serviceFee?: string;
+  driverFee?: string;
+  platformFee?: string;
+  tax?: string;
   notes: string;
   neededBy: string;
   latestDeliveryBy: string;

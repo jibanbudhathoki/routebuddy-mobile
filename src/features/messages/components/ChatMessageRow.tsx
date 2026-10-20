@@ -124,6 +124,9 @@ export function ChatMessageRow({
             <TripOrderMessageCard
               order={tripOrder}
               message={messageText}
+              createdAt={message.createdAt}
+              isMine={isMine}
+              isRead={message.isRead}
               showActions={showTripOrderActions}
               isResponding={isRespondingToOrder}
               respondingAction={respondingOrderAction}
@@ -137,6 +140,10 @@ export function ChatMessageRow({
           ) : requestOffer ? (
             <RequestOfferMessageCard
               offer={requestOffer}
+              message={messageText}
+              createdAt={message.createdAt}
+              isMine={isMine}
+              isRead={message.isRead}
               showActions={showRequestOfferActions}
               isResponding={isRespondingToOffer}
               respondingAction={respondingOfferAction}

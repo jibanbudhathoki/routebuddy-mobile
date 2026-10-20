@@ -15,6 +15,7 @@ interface PaymentSuccessOrderSummaryProps {
   serviceFee: number;
   taxes: number;
   total: number;
+  showEstimatedBreakdown?: boolean;
 }
 
 export function PaymentSuccessOrderSummary({
@@ -30,6 +31,7 @@ export function PaymentSuccessOrderSummary({
   serviceFee,
   taxes,
   total,
+  showEstimatedBreakdown = true,
 }: PaymentSuccessOrderSummaryProps) {
   const { theme } = useUnistyles();
 
@@ -78,12 +80,20 @@ export function PaymentSuccessOrderSummary({
       </View>
 
       <View style={styles.summaryDivider} />
-      <SummaryRow
-        label={`Items Subtotal (${itemCount} items)`}
-        value={subtotal}
-      />
-      <SummaryRow label="Service Fee (15%)" value={serviceFee} showInfo />
-      <SummaryRow label="Estimated Taxes (5%)" value={taxes} showInfo />
+      {showEstimatedBreakdown ? (
+        <>
+          <SummaryRow
+            label={`Items Subtotal (${itemCount} items)`}
+            value={subtotal}
+          />
+          <SummaryRow label="Service Fee (15%)" value={serviceFee} showInfo />
+          <SummaryRow label="Estimated Taxes (5%)" value={taxes} showInfo />
+        </>
+      ) : (
+        <Text style={styles.summaryLabel}>
+          Final amount provided by the trip order
+        </Text>
+      )}
       <View style={styles.summaryDivider} />
       <View style={styles.totalRow}>
         <Text style={styles.totalLabel}>

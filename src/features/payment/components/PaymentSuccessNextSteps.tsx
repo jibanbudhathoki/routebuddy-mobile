@@ -4,11 +4,13 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 interface PaymentSuccessNextStepsProps {
   onGoHome: () => void;
+  onViewDetails: () => void;
   isRequestPublished?: boolean;
 }
 
 export function PaymentSuccessNextSteps({
   onGoHome,
+  onViewDetails,
   isRequestPublished = false,
 }: PaymentSuccessNextStepsProps) {
   const { theme } = useUnistyles();
@@ -92,12 +94,20 @@ export function PaymentSuccessNextSteps({
         />
       </View>
 
-      {!isRequestPublished ? (
-        <TouchableOpacity style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>View Order Details</Text>
-        </TouchableOpacity>
-      ) : null}
-      <TouchableOpacity style={styles.secondaryButton} onPress={onGoHome}>
+      <TouchableOpacity
+        accessibilityRole="button"
+        onPress={onViewDetails}
+        style={styles.primaryButton}
+      >
+        <Text style={styles.primaryButtonText}>
+          {isRequestPublished ? "View Request Details" : "View Order Details"}
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        onPress={onGoHome}
+        style={styles.secondaryButton}
+      >
         <Text style={styles.secondaryButtonText}>Go to Home</Text>
       </TouchableOpacity>
 

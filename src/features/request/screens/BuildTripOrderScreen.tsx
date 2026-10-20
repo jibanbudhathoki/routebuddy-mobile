@@ -104,7 +104,7 @@ export function BuildTripOrderScreen() {
     setSubmitError("");
     try {
       const response = await createTripOrder.mutateAsync(validation.data);
-      const checkoutId = response.data.uid;
+      const checkoutId = response.data.postId;
       if (response.data.status !== "pending" && response.data.status !== "open") {
         throw new Error(
           `The order was created with an unsupported status: ${response.data.status}.`,
@@ -121,42 +121,30 @@ export function BuildTripOrderScreen() {
         items,
       });
       setTripOrderConversation({
-        orderUid: response.data.uid,
-        tripUid: response.data.trip?.uid ?? trip.uid,
-        driverUid: response.data.driver?.uid ?? trip.driver.uid,
-        items: response.data.items.map((item, index) => ({
-          id: `${response.data.uid}-${index}`,
-          name: item.item,
+        orderUid: checkoutId,
+        tripUid: trip.uid,
+        driverUid: trip.driver.uid,
+        items: items.map((item) => ({
+          id: item.id,
+          name: item.name,
           description: item.description,
-          estimatedPrice: item.estimatePrice,
+          estimatedPrice: item.estimatedPrice,
         })),
-        total: response.data.total,
-        itemSubtotal: response.data.itemSubtotal,
-        serviceFee: response.data.serviceFee,
-        driverFee: response.data.driverFee,
-        platformFee: response.data.platformFee,
-        tax: response.data.tax,
-        notes: response.data.notes || notes.trim(),
-        neededBy: response.data.neededBy,
-        latestDeliveryBy: response.data.latestDeliveryBy,
-        storeNames: response.data.stores.map((store) => store.name),
-        origin: response.data.trip?.origin ?? trip.origin,
-        destination: response.data.trip?.destination ?? trip.destination,
-        deliveryCity: response.data.deliveryLocation.city.name,
-        deliveryProvince: response.data.deliveryLocation.province.name,
+        total: response.data.totalCost,
+        notes: notes.trim(),
+        neededBy: trip.departureAt,
+        latestDeliveryBy: trip.deliveryLatestBy,
+        storeNames: trip.stores.map((store) => store.name),
+        origin: trip.origin,
+        destination: trip.destination,
+        deliveryCity: selectedAddress.city?.name ?? "",
+        deliveryProvince: selectedAddress.province?.name ?? "",
       });
 
-      if (response.data.status === "pending") {
-        router.push({
-          pathname: "/(modals)/request/checkout",
-          params: { postId: checkoutId },
-        });
-      } else if (response.data.status === "open") {
-        router.push({
-          pathname: "/(modals)/request/payment-success",
-          params: { orderUid: checkoutId },
-        });
-      }
+      router.push({
+        pathname: "/(modals)/request/checkout",
+        params: { postId: checkoutId },
+      });
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Unable to create your order.",

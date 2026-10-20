@@ -13,6 +13,7 @@ interface CheckoutOrderOverviewProps {
   serviceFee: number;
   taxes: number;
   total: number;
+  showEstimatedBreakdown?: boolean;
 }
 
 export function CheckoutOrderOverview({
@@ -26,6 +27,7 @@ export function CheckoutOrderOverview({
   serviceFee,
   taxes,
   total,
+  showEstimatedBreakdown = true,
 }: CheckoutOrderOverviewProps) {
   const { theme } = useUnistyles();
 
@@ -73,9 +75,20 @@ export function CheckoutOrderOverview({
 
       <View style={styles.summaryCard}>
         <Text style={styles.summaryTitle}>Order Summary</Text>
-        <SummaryRow label={`Items Subtotal (${itemCount} items)`} value={subtotal} />
-        <SummaryRow label="Service Fee (15%)" value={serviceFee} showInfo />
-        <SummaryRow label="Estimated Taxes (5%)" value={taxes} showInfo />
+        {showEstimatedBreakdown ? (
+          <>
+            <SummaryRow
+              label={`Items Subtotal (${itemCount} items)`}
+              value={subtotal}
+            />
+            <SummaryRow label="Service Fee (15%)" value={serviceFee} showInfo />
+            <SummaryRow label="Estimated Taxes (5%)" value={taxes} showInfo />
+          </>
+        ) : (
+          <Text style={styles.summaryLabel}>
+            Final amount provided by the trip order
+          </Text>
+        )}
         <View style={styles.divider} />
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Total to Pay</Text>

@@ -102,18 +102,14 @@ export function ChatMessagesPanel({
     const replyMessage = message.replyToUid
       ? messages.find((candidate) => candidate.id === message.replyToUid)
       : undefined;
-    const requestOffer = findRequestOffer(
-      message,
-      requestUid,
-      requestOffers,
-    );
+    const requestOffer = findRequestOffer(message, requestUid, requestOffers);
     const matchedTripOrder =
       message.tripOrderUid
         ? tripOrder?.uid === message.tripOrderUid
           ? tripOrder
           : {
               uid: message.tripOrderUid,
-              status: "pending",
+              status: "sent",
               driverUid: message.tripOrderDriverUid ?? "",
             }
         : undefined;
@@ -211,15 +207,20 @@ function findRequestOffer(
   requestUid: string | undefined,
   offers: ChatRequestOffer[],
 ) {
-  if (offers.length === 0 || message.type !== "text") return;
-  if (
-    message.requestOffer &&
-    (!requestUid || message.requestOffer.requestUid === requestUid)
-  ) {
+  if (message.type !== "text") return;
+  if (message.requestOffer) {
+    if (requestUid && message.requestOffer.requestUid !== requestUid) return;
     const referencedOffer = offers.find(
       (offer) => offer.uid === message.requestOffer?.offerUid,
     );
     if (referencedOffer) return referencedOffer;
+    return {
+      uid: message.requestOffer.offerUid,
+      driverUid: message.senderId ?? "",
+      message: "",
+      proposedLatestBy: "",
+      status: "sent",
+    };
   }
 
   const messageText = message.text.trimStart().toLowerCase();
@@ -230,11 +231,10 @@ function findRequestOffer(
   if (!isOfferNotice) {
     return;
   }
-  return offers.find(
-    (offer) =>
-      offer.driverUid === message.senderId &&
-      offer.status.toLowerCase() === "pending",
+  const matchingOffers = offers.filter(
+    (offer) => offer.driverUid === message.senderId,
   );
+  if (matchingOffers.length === 1) return matchingOffers[0];
 }
 
 function buildChatItems(messages: Message[]): ChatListItem[] {

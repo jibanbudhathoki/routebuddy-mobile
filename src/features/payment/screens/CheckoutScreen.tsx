@@ -30,7 +30,7 @@ export function CheckoutScreen() {
     clearRequestDraft?: string;
   }>();
   const { theme } = useUnistyles();
-  const { requestData } = useRequestCreation();
+  const { requestData, tripOrderConversation } = useRequestCreation();
   const [nameOnCard, setNameOnCard] = useState("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
@@ -77,6 +77,11 @@ export function CheckoutScreen() {
 
   const items = requestData.items || [];
   const { subtotal, serviceFee, taxes, total } = calculateEstimate(items);
+  const tripOrderTotal =
+    tripOrderConversation?.orderUid === postId
+      ? Number(tripOrderConversation.total)
+      : Number.NaN;
+  const totalToPay = Number.isFinite(tripOrderTotal) ? tripOrderTotal : total;
   const { stores } = useStores({ limit: 100 });
   const { cities } = useCities();
   const selectedStore = stores.find((store) =>
@@ -224,7 +229,8 @@ export function CheckoutScreen() {
           subtotal={subtotal}
           serviceFee={serviceFee}
           taxes={taxes}
-          total={total}
+          total={totalToPay}
+          showEstimatedBreakdown={!Number.isFinite(tripOrderTotal)}
         />
 
         <CheckoutPaymentForm
@@ -234,7 +240,7 @@ export function CheckoutScreen() {
           isFormValid={isFormValid}
           hasFailed={hasFailed}
           isInitializing={isInitializing}
-          total={total}
+          total={totalToPay}
           onPay={handlePay}
           onReset={() => setHasSubmitted(false)}
           savedMethods={savedMethods}

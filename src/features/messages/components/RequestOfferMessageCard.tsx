@@ -1,13 +1,16 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
-import { MessageGesturePressable } from "./MessageGesturePressable";
+import { MessageRequestCard } from "./MessageRequestCard";
 import type { ChatRequestOffer } from "../types/message.types";
 import type { RequestAction } from "../../request/types/request";
 
 interface RequestOfferMessageCardProps {
   offer: ChatRequestOffer;
+  message: string;
+  createdAt: string;
+  isMine: boolean;
+  isRead?: boolean;
   showActions: boolean;
   isResponding: boolean;
   respondingAction?: RequestAction;
@@ -21,6 +24,10 @@ interface RequestOfferMessageCardProps {
 
 export function RequestOfferMessageCard({
   offer,
+  message,
+  createdAt,
+  isMine,
+  isRead,
   showActions,
   isResponding,
   respondingAction,
@@ -32,139 +39,69 @@ export function RequestOfferMessageCard({
   onAction,
 }: RequestOfferMessageCardProps) {
   const { theme } = useUnistyles();
-  const date = new Date(offer.proposedLatestBy);
-  const proposedDate = Number.isNaN(date.getTime())
-    ? "Time not available"
-    : date.toLocaleString(undefined, {
-        dateStyle: "medium",
-        timeStyle: "short",
-      });
-  const isPending = offer.status.toLowerCase() === "pending";
+  const status = offer.status || "sent";
+  const normalizedStatus = status.toLowerCase();
+  const canRespond = ["pending", "open"].includes(normalizedStatus);
+  const date = offer.proposedLatestBy
+    ? new Date(offer.proposedLatestBy)
+    : undefined;
+  const proposedDate =
+    date && !Number.isNaN(date.getTime())
+      ? date.toLocaleString(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })
+      : undefined;
+  const statusMessage = canRespond
+    ? showActions
+      ? "Review this offer and choose whether to accept or reject it."
+      : "This offer is waiting for the requester’s response."
+    : normalizedStatus === "accepted"
+      ? "This offer was accepted and the driver is assigned to the request."
+      : normalizedStatus === "rejected"
+        ? "This offer was declined."
+        : "Offer details and updates are available in this conversation.";
+  const offerMessage = offer.message.trim();
 
   return (
-    <View style={[styles.card, selected && styles.selectedCard]}>
-      <MessageGesturePressable
-        selectionMode={selectionMode}
-        accessibilityLabel={selected ? "Deselect offer message" : "Offer message"}
-        onPress={onPress}
-        onLongPress={onLongPress}
-        onDoubleTap={onDoubleTap}
-      >
-        <View style={styles.heading}>
-          <MaterialCommunityIcons
-            name="package-variant"
-            size={18}
-            color={theme.colors.text}
-          />
-          <Text style={styles.title}>Delivery offer</Text>
-          <Text style={styles.status}>
-            {offer.status}
-          </Text>
-        </View>
+    <MessageRequestCard
+      title="Delivery offer"
+      icon="package-variant"
+      status={status}
+      statusMessage={statusMessage}
+      createdAt={createdAt}
+      isMine={isMine}
+      isRead={isRead}
+      canRespond={canRespond}
+      showActions={showActions}
+      isResponding={isResponding}
+      respondingAction={respondingAction}
+      selected={selected}
+      selectionMode={selectionMode}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      onDoubleTap={onDoubleTap}
+      onAction={onAction}
+    >
+      {proposedDate ? (
         <View style={styles.proposedTime}>
           <Text style={styles.label}>Proposed delivery by</Text>
           <Text style={styles.value}>{proposedDate}</Text>
         </View>
+      ) : null}
+      {offerMessage ? (
         <View style={styles.messageBlock}>
           <Text style={styles.label}>Driver’s message</Text>
-          <Text style={styles.message}>
-            {offer.message.trim() || "No message provided."}
-          </Text>
+          <Text style={styles.message}>{offerMessage}</Text>
         </View>
-      </MessageGesturePressable>
-      {showActions && isPending ? (
-        <>
-          <View style={styles.actions}>
-            <Pressable
-              accessibilityRole="button"
-              disabled={isResponding}
-              onPress={() => onAction("accept")}
-              style={[
-                styles.acceptButton,
-                isResponding && styles.disabledButton,
-              ]}
-            >
-              {isResponding && respondingAction === "accept" ? (
-                <ActivityIndicator
-                  size="small"
-                  color={theme.colors.onPrimary}
-                />
-              ) : (
-                <MaterialCommunityIcons
-                  name="check"
-                  size={16}
-                  color={theme.colors.onPrimary}
-                />
-              )}
-              <Text style={styles.acceptText}>
-                {isResponding && respondingAction === "accept"
-                  ? "Accepting..."
-                  : "Accept"}
-              </Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ disabled: isResponding }}
-              disabled={isResponding}
-              onPress={() => onAction("reject")}
-              style={[
-                styles.rejectButton,
-                isResponding && styles.disabledButton,
-              ]}
-            >
-              {isResponding && respondingAction === "reject" ? (
-                <ActivityIndicator size="small" color={theme.colors.error} />
-              ) : (
-                <MaterialCommunityIcons
-                  name="close"
-                  size={16}
-                  color={theme.colors.error}
-                />
-              )}
-              <Text style={styles.rejectText}>
-                {isResponding && respondingAction === "reject"
-                  ? "Rejecting..."
-                  : "Reject"}
-              </Text>
-            </Pressable>
-          </View>
-        </>
+      ) : message.trim() ? (
+        <Text style={styles.message}>{message.trim()}</Text>
       ) : null}
-    </View>
+    </MessageRequestCard>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
-  card: {
-    alignSelf: "stretch",
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.sm,
-  },
-  selectedCard: {
-    borderColor: theme.colors.primary,
-    borderWidth: 2,
-  },
-  heading: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: theme.spacing.xs,
-  },
-  title: {
-    color: theme.colors.text,
-    flex: 1,
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  status: {
-    color: theme.colors.text,
-    fontSize: 10,
-    fontWeight: "700",
-    textTransform: "capitalize",
-  },
   proposedTime: {
     backgroundColor: theme.colors.background,
     borderRadius: theme.radius.sm,
@@ -187,49 +124,5 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text,
     fontSize: 12,
     lineHeight: 17,
-  },
-  actions: {
-    alignSelf: "stretch",
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-  },
-  acceptButton: {
-    alignItems: "center",
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.sm,
-    flex: 1,
-    flexDirection: "row",
-    gap: theme.spacing.xs,
-    height: 40,
-    justifyContent: "center",
-    minWidth: 0,
-    paddingHorizontal: theme.spacing.xs,
-  },
-  acceptText: {
-    color: theme.colors.onPrimary,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  rejectButton: {
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    flex: 1,
-    flexDirection: "row",
-    gap: theme.spacing.xs,
-    height: 40,
-    justifyContent: "center",
-    minWidth: 0,
-    paddingHorizontal: theme.spacing.xs,
-  },
-  rejectText: {
-    color: theme.colors.error,
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  disabledButton: {
-    opacity: 0.65,
   },
 }));

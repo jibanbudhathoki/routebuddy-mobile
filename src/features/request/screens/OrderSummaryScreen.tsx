@@ -66,6 +66,7 @@ export function OrderSummaryScreen() {
           pathname: "/(modals)/request/payment-success",
           params: {
             resultType: "request-published",
+            requestUid: response.data.postId,
             clearRequestDraft: "true",
           },
         });

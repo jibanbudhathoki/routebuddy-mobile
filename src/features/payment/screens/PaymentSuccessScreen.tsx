@@ -16,6 +16,7 @@ import { useCreateOrderConversation } from "../../messages/hooks/useCreateOrderC
 import { useRequestCreation } from "../../request/context/RequestCreationContext";
 import { useCities } from "../../../shared/city/hooks/useCities";
 import { useStores } from "../../../shared/store/hooks/useStores";
+import { useToast } from "../../../shared/components/ToastProvider";
 import { calculateEstimate } from "../../../shared/utils/pricing";
 import { getTopSafeAreaInset } from "../../../shared/utils/safeArea";
 import { createTripOrderMessage } from "../../messages/utils/requestOfferMessage";
@@ -26,6 +27,10 @@ export function PaymentSuccessScreen() {
   const { orderUid: routeOrderUid } =
     useLocalSearchParams<{ orderUid?: string }>();
   const orderUid = typeof routeOrderUid === "string" ? routeOrderUid : "";
+  const { requestUid: routeRequestUid } =
+    useLocalSearchParams<{ requestUid?: string }>();
+  const requestUid =
+    typeof routeRequestUid === "string" ? routeRequestUid : "";
   const { resultType, clearRequestDraft } = useLocalSearchParams<{
     resultType?: string;
     clearRequestDraft?: string;
@@ -33,6 +38,7 @@ export function PaymentSuccessScreen() {
   const isRequestPublished = resultType === "request-published";
   const shouldClearRequestDraft = clearRequestDraft === "true";
   const { theme } = useUnistyles();
+  const { showToast } = useToast();
   const {
     requestData,
     tripOrderConversation,
@@ -44,10 +50,27 @@ export function PaymentSuccessScreen() {
     isPending: isCreatingConversation,
   } = useCreateOrderConversation();
   const [conversationError, setConversationError] = useState("");
+  const [confirmedTripOrderTotal, setConfirmedTripOrderTotal] =
+    useState<number | null>(null);
   const conversationAttempted = useRef(false);
 
   const items = requestData.items || [];
   const { subtotal, serviceFee, taxes, total } = calculateEstimate(items);
+  const currentTripOrderTotal =
+    tripOrderConversation?.orderUid === orderUid
+      ? Number(tripOrderConversation.total)
+      : null;
+  const isTripOrder =
+    currentTripOrderTotal !== null || confirmedTripOrderTotal !== null;
+
+  useEffect(() => {
+    if (
+      currentTripOrderTotal !== null &&
+      Number.isFinite(currentTripOrderTotal)
+    ) {
+      setConfirmedTripOrderTotal(currentTripOrderTotal);
+    }
+  }, [currentTripOrderTotal]);
   const { stores } = useStores({ limit: 100 });
   const { cities } = useCities();
   const selectedStore = stores.find((store) =>
@@ -92,13 +115,7 @@ export function PaymentSuccessScreen() {
         ? `\nRequester notes: ${tripOrderConversation.notes.trim()}`
         : "",
       "",
-      "Payment breakdown:",
-      `• Items subtotal: $${formatCurrency(tripOrderConversation.itemSubtotal)} CAD`,
-      `• Service fee: $${formatCurrency(tripOrderConversation.serviceFee)} CAD`,
-      `• Driver fee: $${formatCurrency(tripOrderConversation.driverFee)} CAD`,
-      `• Platform fee: $${formatCurrency(tripOrderConversation.platformFee)} CAD`,
-      `• Tax: $${formatCurrency(tripOrderConversation.tax)} CAD`,
-      `• Total paid: $${formatCurrency(tripOrderConversation.total)} CAD`,
+      `Total paid: $${formatCurrency(tripOrderConversation.total)} CAD`,
       "",
       "Payment is secured. Please review the list and accept or reject the order.",
     ]
@@ -154,8 +171,43 @@ export function PaymentSuccessScreen() {
 
   const handleGoHome = useCallback(() => {
     if (shouldClearRequestDraft) resetRequestData();
-    router.dismissAll();
+    router.replace("/(tabs)/index");
   }, [resetRequestData, router, shouldClearRequestDraft]);
+
+  const handleViewDetails = useCallback(() => {
+    if (isRequestPublished) {
+      if (!requestUid) {
+        showToast(
+          "The request was published, but its ID is unavailable. Open it from My Trips to view details.",
+        );
+        return;
+      }
+      if (shouldClearRequestDraft) resetRequestData();
+      router.replace({
+        pathname: "/request-details",
+        params: { uid: requestUid },
+      });
+      return;
+    }
+
+    if (!orderUid) {
+      showToast("The order ID is unavailable.");
+      return;
+    }
+    if (shouldClearRequestDraft) resetRequestData();
+    router.replace({
+      pathname: "/trip-order/[uid]",
+      params: { uid: orderUid },
+    });
+  }, [
+    isRequestPublished,
+    orderUid,
+    requestUid,
+    resetRequestData,
+    router,
+    showToast,
+    shouldClearRequestDraft,
+  ]);
 
   useEffect(() => {
     if (!shouldClearRequestDraft) return;
@@ -211,11 +263,13 @@ export function PaymentSuccessScreen() {
           subtotal={subtotal}
           serviceFee={serviceFee}
           taxes={taxes}
-          total={total}
+          total={currentTripOrderTotal ?? confirmedTripOrderTotal ?? total}
+          showEstimatedBreakdown={!isTripOrder}
           conversationError={conversationError}
           isCreatingConversation={isCreatingConversation}
           onRetryConversation={retryDriverConversation}
           onGoHome={handleGoHome}
+          onViewDetails={handleViewDetails}
         />
       </ScrollView>
     </View>
